@@ -5,7 +5,7 @@ print('register')
 scene_translator.register()
 
 print('call')
-bpy.ops.object.move_x()
+bpy.ops.object.cursor_array()
 
 print('unregister')
 scene_translator.unregister()
