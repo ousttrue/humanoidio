@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "PYTHONPATH",
+        "unregister"
+    ],
+    // python
+    "python.analysis.extraPaths": [
+        "..",
+    ]
+}
