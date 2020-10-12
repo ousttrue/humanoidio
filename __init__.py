@@ -1,7 +1,18 @@
+'''
+* https://wiki.blender.org/wiki/Process/Addons/Guidelines/metainfo#Script_Meta_Info
+* https://github.com/dfelinto/blender/blob/master/release/scripts/modules/addon_utils.py
+'''
 bl_info = {
-    "name": "Cursor Array",
+    "name": "scene_translator",
+    "author": "ousttrue",
+    "version": (0, 0, 1),
     "blender": (2, 80, 0),
-    "category": "Object",
+    "location": "File > Import-Export",
+    "description": "scene import and export",
+    "doc_url": "https://github.com/ousttrue/scene_translator",
+    "category": "Import-Export",
+    "support": "TESTING",
+    "warning": "This addon is still in development.",
 }
 
 import bpy
