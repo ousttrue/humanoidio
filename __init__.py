@@ -16,71 +16,54 @@ bl_info = {
 }
 
 import bpy
+from bpy.props import (
+    BoolProperty,
+    FloatProperty,
+    StringProperty,
+    EnumProperty,
+)
+from bpy_extras.io_utils import (ExportHelper)
 
 
-class ObjectCursorArray(bpy.types.Operator):
-    """Object Cursor Array"""
-    bl_idname = "object.cursor_array"
-    bl_label = "Cursor Array"
-    bl_options = {'REGISTER', 'UNDO'}
+class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
+    """Save a Scene"""
 
-    total: bpy.props.IntProperty(name="Steps", default=2, min=1, max=100)
+    bl_idname = "scene_translator.exporter"
+    bl_label = 'Scene Exporter'
+    bl_options = {'PRESET'}
 
-    def execute(self, context):
-        scene = context.scene
-        cursor = scene.cursor.location
-        obj = context.active_object
+    filename_ext = ".glb"
+    filter_glob: StringProperty(
+        default="*.glb",
+        options={'HIDDEN'},
+    )
 
-        for i in range(self.total):
-            obj_new = obj.copy()
-            scene.collection.objects.link(obj_new)
+    check_extension = True
 
-            factor = i / self.total
-            obj_new.location = (obj.location * factor) + (cursor *
-                                                          (1.0 - factor))
+    def execute(self, context: bpy.types.Context):
+        print('excute')
+        for o in context.scene.objects:
+            print(o)
 
         return {'FINISHED'}
 
 
-def menu_func(self, context):
-    self.layout.operator(ObjectCursorArray.bl_idname)
-
-
-# store keymaps here to access after registration
-addon_keymaps = []
+def menu_func_export(self, context):
+    self.layout.operator(SceneTranslatorExporter.bl_idname,
+                         text="Scene Exporter (.glb)")
 
 
 def register():
-    bpy.utils.register_class(ObjectCursorArray)
-    bpy.types.VIEW3D_MT_object.append(menu_func)
-
-    # handle the keymap
-    wm = bpy.context.window_manager
-    # Note that in background mode (no GUI available), keyconfigs are not available either,
-    # so we have to check this to avoid nasty errors in background case.
-    kc = wm.keyconfigs.addon
-    if kc:
-        km = wm.keyconfigs.addon.keymaps.new(name='Object Mode',
-                                             space_type='EMPTY')
-        kmi = km.keymap_items.new(ObjectCursorArray.bl_idname,
-                                  'T',
-                                  'PRESS',
-                                  ctrl=True,
-                                  shift=True)
-        kmi.properties.total = 4
-        addon_keymaps.append((km, kmi))
+    bpy.utils.register_class(SceneTranslatorExporter)
+    bpy.types.VIEW3D_MT_object.append(menu_func_export)
 
 
 def unregister():
     # Note: when unregistering, it's usually good practice to do it in reverse order you registered.
     # Can avoid strange issues like keymap still referring to operators already unregistered...
     # handle the keymap
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
-
-    bpy.utils.unregister_class(ObjectCursorArray)
-    bpy.types.VIEW3D_MT_object.remove(menu_func)
+    bpy.utils.unregister_class(SceneTranslatorExporter)
+    bpy.types.VIEW3D_MT_object.remove(menu_func_export)
 
 
 if __name__ == "__main__":
