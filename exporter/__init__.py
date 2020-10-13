@@ -1,6 +1,4 @@
 import importlib
-from . import bpy_helper
-importlib.reload(bpy_helper)
 from . import materialstore
 importlib.reload(materialstore)
 from . import meshstore

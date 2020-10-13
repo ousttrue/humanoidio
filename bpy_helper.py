@@ -3,10 +3,10 @@ from contextlib import contextmanager
 import bpy
 
 
-def objects_selected_or_roots(selected_only: bool = False
-                              ) -> List[bpy.types.Object]:
+def objects_selected_or_roots(
+        selected_only: bool = False) -> List[bpy.types.Object]:
     if selected_only:
-        return bpy.context.selected_objects
+        return [o for o in bpy.context.selected_objects]
     else:
         return [o for o in bpy.data.scenes[0].objects if not o.parent]
 

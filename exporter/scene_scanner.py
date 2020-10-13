@@ -1,8 +1,8 @@
 from typing import List, Optional, Iterator, Dict, Any
 import bpy
+import bpy_helper
 import mathutils
 from .meshstore import MeshStore
-from . import bpy_helper
 from bl_vrm.formats.buffertypes import Vector3
 from bl_vrm.formats.vrm0x import HumanoidBones
 
@@ -15,38 +15,38 @@ class Node:
         else:
             self.position = Vector3(0, 0, 0)
         self._children: List[Node] = []
-        self._parent: Optional[Node] = None
+        self.parent: Optional[Node] = None
         self.mesh: Optional[MeshStore] = None
         self.skin: Optional[Node] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
 
     def print_tree(self, indent=''):
-        print(f'{indent}{self.name}')
+        print(f'{indent}{self.name} {self.mesh}')
         for child in self._children:
             child.print_tree(indent + '  ')
 
     def get_root(self):
         current = self
         while True:
-            if not current._parent:
+            if not current.parent:
                 return current
-            current = current._parent
+            current = current.parent
 
     def add_child(self, child: 'Node'):
         for node in self.get_root().traverse():
             if node == child:
                 raise Exception("recursive")
 
-        if child._parent:
-            child._parent.remove_child(child)
-        child._parent = self
+        if child.parent:
+            child.parent.remove_child(child)
+        child.parent = self
         self._children.append(child)
 
     def remove_child(self, child: 'Node'):
         if child not in self._children:
             return
         self._children.remove(child)
-        child._parent = None
+        child.parent = None
 
     def __repr__(self) -> str:
         return f'[{self.name} {self.position}]'
@@ -61,8 +61,8 @@ class Node:
                 yield x
 
     def get_local_position(self) -> Vector3:
-        if self._parent:
-            return self.position - self._parent.position
+        if self.parent:
+            return self.position - self.parent.position
         else:
             return self.position
 
@@ -83,11 +83,11 @@ class Scanner:
         self.skin_map: Dict[bpy.types.Object, Node] = {}
         self.vrm = Vrm()
 
-    def __str__(self) -> str:
-        vertex_count = 0
-        for mesh in self.meshes:
-            vertex_count += len(mesh.positions)
-        return f'[Mesh {vertex_count}vertices]'
+    def print(self):
+        for node in self._nodes:
+            if node.parent:
+                continue
+            node.print_tree()
 
     def _add_node(self, obj: Any, node: Node):
         self._nodes.append(node)
@@ -95,7 +95,7 @@ class Scanner:
 
     def get_root_nodes(self) -> Iterator[Node]:
         for node in self._nodes:
-            if not node._parent:
+            if not node.parent:
                 yield node
 
     def remove_node(self, node: Node):
@@ -111,8 +111,8 @@ class Scanner:
         self._nodes.remove(node)
 
         # children
-        if node._parent:
-            node._parent.remove_child(node)
+        if node.parent:
+            node.parent.remove_child(node)
 
     def remove_empty_leaf_nodes(self) -> bool:
         bones: List[Node] = []
@@ -304,6 +304,9 @@ class Scanner:
     def _export_object(self,
                        o: bpy.types.Object,
                        parent: Optional[Node] = None) -> Node:
+        '''
+        scan Node recursive
+        '''
         node = self._get_or_create_node(o)
         if parent:
             parent.add_child(node)
@@ -317,8 +320,6 @@ class Scanner:
                 mesh = self._export_mesh(o, o.data, node)
                 self.meshes.append(mesh)
                 node.mesh = mesh
-
-        # print(node)
 
         for child in o.children:
             self._export_object(child, node)

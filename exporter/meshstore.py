@@ -65,6 +65,9 @@ class MeshStore:
 
         self.morph_map: Dict[str, Any] = {}
 
+    def __str__(self) -> str:
+        return f'<{self.name}: {len(self.positions)}vertices>'
+
     def get_or_create_submesh(self, material_index: int) -> Submesh:
         if material_index < len(self.materials):
             material = self.materials[material_index]
@@ -100,9 +103,9 @@ class MeshStore:
             positions[i] = delta
         self.morph_map[name] = positions
 
-    def add_triangle(self, face: bpy.types.MeshLoopTriangle,
-                     uv_texture_layer: bpy.types.MeshUVLoopLayer
-                     ) -> array.array:
+    def add_triangle(
+            self, face: bpy.types.MeshLoopTriangle,
+            uv_texture_layer: bpy.types.MeshUVLoopLayer) -> array.array:
 
         assert len(face.vertices) == 3
         i0 = self.get_or_add_face_vertex(
