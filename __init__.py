@@ -42,7 +42,9 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
 
     def execute(self, context: bpy.types.Context):
         import exporter
-        exporter.run(context)
+        scanner = exporter.scene_scanner.Scanner()
+        scanner.scan(exporter.bpy_helper.objects_selected_or_roots())
+        print(scanner)
         return {'FINISHED'}
 
 
