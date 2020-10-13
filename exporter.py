@@ -1,8 +1,18 @@
 import bpy
 
 
+def mesh_triangulate(me: bpy.types.Mesh):
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+
+
 def export_mesh(mesh: bpy.types.Mesh):
 
+    mesh_triangulate(mesh)
     print(mesh)
 
     # positions
@@ -19,9 +29,6 @@ def export_mesh(mesh: bpy.types.Mesh):
         v = face.vertices
         if len(v) == 3:
             triangles.append([i for i in v])
-        elif len(v) == 4:
-            triangles.append((v[0], v[1], v[2]))
-            triangles.append((v[2], v[3], v[0]))
         else:
             raise NotImplementedError()
 
