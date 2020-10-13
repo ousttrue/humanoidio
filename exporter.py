@@ -5,6 +5,9 @@ def export_mesh(mesh: bpy.types.Mesh):
 
     print(mesh)
     # positions
+    vertices = [v.co for v in mesh.vertices]
+    print(vertices)
+
     # normals
     # uv
     # skins
