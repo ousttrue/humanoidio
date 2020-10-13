@@ -4,15 +4,28 @@ import bpy
 def export_mesh(mesh: bpy.types.Mesh):
 
     print(mesh)
+
     # positions
     vertices = [v.co for v in mesh.vertices]
-    print(vertices)
 
     # normals
     # uv
     # skins
     # materials
+
     # indices
+    triangles = []
+    for face in mesh.polygons:
+        v = face.vertices
+        if len(v) == 3:
+            triangles.append([i for i in v])
+        elif len(v) == 4:
+            triangles.append((v[0], v[1], v[2]))
+            triangles.append((v[2], v[3], v[0]))
+        else:
+            raise NotImplementedError()
+
+    print(f'{len(vertices)} vertices, {len(triangles)} triangles')
 
     if len(mesh.uv_layers) > 0:
         uv_layer = mesh.uv_layers.active.data[:]
