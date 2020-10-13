@@ -17,7 +17,7 @@ bl_info = {
 
 import json
 import bpy
-from formats import glb
+from .formats import glb
 from bpy.props import (
     BoolProperty,
     FloatProperty,
@@ -51,12 +51,8 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
 
         # importer.import_vrm(path, context)
 
-        return {'FINISHED'}
-
-
-def menu_func_import(self, context):
-    self.layout.operator(SceneTranslatorImporter.bl_idname,
-                         text="Scene Import (.gltf;.glb;.vrm)")
+        from . import importer
+        return importer.builder.load(context, self.filepath)
 
 
 class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
@@ -76,10 +72,10 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
     check_extension = True
 
     def execute(self, context: bpy.types.Context):
-        import bpy_helper
+        from . import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
 
-        import exporter
+        from . import exporter
         scanner = exporter.scene_scanner.Scanner()
         scanner.scan(targets)
         scanner.add_mesh_node()
@@ -88,7 +84,7 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
                 break
         scanner.print()
 
-        import scanner_to_gltf
+        from . import scanner_to_gltf
         # ext = filepath.suffix
         # is_gltf = (ext == '.gltf')
         data, buffers = scanner_to_gltf.export(scanner)
@@ -106,6 +102,11 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
 CLASSES = [SceneTranslatorImporter, SceneTranslatorExporter]
 
 
+def menu_func_import(self, context):
+    self.layout.operator(SceneTranslatorImporter.bl_idname,
+                         text="Scene Import (.gltf;.glb;.vrm)")
+
+
 def menu_func_export(self, context):
     self.layout.operator(SceneTranslatorExporter.bl_idname,
                          text="Scene Exporter (.glb)")
@@ -114,8 +115,8 @@ def menu_func_export(self, context):
 def register():
     for c in CLASSES:
         bpy.utils.register_class(c)
-    bpy.types.VIEW3D_MT_object.append(menu_func_import)
-    bpy.types.VIEW3D_MT_object.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 
 def unregister():
@@ -124,8 +125,8 @@ def unregister():
     # handle the keymap
     for c in CLASSES:
         bpy.utils.unregister_class(c)
-    bpy.types.VIEW3D_MT_object.remove(menu_func_export)
-    bpy.types.VIEW3D_MT_object.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 
 if __name__ == "__main__":

@@ -17,6 +17,14 @@ import/export for Blender-2.83
   * objectの親子あってもapplyできる
   * blenderのZ-UP右手系を、決め打ちでGLTFのY-UP右手系に変換する。ルート付近に X90度回転を残さない
 
+### Material
+
+EEVEE でそれなりの見た目になるようにしたい
+
+* unlit
+* PBR
+* MToon
+
 ## 仕様
 
 Blender側でVRMの追加情報をどのように保持するかなど
