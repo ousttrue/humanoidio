@@ -5,7 +5,7 @@ print('register')
 scene_translator.register()
 
 print('call')
-bpy.ops.scene_translator.exporter()
+bpy.ops.scene_translator.exporter(filepath='tmp.glb')
 
 print('unregister')
 scene_translator.unregister()

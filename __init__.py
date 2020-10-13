@@ -15,7 +15,9 @@ bl_info = {
     "warning": "This addon is still in development.",
 }
 
+import json
 import bpy
+from formats import glb
 from bpy.props import (
     BoolProperty,
     FloatProperty,
@@ -43,10 +45,28 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
     def execute(self, context: bpy.types.Context):
         import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
+
         import exporter
         scanner = exporter.scene_scanner.Scanner()
         scanner.scan(targets)
+        scanner.add_mesh_node()
+        while True:
+            if not scanner.remove_empty_leaf_nodes():
+                break
         scanner.print()
+
+        import scanner_to_gltf
+        # ext = filepath.suffix
+        # is_gltf = (ext == '.gltf')
+        data, buffers = scanner_to_gltf.export(scanner)
+        d = data.to_dict()
+
+        print(f'## to_glb: {self.filepath}')
+        text = json.dumps(d)
+        json_bytes = text.encode('utf-8')
+        with open(self.filepath, 'wb') as w:
+            glb.Glb(json_bytes, buffers[0].buffer.data).write_to(w)
+
         return {'FINISHED'}
 
 
