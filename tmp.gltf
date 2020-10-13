@@ -1,0 +1,183 @@
+{
+  "extensionsUsed": [
+    "KHR_materials_unlit"
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC3",
+      "max": [
+        1,
+        1,
+        1
+      ],
+      "min": [
+        -1,
+        -1,
+        -1
+      ],
+      "name": "Cube.POSITION",
+      "extensions": {},
+      "extras": {}
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC3",
+      "name": "Cube.NORMAL",
+      "extensions": {},
+      "extras": {}
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 0,
+      "componentType": 5126,
+      "count": 36,
+      "type": "VEC2",
+      "name": "Cube.TEXCOORD_0",
+      "extensions": {},
+      "extras": {}
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 0,
+      "componentType": 5125,
+      "count": 36,
+      "type": "SCALAR",
+      "name": "Cube[0].INDICES",
+      "extensions": {},
+      "extras": {}
+    }
+  ],
+  "asset": {
+    "generator": "bl_vrm",
+    "version": "2.0"
+  },
+  "buffers": [
+    {
+      "uri": "tmp_data.bin",
+      "byteLength": 1296
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 432,
+      "name": "Cube.POSITION",
+      "extensions": {},
+      "extras": {}
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 432,
+      "byteLength": 432,
+      "name": "Cube.NORMAL",
+      "extensions": {},
+      "extras": {}
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 864,
+      "byteLength": 288,
+      "name": "Cube.TEXCOORD_0",
+      "extensions": {},
+      "extras": {}
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1152,
+      "byteLength": 144,
+      "name": "Cube[0].INDICES",
+      "extensions": {},
+      "extras": {}
+    }
+  ],
+  "materials": [
+    {
+      "name": "Material",
+      "extensions": {
+        "KHR_materials_unlit": {}
+      },
+      "extras": {},
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.800000011920929,
+          0.800000011920929,
+          0.800000011920929,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.9,
+        "extensions": {},
+        "extras": {}
+      },
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": false
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4,
+          "extensions": {},
+          "extras": {}
+        }
+      ],
+      "name": "Cube",
+      "extensions": {},
+      "extras": {}
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "name": "mesh.Cube"
+    },
+    {
+      "children": [
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "name": "Mesh"
+    }
+  ],
+  "scenes": [
+    {
+      "nodes": [
+        1
+      ],
+      "name": "main"
+    }
+  ],
+  "extensions": {
+    "VRM": null
+  }
+}

@@ -24,19 +24,52 @@ from bpy.props import (
     StringProperty,
     EnumProperty,
 )
-from bpy_extras.io_utils import (ExportHelper)
+from bpy_extras.io_utils import (ImportHelper, ExportHelper)
+
+
+class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
+    """
+    Import scene
+    """
+    bl_idname = 'scene_translator.importer'
+    bl_label = 'Scene Importer'
+    bl_options = {'PRESET', 'UNDO'}
+
+    filename_ext = '.vrm'
+    filter_glob: StringProperty(
+        default='*.vrm;*.glb;*.gltf',
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        # print('@@execute')
+        # stem, ext = os.path.splitext(self.filepath)
+        # print(stem, ext)
+        # if ext.lower() not in ['.vrm', '.glb']:
+        #     self.filepath = bpy.path.ensure_ext(stem, ".vrm")
+        # path = pathlib.Path(self.filepath).absolute()
+
+        # importer.import_vrm(path, context)
+
+        return {'FINISHED'}
+
+
+def menu_func_import(self, context):
+    self.layout.operator(SceneTranslatorImporter.bl_idname,
+                         text="Scene Import (.gltf;.glb;.vrm)")
 
 
 class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
-    """Save a Scene"""
-
-    bl_idname = "scene_translator.exporter"
+    """
+    Export scene
+    """
+    bl_idname = 'scene_translator.exporter'
     bl_label = 'Scene Exporter'
     bl_options = {'PRESET'}
 
-    filename_ext = ".glb"
+    filename_ext = '.glb'
     filter_glob: StringProperty(
-        default="*.glb",
+        default='*.glb',
         options={'HIDDEN'},
     )
 
@@ -70,13 +103,18 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
+CLASSES = [SceneTranslatorImporter, SceneTranslatorExporter]
+
+
 def menu_func_export(self, context):
     self.layout.operator(SceneTranslatorExporter.bl_idname,
                          text="Scene Exporter (.glb)")
 
 
 def register():
-    bpy.utils.register_class(SceneTranslatorExporter)
+    for c in CLASSES:
+        bpy.utils.register_class(c)
+    bpy.types.VIEW3D_MT_object.append(menu_func_import)
     bpy.types.VIEW3D_MT_object.append(menu_func_export)
 
 
@@ -84,8 +122,10 @@ def unregister():
     # Note: when unregistering, it's usually good practice to do it in reverse order you registered.
     # Can avoid strange issues like keymap still referring to operators already unregistered...
     # handle the keymap
-    bpy.utils.unregister_class(SceneTranslatorExporter)
+    for c in CLASSES:
+        bpy.utils.unregister_class(c)
     bpy.types.VIEW3D_MT_object.remove(menu_func_export)
+    bpy.types.VIEW3D_MT_object.remove(menu_func_import)
 
 
 if __name__ == "__main__":
