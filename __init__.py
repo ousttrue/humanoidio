@@ -41,10 +41,8 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
     check_extension = True
 
     def execute(self, context: bpy.types.Context):
-        print('excute')
-        for o in context.scene.objects:
-            print(o)
-
+        import exporter
+        exporter.run(context)
         return {'FINISHED'}
 
 
