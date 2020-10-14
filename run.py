@@ -7,12 +7,14 @@ scene_translator.register()
 
 GLB_FILE = 'tmp.glb'
 
-print('## export ##')
+print(f'## export: {bpy.context.mode} mode')
 bpy.ops.scene_translator.exporter(filepath=GLB_FILE)
+print(f'{bpy.context.mode} mode')
 print()
 
-print('## import ##')
+print(f'## import: {bpy.context.mode} mode')
 bpy.ops.scene_translator.importer(filepath=GLB_FILE)
+print(f'{bpy.context.mode} mode')
 print()
 
 os.remove(GLB_FILE)

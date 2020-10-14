@@ -73,13 +73,13 @@ def _remove_empty(node: Node):
         _remove_empty(child)
 
     if node.children:
-        print(f'{node} children {len(node.children)}')
+        # print(f'{node} children {len(node.children)}')
         return
     if node.blender_armature:
-        print(f'{node} has {node.blender_armature}')
+        # print(f'{node} has {node.blender_armature}')
         return
     if node.blender_object.data:
-        print(f'{node} has {node.blender_object}')
+        # print(f'{node} has {node.blender_object}')
         return
 
     # remove empty
