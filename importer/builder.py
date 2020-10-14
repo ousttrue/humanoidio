@@ -116,6 +116,8 @@ def load(context: bpy.types.Context, filepath: str) -> Set[str]:
     manager.textures.extend(load_textures(manager))
     manager.materials.extend(load_materials(manager))
     manager.meshes.extend(load_meshes(manager))
+    for m, _ in manager.meshes:
+        print(f'[{m.name}: {len(m.vertices)}]vertices')
     nodes, root = load_objects(context, manager)
 
     # # skinning

@@ -34,6 +34,20 @@ class FaceVertex(NamedTuple):
     def __hash__(self):
         return hash(self.position_index)
 
+    def __eq__(self, other: 'FaceVertex') -> bool:
+        if other is None or not isinstance(other, FaceVertex):
+            return False
+        if self.position_index != other.position_index:
+            return False
+        if self.normal != other.normal:
+            return False
+        if self.uv != other.uv:
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class MeshStore:
     def __init__(self, name: str, vertices: List[bpy.types.MeshVertex],
@@ -66,7 +80,7 @@ class MeshStore:
         self.morph_map: Dict[str, Any] = {}
 
     def __str__(self) -> str:
-        return f'<{self.name}: {len(self.positions)}vertices>'
+        return f'<{self.name}: {len(self.face_vertex_map)}vertices>'
 
     def get_or_create_submesh(self, material_index: int) -> Submesh:
         if material_index < len(self.materials):
@@ -88,11 +102,14 @@ class MeshStore:
         face = FaceVertex(vertex_index,
                           Vector3.from_Vector(normal) if normal else None,
                           Vector2.from_faceUV(uv) if uv else None)
-        if face not in self.face_vertex_map:
-            index = len(self.face_vertices)
-            self.face_vertices.append(face)
-            self.face_vertex_map[face] = index
-        return self.face_vertex_map[face]
+        index = self.face_vertex_map.get(face, None)
+        if index != None:
+            return index
+
+        index = len(self.face_vertices)
+        self.face_vertices.append(face)
+        self.face_vertex_map[face] = index
+        return index
 
     def add_morph(self, name: str, vertices: List[bpy.types.MeshVertex]):
         print('add_morph', name)
@@ -125,6 +142,10 @@ class MeshStore:
         return array.array('I', (i0, i1, i2))
 
     def freeze(self, skin_bone_names: List[str]) -> ReorderedMesh:
+        '''
+        blenderの面毎にmaterialを持つ形式から、
+        同じmaterialをsubmeshにまとめた形式に変換する
+        '''
         keys = sorted(self.submesh_map.keys())
 
         total_vertex_count = 0
