@@ -9,7 +9,7 @@ class Submesh:
         self.material = material
 
 
-class SubmeshModel(NamedTuple):
+class SubmeshMesh(NamedTuple):
     name: str
     total_vertex_count: int
     submeshes: List[Submesh]

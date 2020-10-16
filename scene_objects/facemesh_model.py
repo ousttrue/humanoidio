@@ -3,7 +3,7 @@ from typing import (Any, List, Dict, Optional, NamedTuple)
 import bpy, mathutils
 from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight,
                                                   IVector4, Vector4)
-from .submesh_model import Submesh, SubmeshModel
+from .submesh_mesh import Submesh, SubmeshMesh
 
 class FaceVertex(NamedTuple):
     position_index: int
@@ -120,7 +120,7 @@ class FaceMeshModel:
             None if face.use_smooth else face.normal)
         return array.array('I', (i0, i1, i2))
 
-    def freeze(self, skin_bone_names: List[str]) -> SubmeshModel:
+    def freeze(self, skin_bone_names: List[str]) -> SubmeshMesh:
         '''
         blenderの面毎にmaterialを持つ形式から、
         同じmaterialをsubmeshにまとめた形式に変換する
@@ -176,7 +176,7 @@ class FaceMeshModel:
                     morph_positions[i] = morph[face.position_index]
                 i += 1
 
-        mesh = SubmeshModel(self.name, total_vertex_count,
+        mesh = SubmeshMesh(self.name, total_vertex_count,
                             [self.submesh_map[key] for key in keys],
                             memoryview(positions), memoryview(normals),
                             memoryview(uvs) if uvs else None,
