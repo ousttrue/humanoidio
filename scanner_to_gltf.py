@@ -49,9 +49,9 @@ class GltfExporter:
             'NORMAL':
             self.buffer.push_bytes(f'{mesh.name}.NORMAL', mesh.normals),
         }
-        if mesh.uvs:
+        if mesh.texcoord:
             attributes['TEXCOORD_0'] = self.buffer.push_bytes(
-                f'{mesh.name}.TEXCOORD_0', mesh.uvs)
+                f'{mesh.name}.TEXCOORD_0', mesh.texcoord)
         if mesh.joints and mesh.weights:
             attributes['JOINTS_0'] = self.buffer.push_bytes(
                 f'{mesh.name}.JOINTS_0', mesh.joints)

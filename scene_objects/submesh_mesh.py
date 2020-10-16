@@ -18,23 +18,23 @@ class SubmeshMesh:
         # attributes
         self.positions: Optional[memoryview] = None  # float3
         self.normals: Optional[memoryview] = None  # float3
-        self.uvs: Optional[memoryview] = None  # float2
+        self.texcoord: Optional[memoryview] = None  # float2
         self.joints: Optional[memoryview] = None  # int4
         self.weights: Optional[memoryview] = None  # float4
         # morph
         self.morph_map: Dict[str, memoryview] = {}
 
-    def get_or_create_submesh(self, material_index: int) -> Submesh:
-        # if material_index < len(self.materials):
-        #     material = self.materials[material_index]
-        # else:
-        #     # default material
-        #     material = bpy.data.materials[0]
-
+    def get_or_create_submesh(self, material_index: int,
+                              materials: List[bpy.types.Material]) -> Submesh:
         if material_index in self.submesh_map:
             return self.submesh_map[material_index]
 
-        submesh = Submesh(None)
+        if material_index < len(materials):
+            material = materials[material_index]
+        else:
+            # default material
+            material = bpy.data.materials[0]
+        submesh = Submesh(material)
         self.submeshes.append(submesh)
         self.submesh_map[material_index] = submesh
         return submesh

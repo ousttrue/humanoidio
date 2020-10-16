@@ -123,7 +123,7 @@ class FaceMesh:
         # 三角形をsubmeshに分配する
         dst = SubmeshMesh(self.name)
         for triangle in self.triangles:
-            submesh = dst.get_or_create_submesh(triangle.material_index)
+            submesh = dst.get_or_create_submesh(triangle.material_index, self.materials)
             submesh.indices += array.array(
                 'I', (triangle.i0, triangle.i1, triangle.i2))
 
@@ -182,7 +182,7 @@ class FaceMesh:
         dst.submeshes = [dst.submesh_map[key] for key in keys]
         dst.positions = memoryview(positions)
         dst.normals = memoryview(normals)
-        dst.tex_coords = memoryview(uvs) if uvs else None
+        dst.texcoord = memoryview(uvs) if uvs else None
         dst.joints = memoryview(joints) if has_bone_weights else None
         dst.weights = memoryview(weights) if has_bone_weights else None
         dst.morph_map = {k: memoryview(v) for k, v in morph_map.items()}
