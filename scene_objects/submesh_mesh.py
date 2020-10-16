@@ -1,4 +1,4 @@
-from typing import NamedTuple, Any, List, Optional, Dict
+from typing import Any, List, Optional, Dict
 import array
 import bpy
 
@@ -9,15 +9,32 @@ class Submesh:
         self.material = material
 
 
-class SubmeshMesh(NamedTuple):
-    name: str
-    total_vertex_count: int
-    submeshes: List[Submesh]
-    # attributes
-    positions: memoryview  # float3
-    normals: memoryview  # float3
-    uvs: Optional[memoryview]  # float2
-    joints: Optional[memoryview]  # int4
-    weights: Optional[memoryview]  # float4
-    # morph
-    morph_map: Dict[str, memoryview] = {}
+class SubmeshMesh:
+    def __init__(self, name: str):
+        self.name = name
+        self.submesh_map: Dict[int, Submesh] = {}
+        self.submeshes: List[Submesh] = []
+        self.vertex_count = 0
+        # attributes
+        self.positions: Optional[memoryview] = None  # float3
+        self.normals: Optional[memoryview] = None  # float3
+        self.uvs: Optional[memoryview] = None  # float2
+        self.joints: Optional[memoryview] = None  # int4
+        self.weights: Optional[memoryview] = None  # float4
+        # morph
+        self.morph_map: Dict[str, memoryview] = {}
+
+    def get_or_create_submesh(self, material_index: int) -> Submesh:
+        # if material_index < len(self.materials):
+        #     material = self.materials[material_index]
+        # else:
+        #     # default material
+        #     material = bpy.data.materials[0]
+
+        if material_index in self.submesh_map:
+            return self.submesh_map[material_index]
+
+        submesh = Submesh(None)
+        self.submeshes.append(submesh)
+        self.submesh_map[material_index] = submesh
+        return submesh

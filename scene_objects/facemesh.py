@@ -5,6 +5,7 @@ from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight,
                                                   IVector4, Vector4)
 from .submesh_mesh import Submesh, SubmeshMesh
 
+
 class FaceVertex(NamedTuple):
     position_index: int
     normal: Optional[Vector3]
@@ -28,6 +29,13 @@ class FaceVertex(NamedTuple):
         return not self.__eq__(other)
 
 
+class Triangle(NamedTuple):
+    material_index: int
+    i0: int
+    i1: int
+    i2: int
+
+
 class FaceMesh:
     def __init__(self, name: str, vertices: List[bpy.types.MeshVertex],
                  materials: List[bpy.types.Material],
@@ -40,12 +48,12 @@ class FaceMesh:
             self.positions[i] = Vector3.from_Vector(v.co)
             self.normals[i] = Vector3.from_Vector(v.normal)
 
-        self.submesh_map: Dict[int, Submesh] = {}
-
         self.materials: List[bpy.types.Material] = materials
 
+        # faces
         self.face_vertices: List[FaceVertex] = []
-        self.face_vertex_map: Dict[FaceVertex, int] = {}
+        self.face_vertex_index_map: Dict[FaceVertex, int] = {}
+        self.triangles: List[Triangle] = []
 
         self.vertex_group_names = [g.name for g in vertex_groups]
         self.bone_names = bone_names
@@ -59,35 +67,42 @@ class FaceMesh:
         self.morph_map: Dict[str, Any] = {}
 
     def __str__(self) -> str:
-        return f'<{self.name}: {len(self.face_vertex_map)}vertices>'
+        return f'<{self.name}: {len(self.face_vertex_index_map)}vertices>'
 
-    def get_or_create_submesh(self, material_index: int) -> Submesh:
-        if material_index < len(self.materials):
-            material = self.materials[material_index]
-        else:
-            # default material
-            material = bpy.data.materials[0]
+    def add_triangle(self, face: bpy.types.MeshLoopTriangle,
+                     uv_texture_layer: Optional[bpy.types.MeshUVLoopLayer]):
 
-        if material_index in self.submesh_map:
-            return self.submesh_map[material_index]
+        assert len(face.vertices) == 3
+        i0 = self._get_or_add_face_vertex(
+            face.vertices[0], uv_texture_layer.data[face.loops[0]].uv
+            if uv_texture_layer else None,
+            None if face.use_smooth else face.normal)
 
-        submesh = Submesh(material)
-        self.submesh_map[material_index] = submesh
-        return submesh
+        i1 = self._get_or_add_face_vertex(
+            face.vertices[1], uv_texture_layer.data[face.loops[1]].uv
+            if uv_texture_layer else None,
+            None if face.use_smooth else face.normal)
 
-    def get_or_add_face_vertex(self, vertex_index: int, uv: mathutils.Vector,
-                               normal: Optional[mathutils.Vector]) -> int:
+        i2 = self._get_or_add_face_vertex(
+            face.vertices[2], uv_texture_layer.data[face.loops[2]].uv
+            if uv_texture_layer else None,
+            None if face.use_smooth else face.normal)
+
+        self.triangles.append(Triangle(face.material_index, i0, i1, i2))
+
+    def _get_or_add_face_vertex(self, vertex_index: int, uv: mathutils.Vector,
+                                normal: Optional[mathutils.Vector]) -> int:
         # 同一頂点を考慮する
         face = FaceVertex(vertex_index,
                           Vector3.from_Vector(normal) if normal else None,
                           Vector2.from_faceUV(uv) if uv else None)
-        index = self.face_vertex_map.get(face, None)
+        index = self.face_vertex_index_map.get(face, None)
         if index != None:
             return index
 
         index = len(self.face_vertices)
         self.face_vertices.append(face)
-        self.face_vertex_map[face] = index
+        self.face_vertex_index_map[face] = index
         return index
 
     def add_morph(self, name: str, vertices: List[bpy.types.MeshVertex]):
@@ -99,38 +114,25 @@ class FaceMesh:
             positions[i] = delta
         self.morph_map[name] = positions
 
-    def add_triangle(
-            self, face: bpy.types.MeshLoopTriangle,
-            uv_texture_layer: bpy.types.MeshUVLoopLayer) -> array.array:
-
-        assert len(face.vertices) == 3
-        i0 = self.get_or_add_face_vertex(
-            face.vertices[0], uv_texture_layer.data[face.loops[0]].uv
-            if uv_texture_layer else None,
-            None if face.use_smooth else face.normal)
-
-        i1 = self.get_or_add_face_vertex(
-            face.vertices[1], uv_texture_layer.data[face.loops[1]].uv
-            if uv_texture_layer else None,
-            None if face.use_smooth else face.normal)
-
-        i2 = self.get_or_add_face_vertex(
-            face.vertices[2], uv_texture_layer.data[face.loops[2]].uv
-            if uv_texture_layer else None,
-            None if face.use_smooth else face.normal)
-        return array.array('I', (i0, i1, i2))
-
     def freeze(self, skin_bone_names: List[str]) -> SubmeshMesh:
         '''
         blenderの面毎にmaterialを持つ形式から、
         同じmaterialをsubmeshにまとめた形式に変換する
         '''
-        keys = sorted(self.submesh_map.keys())
 
+        # 三角形をsubmeshに分配する
+        dst = SubmeshMesh(self.name)
+        for triangle in self.triangles:
+            submesh = dst.get_or_create_submesh(triangle.material_index)
+            submesh.indices += array.array(
+                'I', (triangle.i0, triangle.i1, triangle.i2))
+
+        keys = sorted(dst.submesh_map.keys())
         total_vertex_count = 0
         for key in keys:
-            submesh = self.submesh_map[key]
+            submesh = dst.submesh_map[key]
             total_vertex_count += len(submesh.indices)
+        dst.vertex_count = total_vertex_count
 
         # attributes
         positions = (Vector3 * total_vertex_count)()
@@ -155,7 +157,7 @@ class FaceMesh:
         # each submesh
         i = 0
         for key in keys:
-            submesh = self.submesh_map[key]
+            submesh = dst.submesh_map[key]
 
             for index in submesh.indices:
                 face = self.face_vertices[index]
@@ -176,12 +178,13 @@ class FaceMesh:
                     morph_positions[i] = morph[face.position_index]
                 i += 1
 
-        mesh = SubmeshMesh(self.name, total_vertex_count,
-                            [self.submesh_map[key] for key in keys],
-                            memoryview(positions), memoryview(normals),
-                            memoryview(uvs) if uvs else None,
-                            memoryview(joints) if has_bone_weights else None,
-                            memoryview(weights) if has_bone_weights else None,
-                            {k: memoryview(v)
-                             for k, v in morph_map.items()})
-        return mesh
+        # sort
+        dst.submeshes = [dst.submesh_map[key] for key in keys]
+        dst.positions = memoryview(positions)
+        dst.normals = memoryview(normals)
+        dst.tex_coords = memoryview(uvs) if uvs else None
+        dst.joints = memoryview(joints) if has_bone_weights else None
+        dst.weights = memoryview(weights) if has_bone_weights else None
+        dst.morph_map = {k: memoryview(v) for k, v in morph_map.items()}
+
+        return dst

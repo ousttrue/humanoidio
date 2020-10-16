@@ -184,12 +184,10 @@ class Scanner:
             bone_names = [b.name
                           for b in node.skin.traverse()] if node.skin else []
             store = FaceMesh(o.name, new_mesh.vertices, new_mesh.materials,
-                              o.vertex_groups, bone_names)
+                             o.vertex_groups, bone_names)
             # triangles
             for i, triangle in enumerate(triangles):
-                submesh = store.get_or_create_submesh(triangle.material_index)
-                submesh.indices += store.add_triangle(triangle,
-                                                      uv_texture_layer)
+                store.add_triangle(triangle, uv_texture_layer)
 
             # shapekey
             if o.data.shape_keys:
