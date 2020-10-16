@@ -1,6 +1,6 @@
 from typing import List, Optional, Iterator, Dict, Any
 import bpy, mathutils
-from .meshstore import MeshStore
+from .meshstore import FaceMeshModel
 from .node import Node
 from scene_translator import bpy_helper
 from scene_translator.formats.buffertypes import Vector3
@@ -18,7 +18,7 @@ class Scanner:
     def __init__(self) -> None:
         self._nodes: List[Node] = []
         self._node_map: Dict[bpy.types.Object, Node] = {}
-        self.meshes: List[MeshStore] = []
+        self.meshes: List[FaceMeshModel] = []
         self.materials: List[bpy.types.Material] = []
         self.skin_map: Dict[bpy.types.Object, Node] = {}
         self.vrm = Vrm()
@@ -143,7 +143,7 @@ class Scanner:
         return armature_node
 
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
-                     node: Node) -> MeshStore:
+                     node: Node) -> FaceMeshModel:
         print('export_mesh', o, mesh)
 
         # copy
@@ -183,7 +183,7 @@ class Scanner:
             # vertices
             bone_names = [b.name
                           for b in node.skin.traverse()] if node.skin else []
-            store = MeshStore(o.name, new_mesh.vertices, new_mesh.materials,
+            store = FaceMeshModel(o.name, new_mesh.vertices, new_mesh.materials,
                               o.vertex_groups, bone_names)
             # triangles
             for i, triangle in enumerate(triangles):
@@ -270,7 +270,7 @@ class Scanner:
         for root in roots:
             self._export_object(root)
 
-    def get_skin_for_store(self, store: MeshStore) -> Optional[Node]:
+    def get_skin_for_store(self, store: FaceMeshModel) -> Optional[Node]:
         for node in self._nodes:
             if node.mesh == store:
                 return node.skin

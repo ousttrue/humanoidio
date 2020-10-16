@@ -1,30 +1,9 @@
 import array
-import mathutils
 from typing import (Any, List, Dict, Optional, NamedTuple)
-from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight, IVector4,
-                                        Vector4)
-import bpy
-
-
-class Submesh:
-    def __init__(self, material: bpy.types.Material) -> None:
-        self.indices: Any = array.array('I')
-        self.material = material
-
-
-class ReorderedMesh(NamedTuple):
-    name: str
-    total_vertex_count: int
-    submeshes: List[Submesh]
-    # attributes
-    positions: memoryview  # float3
-    normals: memoryview  # float3
-    uvs: Optional[memoryview]  # float2
-    joints: Optional[memoryview]  # int4
-    weights: Optional[memoryview]  # float4
-    # morph
-    morph_map: Dict[str, memoryview] = {}
-
+import bpy, mathutils
+from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight,
+                                                  IVector4, Vector4)
+from .submesh_model import Submesh, SubmeshModel
 
 class FaceVertex(NamedTuple):
     position_index: int
@@ -49,7 +28,7 @@ class FaceVertex(NamedTuple):
         return not self.__eq__(other)
 
 
-class MeshStore:
+class FaceMeshModel:
     def __init__(self, name: str, vertices: List[bpy.types.MeshVertex],
                  materials: List[bpy.types.Material],
                  vertex_groups: List[bpy.types.VertexGroup],
@@ -141,7 +120,7 @@ class MeshStore:
             None if face.use_smooth else face.normal)
         return array.array('I', (i0, i1, i2))
 
-    def freeze(self, skin_bone_names: List[str]) -> ReorderedMesh:
+    def freeze(self, skin_bone_names: List[str]) -> SubmeshModel:
         '''
         blenderの面毎にmaterialを持つ形式から、
         同じmaterialをsubmeshにまとめた形式に変換する
@@ -197,12 +176,12 @@ class MeshStore:
                     morph_positions[i] = morph[face.position_index]
                 i += 1
 
-        mesh = ReorderedMesh(self.name, total_vertex_count,
-                             [self.submesh_map[key] for key in keys],
-                             memoryview(positions), memoryview(normals),
-                             memoryview(uvs) if uvs else None,
-                             memoryview(joints) if has_bone_weights else None,
-                             memoryview(weights) if has_bone_weights else None,
-                             {k: memoryview(v)
-                              for k, v in morph_map.items()})
+        mesh = SubmeshModel(self.name, total_vertex_count,
+                            [self.submesh_map[key] for key in keys],
+                            memoryview(positions), memoryview(normals),
+                            memoryview(uvs) if uvs else None,
+                            memoryview(joints) if has_bone_weights else None,
+                            memoryview(weights) if has_bone_weights else None,
+                            {k: memoryview(v)
+                             for k, v in morph_map.items()})
         return mesh
