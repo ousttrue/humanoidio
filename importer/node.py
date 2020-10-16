@@ -5,7 +5,7 @@ from contextlib import contextmanager
 import bpy
 import mathutils  # pylint: disable=E0401
 
-from ..formats import gltf
+from scene_translator.formats import gltf
 from . import import_manager
 
 from logging import getLogger  # pylint: disable=C0411

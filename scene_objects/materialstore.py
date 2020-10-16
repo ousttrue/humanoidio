@@ -1,6 +1,6 @@
 import bpy
-from bl_vrm.formats import gltf
-from bl_vrm.formats.buffermanager import BufferManager
+from scene_translator.formats import gltf
+from scene_translator.formats.buffermanager import BufferManager
 
 
 def image_to_png(image: bpy.types.Image) -> bytes:

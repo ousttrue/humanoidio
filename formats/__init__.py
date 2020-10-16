@@ -1,4 +1,4 @@
-print('reload bl_vrm.formats')
+print('reload scene_translator.formats')
 import importlib
 from . import glb
 importlib.reload(glb)

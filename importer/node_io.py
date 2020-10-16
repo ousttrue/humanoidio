@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Tuple
 import bpy
 import mathutils  # pylint: disable=E0401
 
-from ..formats import gltf
+from scene_translator.formats import gltf
 from .import_manager import ImportManager
 from .node import Node
 

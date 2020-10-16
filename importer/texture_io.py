@@ -1,6 +1,6 @@
 from typing import List
 import pathlib
-from ..formats import gltf
+from scene_translator.formats import gltf
 import bpy
 from bpy_extras.image_utils import load_image
 # from progress_report import ProgressReport

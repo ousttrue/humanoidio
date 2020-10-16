@@ -1,4 +1,4 @@
-from ..formats.gltf import BufferView
+from scene_translator.formats.gltf import BufferView
 import pathlib
 import ctypes
 from typing import List, Tuple, Dict, Any
@@ -6,7 +6,7 @@ from typing import List, Tuple, Dict, Any
 import bpy
 import mathutils  # pylint: disable=E0401
 
-from ..formats import gltf
+from scene_translator.formats import gltf
 
 
 class Float2(ctypes.Structure):

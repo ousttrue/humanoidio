@@ -10,9 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/run.py",
             "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}\\.."
-            }
+            "cwd": "${workspaceFolder}\\..",
         }
     ]
 }

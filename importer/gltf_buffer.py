@@ -1,7 +1,7 @@
 import ctypes
 from typing import Dict
 
-from ..formats import gltf
+from scene_translator.formats import gltf
 from . import import_manager
 
 

@@ -1,6 +1,9 @@
 import os
 import bpy
 import scene_translator
+import pathlib
+HERE = pathlib.Path(__file__).absolute().parent
+os.chdir(HERE)
 
 print('register')
 scene_translator.register()

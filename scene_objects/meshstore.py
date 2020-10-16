@@ -1,7 +1,7 @@
 import array
 import mathutils
 from typing import (Any, List, Dict, Optional, NamedTuple)
-from bl_vrm.formats.buffertypes import (Vector2, Vector3, BoneWeight, IVector4,
+from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight, IVector4,
                                         Vector4)
 import bpy
 

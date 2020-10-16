@@ -1,6 +1,6 @@
 from typing import Tuple, List
 
-from ..formats import gltf
+from scene_translator.formats import gltf
 from . import gltf_buffer
 from .import_manager import ImportManager
 

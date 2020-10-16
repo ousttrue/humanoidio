@@ -2,8 +2,8 @@ import json
 import pathlib
 from typing import Set, List
 import bpy
-from ..formats.glb import Glb
-from ..formats.gltf import glTF
+from scene_translator.formats.glb import Glb
+from scene_translator.formats.gltf import glTF
 
 from .import_manager import ImportManager
 from .texture_io import load_textures

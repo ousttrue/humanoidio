@@ -3,7 +3,7 @@ from typing import List
 
 import bpy
 
-from ..formats import gltf
+from scene_translator.formats import gltf
 from .import_manager import ImportManager
 from . import blender_groupnode_io, gltf_pbr_node
 
