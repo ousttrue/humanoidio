@@ -1,6 +1,6 @@
 from typing import List, Tuple, Any
 import array
-from exporter import scene_scanner, meshstore, materialstore
+from scene_objects import scene_scanner, meshstore, materialstore
 from formats import gltf, buffermanager
 from formats.buffertypes import Vector3, Matrix4
 
