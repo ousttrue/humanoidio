@@ -1,6 +1,8 @@
 from typing import List, Tuple, Any
 import array
-from scene_objects import scene_scanner, meshstore, materialstore
+from scene_objects import scene_scanner, materialstore
+from scene_objects.submesh_model import SubmeshModel
+from scene_objects.facemesh_model import FaceMeshModel
 from formats import gltf, buffermanager
 from formats.buffertypes import Vector3, Matrix4
 
@@ -35,7 +37,7 @@ class GltfExporter:
         self.skins: List[gltf.Skin] = []
         self.nodes: List[gltf.Node] = []
 
-    def to_gltf_mesh(self, mesh: meshstore.SubmeshModel) -> gltf.Mesh:
+    def to_gltf_mesh(self, mesh: SubmeshModel) -> gltf.Mesh:
         '''
         UniVRM compatible shared attributes and targets
         '''
@@ -106,7 +108,7 @@ class GltfExporter:
     def to_gltf_node(self, node: scene_scanner.Node,
                      nodes: List[scene_scanner.Node],
                      skins: List[scene_scanner.Node],
-                     meshes: List[meshstore.FaceMeshModel]) -> gltf.Node:
+                     meshes: List[FaceMeshModel]) -> gltf.Node:
         p = node.get_local_position()
         name = node.name
         if node.mesh:

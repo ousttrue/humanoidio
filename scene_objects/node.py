@@ -1,6 +1,6 @@
 from typing import List, Optional, Iterator
 import bpy, mathutils
-from .meshstore import FaceMeshModel
+from .facemesh_model import FaceMeshModel
 from formats.buffertypes import Vector3
 from formats.vrm0x import HumanoidBones
 

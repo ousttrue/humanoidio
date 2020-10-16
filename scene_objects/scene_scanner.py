@@ -1,6 +1,6 @@
 from typing import List, Optional, Iterator, Dict, Any
 import bpy, mathutils
-from .meshstore import FaceMeshModel
+from .facemesh_model import FaceMeshModel
 from .node import Node
 from scene_translator import bpy_helper
 from scene_translator.formats.buffertypes import Vector3
