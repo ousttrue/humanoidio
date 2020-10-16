@@ -28,7 +28,7 @@ class FaceVertex(NamedTuple):
         return not self.__eq__(other)
 
 
-class FaceMeshModel:
+class FaceMesh:
     def __init__(self, name: str, vertices: List[bpy.types.MeshVertex],
                  materials: List[bpy.types.Material],
                  vertex_groups: List[bpy.types.VertexGroup],

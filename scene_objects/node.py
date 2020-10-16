@@ -1,6 +1,6 @@
 from typing import List, Optional, Iterator
 import bpy, mathutils
-from .facemesh_model import FaceMeshModel
+from .facemesh import FaceMesh
 from formats.buffertypes import Vector3
 from formats.vrm0x import HumanoidBones
 
@@ -14,7 +14,7 @@ class Node:
             self.position = Vector3(0, 0, 0)
         self._children: List[Node] = []
         self.parent: Optional[Node] = None
-        self.mesh: Optional[FaceMeshModel] = None
+        self.mesh: Optional[FaceMesh] = None
         self.skin: Optional[Node] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
 

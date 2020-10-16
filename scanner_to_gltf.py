@@ -2,7 +2,7 @@ from typing import List, Tuple, Any
 import array
 from scene_objects import scene_scanner, materialstore
 from scene_objects.submesh_mesh import SubmeshMesh
-from scene_objects.facemesh_model import FaceMeshModel
+from scene_objects.facemesh import FaceMesh
 from formats import gltf, buffermanager
 from formats.buffertypes import Vector3, Matrix4
 
@@ -108,7 +108,7 @@ class GltfExporter:
     def to_gltf_node(self, node: scene_scanner.Node,
                      nodes: List[scene_scanner.Node],
                      skins: List[scene_scanner.Node],
-                     meshes: List[FaceMeshModel]) -> gltf.Node:
+                     meshes: List[FaceMesh]) -> gltf.Node:
         p = node.get_local_position()
         name = node.name
         if node.mesh:
