@@ -2,12 +2,12 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Tuple, Any
 import array
-from scene_objects import scene_scanner, materialstore
-from scene_objects.submesh_mesh import SubmeshMesh
-from scene_objects.facemesh import FaceMesh
-from scene_objects.to_submesh import facemesh_to_submesh
-from formats import gltf, buffermanager
-from formats.buffertypes import Vector3, Matrix4
+from .scene_objects import scene_scanner, materialstore
+from .scene_objects.submesh_mesh import SubmeshMesh
+from .scene_objects.facemesh import FaceMesh
+from .scene_objects.to_submesh import facemesh_to_submesh
+from .formats import gltf, buffermanager
+from .formats.buffertypes import Vector3, Matrix4
 
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:

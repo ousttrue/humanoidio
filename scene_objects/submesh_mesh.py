@@ -10,13 +10,12 @@ class Submesh:
 
 
 class SubmeshMesh:
-    def __init__(self, name: str):
+    def __init__(self, name: str, positions: memoryview):
         self.name = name
-        self.submesh_map: Dict[int, Submesh] = {}
         self.submeshes: List[Submesh] = []
-        self.vertex_count = 0
+        self.vertex_count = len(positions.tobytes()) // 12
         # attributes
-        self.positions: Optional[memoryview] = None  # float3
+        self.positions = positions
         self.normals: Optional[memoryview] = None  # float3
         self.texcoord: Optional[memoryview] = None  # float2
         self.joints: Optional[memoryview] = None  # int4
@@ -26,18 +25,3 @@ class SubmeshMesh:
 
     def __str__(self) -> str:
         return f'<SubmeshMesh: {self.vertex_count}verts>'
-
-    def get_or_create_submesh(self, material_index: int,
-                              materials: List[bpy.types.Material]) -> Submesh:
-        if material_index in self.submesh_map:
-            return self.submesh_map[material_index]
-
-        if material_index < len(materials):
-            material = materials[material_index]
-        else:
-            # default material
-            material = bpy.data.materials[0]
-        submesh = Submesh(material)
-        self.submeshes.append(submesh)
-        self.submesh_map[material_index] = submesh
-        return submesh

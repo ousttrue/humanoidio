@@ -100,12 +100,12 @@ CLASSES = [SceneTranslatorImporter, SceneTranslatorExporter]
 
 def menu_func_import(self, context):
     self.layout.operator(SceneTranslatorImporter.bl_idname,
-                         text="Scene Import (.gltf;.glb;.vrm)")
+                         text=f"Scene Translator (.gltf;.glb;.vrm)")
 
 
 def menu_func_export(self, context):
     self.layout.operator(SceneTranslatorExporter.bl_idname,
-                         text="Scene Exporter (.glb)")
+                         text=f"Scene Translator (.glb)")
 
 
 def register():

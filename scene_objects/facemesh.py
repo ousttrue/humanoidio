@@ -8,7 +8,7 @@ from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight)
 class FaceVertex(NamedTuple):
     material_index: int
     position_index: int
-    normal: Optional[Vector3]
+    normal: Vector3
     uv: Optional[Vector2]
 
     def __hash__(self):
@@ -36,6 +36,7 @@ class Triangle(NamedTuple):
     i0: int
     i1: int
     i2: int
+    normal: Optional[Vector3]
 
 
 class FaceMesh:
@@ -69,7 +70,7 @@ class FaceMesh:
         self.morph_map: Dict[str, Any] = {}
 
     def __str__(self) -> str:
-        return f'<FaceMesh: {self.name}: {len(self.face_vertex_index_map)}vertices>'
+        return f'<FaceMesh: {self.name}: {len(self.face_vertices)}vertices>'
 
     def add_triangle(self, face: bpy.types.MeshLoopTriangle,
                      uv_texture_layer: Optional[bpy.types.MeshUVLoopLayer]):
@@ -77,7 +78,8 @@ class FaceMesh:
             if not uv_texture_layer: return None
             return uv_texture_layer.data[i].uv
 
-        face_normal = None if face.use_smooth else face.normal
+        face_normal = None if face.use_smooth else Vector3.from_Vector(
+            face.normal)
 
         assert len(face.vertices) == 3
         i0 = self._get_or_add_face_vertex(face.material_index,
@@ -92,15 +94,17 @@ class FaceMesh:
                                           face.vertices[2],
                                           get_uv(face.loops[2]), face_normal)
 
-        self.triangles.append(Triangle(face.material_index, i0, i1, i2))
+        self.triangles.append(
+            Triangle(face.material_index, i0, i1, i2, face_normal))
 
     def _get_or_add_face_vertex(self, material_index: int, vertex_index: int,
                                 uv: Optional[mathutils.Vector],
-                                normal: Optional[mathutils.Vector]) -> int:
+                                face_normal: Optional[Vector3]) -> int:
         # 同一頂点を考慮する
-        face = FaceVertex(material_index, vertex_index,
-                          Vector3.from_Vector(normal) if normal else None,
-                          Vector2.from_faceUV(uv) if uv else None)
+        face = FaceVertex(
+            material_index, vertex_index,
+            face_normal if face_normal else self.normals[vertex_index],
+            Vector2.from_faceUV(uv) if uv else None)
         index = self.face_vertex_index_map.get(face, None)
         if index != None:
             return index
