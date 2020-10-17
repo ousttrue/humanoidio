@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 import bpy
 from scene_translator.formats import gltf
 from scene_translator.formats.buffermanager import BufferManager
@@ -56,7 +58,7 @@ class MaterialStore:
     def add_texture(self, src: bpy.types.Image, buffer: BufferManager):
         image_index = len(self.images)
 
-        print(f'add_texture: {src.name}')
+        logger.debug(f'add_texture: {src.name}')
         png = image_to_png(src)
         view_index = buffer.add_view(src.name, png)
 

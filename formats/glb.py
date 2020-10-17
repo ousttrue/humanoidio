@@ -52,7 +52,6 @@ class Glb(NamedTuple):
         json_bytes = self.json
         if len(json_bytes) % 4 != 0:
             json_padding_size = (4 - len(json_bytes) % 4)
-            # print(f'add json_padding_size: {json_padding_size}')
             json_bytes += b' ' * json_padding_size
         json_header = struct.pack(b'I', len(json_bytes)) + b'JSON'
         bin_header = struct.pack(b'I', len(self.bin)) + b'BIN\x00'

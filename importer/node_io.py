@@ -85,7 +85,6 @@ def load_objects(context: bpy.types.Context,
     if skeleton:
         skeleton.create_armature(context, collection, view_layer, root_skin)
 
-    # print(bpy.context.mode)
     # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     return (nodes, root)

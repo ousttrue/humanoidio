@@ -194,8 +194,3 @@ if __name__ == '__main__':
     exported = export_groups(groups)
 
     import_groups(exported)
-
-    # print(repr(exported))
-
-    #import json
-    #print(json.dumps(exported, indent=2))

@@ -42,9 +42,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
     )
 
     def execute(self, context):
-        # print('@@execute')
         # stem, ext = os.path.splitext(self.filepath)
-        # print(stem, ext)
         # if ext.lower() not in ['.vrm', '.glb']:
         #     self.filepath = bpy.path.ensure_ext(stem, ".vrm")
         # path = pathlib.Path(self.filepath).absolute()

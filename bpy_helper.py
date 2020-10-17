@@ -30,19 +30,16 @@ def disposable_mode(mode='OBJECT'):
     restore = mode_map[bpy.context.mode]
     try:
         if restore != mode:
-            # print(f'mode_set: {restore} -> {mode}')
             bpy.ops.object.mode_set(mode=mode, toggle=False)
         yield None
     finally:
         if bpy.context.mode != restore:
-            # print(f'mode_set: {bpy.context.mode} -> {restore}')
             bpy.ops.object.mode_set(mode=restore, toggle=False)
 
 
 def enter_mode(mode='OBJECT'):
     restore = mode_map[bpy.context.mode]  # EDIT_ARMATURE
     if restore != mode:
-        # print(f'mode_set: {restore} -> {mode}')
         bpy.ops.object.mode_set(mode=mode, toggle=False)
 
 
@@ -92,7 +89,6 @@ def remove_shapekey_except(obj: bpy.types.Object, i: int):
     for j in reversed(range(0, shape_keys)):
         if j == i:
             continue
-        # print('shape_key_remove', j)
         obj.active_shape_key_index = j
         bpy.ops.object.shape_key_remove()
 
@@ -109,6 +105,5 @@ def apply_modifiers(obj: bpy.types.Object):
         if m.type == 'ARMATURE':
             break
 
-    # print(f'    apply modifier: {modifiers}')
     for m in modifiers:
         bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m)

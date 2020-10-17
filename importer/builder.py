@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 import json
 import pathlib
 from typing import Set, List
@@ -73,17 +75,13 @@ def _remove_empty(node: Node):
         _remove_empty(child)
 
     if node.children:
-        # print(f'{node} children {len(node.children)}')
         return
     if node.blender_armature:
-        # print(f'{node} has {node.blender_armature}')
         return
     if node.blender_object.data:
-        # print(f'{node} has {node.blender_object}')
         return
 
     # remove empty
-    print('remove', node)
     bpy.data.objects.remove(node.blender_object, do_unlink=True)
     if node.parent:
         node.parent.children.remove(node)
@@ -117,7 +115,7 @@ def load(context: bpy.types.Context, filepath: str) -> Set[str]:
     manager.materials.extend(load_materials(manager))
     manager.meshes.extend(load_meshes(manager))
     for m, _ in manager.meshes:
-        print(f'[{m.name}: {len(m.vertices)}]vertices')
+        logger.debug(f'[{m.name}: {len(m.vertices)}]vertices')
     nodes, root = load_objects(context, manager)
 
     # # skinning

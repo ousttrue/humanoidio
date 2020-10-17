@@ -116,8 +116,7 @@ class BoneWeight(ctypes.LittleEndianStructure):
             self.i3 = i
             self.weights.w = w
         else:
-            # raise NotImplementedError()
-            print('over 4')
+            raise NotImplementedError('over 4')
 
     def to_joints_with_weights(self, group_index_to_joint_index: Dict[int, int]
                                ) -> Tuple[IVector4, Vector4]:

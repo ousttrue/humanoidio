@@ -74,7 +74,6 @@ class Scanner:
         if not remove_list:
             return False
 
-        # print(f'remove_list: {remove_list}')
         for remove in remove_list:
             self.remove_node(remove)
 
@@ -137,8 +136,6 @@ class Scanner:
 
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: Node) -> FaceMesh:
-        # print('export_mesh', o, mesh)
-
         # copy
         new_obj = bpy_helper.clone_and_apply_transform(o)
         with bpy_helper.disposable(new_obj):
@@ -194,7 +191,6 @@ class Scanner:
                     vertices = self._export_shapekey(o, i, shape)
                     store.add_morph(shape.name, vertices)
 
-            # print(store)
             return store
 
     def _export_shapekey(self, o: bpy.types.Object, i: int,

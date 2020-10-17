@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 from typing import List, Tuple, Any
 import array
 from scene_objects import scene_scanner, materialstore
@@ -189,6 +191,7 @@ class GltfExporter:
     def export(self, scanner: scene_scanner.Scanner,
                separate_images: bool) -> Tuple[gltf.glTF, List[Any]]:
         for mesh in scanner.meshes:
+            logger.debug(mesh)
             skin = scanner.get_skin_for_store(mesh)
             bone_names: List[str] = []
             if skin:

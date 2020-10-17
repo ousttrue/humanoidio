@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 import ctypes
 from typing import Dict
 
@@ -13,14 +15,13 @@ class VertexBuffer:
         attributes: Dict[str, int] = {}
         shared = True
         for prim in mesh.primitives:
-            # print(prim.attributes)
             if not attributes:
                 attributes = prim.attributes
             else:
                 if attributes != prim.attributes:
                     shared = False
                     break
-        print(shared)
+        logger.debug(f'SHARED: {shared}')
 
         #submeshes = [Submesh(path, gltf, prim) for prim in mesh.primitives]
 

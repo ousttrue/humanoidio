@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 import array
 from typing import (Any, List, Dict, Optional, NamedTuple)
 import bpy, mathutils
@@ -67,7 +69,7 @@ class FaceMesh:
         self.morph_map: Dict[str, Any] = {}
 
     def __str__(self) -> str:
-        return f'<{self.name}: {len(self.face_vertex_index_map)}vertices>'
+        return f'<FaceMesh: {self.name}: {len(self.face_vertex_index_map)}vertices>'
 
     def add_triangle(self, face: bpy.types.MeshLoopTriangle,
                      uv_texture_layer: Optional[bpy.types.MeshUVLoopLayer]):
@@ -106,7 +108,7 @@ class FaceMesh:
         return index
 
     def add_morph(self, name: str, vertices: List[bpy.types.MeshVertex]):
-        print('add_morph', name)
+        logger.debug(f'add_morph: {name}')
         assert (len(vertices) == len(self.positions))
         positions = (Vector3 * len(vertices))()
         for i, v in enumerate(vertices):
