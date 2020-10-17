@@ -13,6 +13,11 @@ class Vector2(ctypes.LittleEndianStructure):
     def from_faceUV(uv: mathutils.Vector) -> 'Vector2':
         return Vector2(uv.x, -uv.y)
 
+    def __eq__(self, other: 'Vector2') -> bool:
+        if self.x != other.x: return False
+        if self.y != other.y: return False
+        return True
+
 
 class Vector3(ctypes.LittleEndianStructure):
     _fields_ = [("x", ctypes.c_float), ("y", ctypes.c_float),
@@ -22,6 +27,12 @@ class Vector3(ctypes.LittleEndianStructure):
     def from_Vector(v: mathutils.Vector) -> 'Vector3':
         # return Vector3(v.x, v.z, -v.y)
         return Vector3(-v.x, v.z, v.y)
+
+    def __eq__(self, other: 'Vector3') -> bool:
+        if self.x != other.x: return False
+        if self.y != other.y: return False
+        if self.z != other.z: return False
+        return True
 
     def __repr__(self) -> str:
         return f'({self.x}, {self.y}, {self.z})'
@@ -118,8 +129,10 @@ class BoneWeight(ctypes.LittleEndianStructure):
         else:
             raise NotImplementedError('over 4')
 
-    def to_joints_with_weights(self, group_index_to_joint_index: Dict[int, int]
-                               ) -> Tuple[IVector4, Vector4]:
+    def to_joints_with_weights(
+        self,
+        group_index_to_joint_index: Dict[int,
+                                         int]) -> Tuple[IVector4, Vector4]:
         '''
         ついでに正規化する
         '''

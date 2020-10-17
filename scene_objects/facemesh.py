@@ -9,6 +9,7 @@ from .submesh_mesh import Submesh, SubmeshMesh
 
 
 class FaceVertex(NamedTuple):
+    material_index: int
     position_index: int
     normal: Optional[Vector3]
     uv: Optional[Vector2]
@@ -18,6 +19,8 @@ class FaceVertex(NamedTuple):
 
     def __eq__(self, other: 'FaceVertex') -> bool:
         if other is None or not isinstance(other, FaceVertex):
+            return False
+        if self.material_index != other.material_index:
             return False
         if self.position_index != other.position_index:
             return False
@@ -73,29 +76,32 @@ class FaceMesh:
 
     def add_triangle(self, face: bpy.types.MeshLoopTriangle,
                      uv_texture_layer: Optional[bpy.types.MeshUVLoopLayer]):
+        def get_uv(i: int) -> Optional[mathutils.Vector]:
+            if not uv_texture_layer: return None
+            return uv_texture_layer.data[i].uv
+
+        face_normal = None if face.use_smooth else face.normal
 
         assert len(face.vertices) == 3
-        i0 = self._get_or_add_face_vertex(
-            face.vertices[0], uv_texture_layer.data[face.loops[0]].uv
-            if uv_texture_layer else None,
-            None if face.use_smooth else face.normal)
+        i0 = self._get_or_add_face_vertex(face.material_index,
+                                          face.vertices[0],
+                                          get_uv(face.loops[0]), face_normal)
 
-        i1 = self._get_or_add_face_vertex(
-            face.vertices[1], uv_texture_layer.data[face.loops[1]].uv
-            if uv_texture_layer else None,
-            None if face.use_smooth else face.normal)
+        i1 = self._get_or_add_face_vertex(face.material_index,
+                                          face.vertices[1],
+                                          get_uv(face.loops[1]), face_normal)
 
-        i2 = self._get_or_add_face_vertex(
-            face.vertices[2], uv_texture_layer.data[face.loops[2]].uv
-            if uv_texture_layer else None,
-            None if face.use_smooth else face.normal)
+        i2 = self._get_or_add_face_vertex(face.material_index,
+                                          face.vertices[2],
+                                          get_uv(face.loops[2]), face_normal)
 
         self.triangles.append(Triangle(face.material_index, i0, i1, i2))
 
-    def _get_or_add_face_vertex(self, vertex_index: int, uv: mathutils.Vector,
+    def _get_or_add_face_vertex(self, material_index: int, vertex_index: int,
+                                uv: Optional[mathutils.Vector],
                                 normal: Optional[mathutils.Vector]) -> int:
         # 同一頂点を考慮する
-        face = FaceVertex(vertex_index,
+        face = FaceVertex(material_index, vertex_index,
                           Vector3.from_Vector(normal) if normal else None,
                           Vector2.from_faceUV(uv) if uv else None)
         index = self.face_vertex_index_map.get(face, None)
@@ -125,7 +131,8 @@ class FaceMesh:
         # 三角形をsubmeshに分配する
         dst = SubmeshMesh(self.name)
         for triangle in self.triangles:
-            submesh = dst.get_or_create_submesh(triangle.material_index, self.materials)
+            submesh = dst.get_or_create_submesh(triangle.material_index,
+                                                self.materials)
             submesh.indices += array.array(
                 'I', (triangle.i0, triangle.i1, triangle.i2))
 
