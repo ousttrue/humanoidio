@@ -24,6 +24,9 @@ class SubmeshMesh:
         # morph
         self.morph_map: Dict[str, memoryview] = {}
 
+    def __str__(self) -> str:
+        return f'<SubmeshMesh: {self.vertex_count}verts>'
+
     def get_or_create_submesh(self, material_index: int,
                               materials: List[bpy.types.Material]) -> Submesh:
         if material_index in self.submesh_map:

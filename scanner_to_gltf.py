@@ -5,6 +5,7 @@ import array
 from scene_objects import scene_scanner, materialstore
 from scene_objects.submesh_mesh import SubmeshMesh
 from scene_objects.facemesh import FaceMesh
+from scene_objects.to_submesh import facemesh_to_submesh
 from formats import gltf, buffermanager
 from formats.buffertypes import Vector3, Matrix4
 
@@ -196,7 +197,9 @@ class GltfExporter:
             bone_names: List[str] = []
             if skin:
                 bone_names = [joint.name for joint in skin.traverse()][1:]
-            self.meshes.append(self.to_gltf_mesh(mesh.freeze(bone_names)))
+            submesh_mesh = facemesh_to_submesh(mesh, bone_names)
+            logger.debug(submesh_mesh)
+            self.meshes.append(self.to_gltf_mesh(submesh_mesh))
 
         # node
         skins = [skin for skin in scanner.skin_map.values()]
