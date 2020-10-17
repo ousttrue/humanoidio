@@ -82,7 +82,6 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         while True:
             if not scanner.remove_empty_leaf_nodes():
                 break
-        scanner.print()
 
         from . import scanner_to_gltf
         # ext = filepath.suffix
@@ -90,7 +89,6 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         data, buffers = scanner_to_gltf.export(scanner)
         d = data.to_dict()
 
-        print(f'## to_glb: {self.filepath}')
         text = json.dumps(d)
         json_bytes = text.encode('utf-8')
         with open(self.filepath, 'wb') as w:

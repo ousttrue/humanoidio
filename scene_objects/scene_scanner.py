@@ -3,7 +3,6 @@ import bpy, mathutils
 from .facemesh import FaceMesh
 from .node import Node
 from scene_translator import bpy_helper
-from scene_translator.formats.buffertypes import Vector3
 from scene_translator.formats.vrm0x import HumanoidBones
 
 
@@ -22,12 +21,6 @@ class Scanner:
         self.materials: List[bpy.types.Material] = []
         self.skin_map: Dict[bpy.types.Object, Node] = {}
         self.vrm = Vrm()
-
-    def print(self):
-        for node in self._nodes:
-            if node.parent:
-                continue
-            node.print_tree()
 
     def _add_node(self, obj: Any, node: Node):
         self._nodes.append(node)
@@ -81,7 +74,7 @@ class Scanner:
         if not remove_list:
             return False
 
-        print(f'remove_list: {remove_list}')
+        # print(f'remove_list: {remove_list}')
         for remove in remove_list:
             self.remove_node(remove)
 
@@ -144,7 +137,7 @@ class Scanner:
 
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: Node) -> FaceMesh:
-        print('export_mesh', o, mesh)
+        # print('export_mesh', o, mesh)
 
         # copy
         new_obj = bpy_helper.clone_and_apply_transform(o)

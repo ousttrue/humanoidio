@@ -18,11 +18,6 @@ class Node:
         self.skin: Optional[Node] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
 
-    def print_tree(self, indent=''):
-        print(f'{indent}{self.name} {self.mesh}')
-        for child in self._children:
-            child.print_tree(indent + '  ')
-
     def get_root(self):
         current = self
         while True:

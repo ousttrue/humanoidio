@@ -109,6 +109,6 @@ def apply_modifiers(obj: bpy.types.Object):
         if m.type == 'ARMATURE':
             break
 
-    print(f'    apply modifier: {modifiers}')
+    # print(f'    apply modifier: {modifiers}')
     for m in modifiers:
         bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m)

@@ -1,4 +1,4 @@
-print('reload scene_translator.formats')
+# print('reload scene_translator.formats')
 import importlib
 from . import glb
 importlib.reload(glb)
