@@ -1,6 +1,6 @@
 from typing import Iterable, List, Dict, Tuple
 import ctypes
-import mathutils
+import bpy, mathutils
 
 
 class Vector2(ctypes.LittleEndianStructure):

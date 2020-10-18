@@ -545,6 +545,9 @@ class Skin:
 
 
 class ImportManager:
+    '''
+    中間形式作る
+    '''
     def __init__(self, path: pathlib.Path, gltf: gltf.glTF,
                  body: bytes) -> None:
         self.path = path
@@ -599,7 +602,8 @@ class ImportManager:
 
         # setup
         nodes = [
-            create_node(gltf_node) for i, gltf_node in enumerate(self.gltf.nodes)
+            create_node(gltf_node)
+            for i, gltf_node in enumerate(self.gltf.nodes)
         ]
 
         # set parents
@@ -644,7 +648,7 @@ class ImportManager:
 
         if skeleton:
             create_armature(skeleton, context, collection, view_layer,
-                                     root_skin)
+                            root_skin)
 
         # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
