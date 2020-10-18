@@ -10,8 +10,18 @@ import/export for Blender-2.83
 
 ## memo
 
-* 手前向き T-Pose で作成する
+```
++----+   +-------------+-->zup-----------------> +-----+
+|gltf|-->| SubmeshMesh |          +--------+     | bpy |
+|    |<--|             |<--yup<-- |FaceMesh| <-- |     |
++----+   +-------------+          +--------+     +-----+
+```
 
+* SubmeshMesh(each submesh has material)
+* FaceMesh(each face has material, normal, uv)
+
+
+* 手前向き T-Pose で作成する
 * modifier の上から作った shapekey をそのままエクスポートできる。Apply も不要
 * object.location, rotation, scale を apply する
   * objectの親子あってもapplyできる
