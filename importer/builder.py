@@ -8,7 +8,7 @@ from scene_translator.formats.glb import Glb
 from scene_translator.formats.gltf import glTF
 
 from .import_manager import ImportManager
-from .texture_io import load_textures
+
 from .material_io import load_materials
 from .mesh_io import load_meshes
 from .node_io import load_objects
@@ -85,59 +85,3 @@ def _remove_empty(node: Node):
     bpy.data.objects.remove(node.blender_object, do_unlink=True)
     if node.parent:
         node.parent.children.remove(node)
-
-
-def load(context: bpy.types.Context, filepath: str) -> Set[str]:
-
-    path = pathlib.Path(filepath)
-    if not path.exists():
-        return {'CANCELLED'}
-
-    body = b''
-    try:
-        with path.open('rb') as f:
-            ext = path.suffix.lower()
-            if ext == '.gltf':
-                gltf = glTF.from_dict(json.load(f))
-            elif ext == '.glb' or ext == '.vrm':
-                glb = Glb.from_bytes(f.read())
-                gltf = glTF.from_dict(json.loads(glb.json))
-                body = glb.bin
-            else:
-                logger.error("%s is not supported", ext)
-                return {'CANCELLED'}
-    except Exception as ex:  # pylint: disable=w0703
-        logger.error("%s", ex)
-        return {'CANCELLED'}
-
-    manager = ImportManager(path, gltf, body)
-    manager.textures.extend(load_textures(manager))
-    manager.materials.extend(load_materials(manager))
-    manager.meshes.extend(load_meshes(manager))
-    for m, _ in manager.meshes:
-        logger.debug(f'[{m.name}: {len(m.vertices)}]vertices')
-    nodes, root = load_objects(context, manager)
-
-    # # skinning
-    # armature_object = next(node for node in root.traverse()
-    #                         if node.blender_armature)
-
-    # for node in nodes:
-    #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
-    #         _, attributes = manager.meshes[node.gltf_node.mesh]
-
-    #         skin = gltf.skins[node.gltf_node.skin]
-    #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
-
-    #         #armature_object =nodes[skin.skeleton].blender_armature
-
-    #         _setup_skinning(node.blender_object, attributes, bone_names,
-    #                         armature_object.blender_armature)
-
-    # remove empties
-    _remove_empty(root)
-
-    # done
-    # context.scene.update()
-
-    return {'FINISHED'}

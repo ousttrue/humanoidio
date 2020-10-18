@@ -100,6 +100,7 @@ TODO
 
 ## TODO
 
+* [x] position, normal, uv
 * [ ] armature object to skin root
 * [ ] remove unnecessary nodes
 * [ ] object location apply

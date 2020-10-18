@@ -13,13 +13,13 @@ import scene_translator
 import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 os.chdir(HERE)
-GLB_FILE = 'tmp.glb'
-# setup
+GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))
+SRC_FILE = GLTF_SAMPLE_DIR /  '2.0/Box/glTF/Box.gltf'
 scene_translator.register()
+DST_FILE = HERE / 'tmp.glb'
 
-bpy.ops.scene_translator.exporter(filepath=GLB_FILE)
-bpy.ops.scene_translator.importer(filepath=GLB_FILE)
+bpy.ops.scene_translator.importer(filepath=str(SRC_FILE))
+bpy.ops.scene_translator.exporter(filepath=str(DST_FILE))
 
 # cleanup
-os.remove(GLB_FILE)
 scene_translator.unregister()

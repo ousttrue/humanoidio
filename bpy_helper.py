@@ -37,6 +37,16 @@ def disposable_mode(mode='OBJECT'):
             bpy.ops.object.mode_set(mode=restore, toggle=False)
 
 
+# @contextmanager
+# def tmp_mode(obj, tmp: str):
+#     mode = obj.rotation_mode
+#     obj.rotation_mode = tmp
+#     try:
+#         yield
+#     finally:
+#         obj.rotation_mode = mode
+
+
 def enter_mode(mode='OBJECT'):
     restore = mode_map[bpy.context.mode]  # EDIT_ARMATURE
     if restore != mode:

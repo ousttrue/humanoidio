@@ -15,9 +15,15 @@ bl_info = {
     "warning": "This addon is still in development.",
 }
 
+from logging import getLogger  # pylint: disable=C0411
+logger = getLogger(__name__)
+import os
 import json
+import pathlib
+from scene_objects import import_manager
+#
 import bpy
-from .formats import glb
+from .formats import glb, parse_gltf
 from bpy.props import (
     BoolProperty,
     FloatProperty,
@@ -42,15 +48,41 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
     )
 
     def execute(self, context):
-        # stem, ext = os.path.splitext(self.filepath)
-        # if ext.lower() not in ['.vrm', '.glb']:
-        #     self.filepath = bpy.path.ensure_ext(stem, ".vrm")
-        # path = pathlib.Path(self.filepath).absolute()
+        path = pathlib.Path(self.filepath).absolute()
+        gltf, bin = parse_gltf(path)
 
-        # importer.import_vrm(path, context)
+        from .scene_objects.import_manager import ImportManager
+        # return importer.builder.load(context, path, gltf, bin)
 
-        from . import importer
-        return importer.builder.load(context, self.filepath)
+        manager = ImportManager(path, gltf, bin)
+        manager.load_textures()
+        manager.load_materials()
+        manager.load_meshes()
+        for m, _ in manager.meshes:
+            logger.debug(f'[{m.name}: {len(m.vertices)}]vertices')
+        nodes, root = manager.load_objects(context)
+
+        # # skinning
+        # armature_object = next(node for node in root.traverse()
+        #                         if node.blender_armature)
+
+        # for node in nodes:
+        #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
+        #         _, attributes = manager.meshes[node.gltf_node.mesh]
+
+        #         skin = gltf.skins[node.gltf_node.skin]
+        #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
+
+        #         #armature_object =nodes[skin.skeleton].blender_armature
+
+        #         _setup_skinning(node.blender_object, attributes, bone_names,
+        #                         armature_object.blender_armature)
+
+        # remove empties
+        _remove_empty(root)
+
+        # done
+        # context.scene.update()
 
 
 class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):

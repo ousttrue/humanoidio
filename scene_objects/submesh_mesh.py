@@ -10,10 +10,10 @@ class Submesh:
 
 
 class SubmeshMesh:
-    def __init__(self, name: str, positions: memoryview):
+    def __init__(self, name: str, positions: Optional[memoryview] = None):
         self.name = name
         self.submeshes: List[Submesh] = []
-        self.vertex_count = len(positions.tobytes()) // 12
+        self.vertex_count = len(positions.tobytes()) // 12 if positions else 0
         # attributes
         self.positions = positions
         self.normals: Optional[memoryview] = None  # float3
@@ -22,6 +22,8 @@ class SubmeshMesh:
         self.weights: Optional[memoryview] = None  # float4
         # morph
         self.morph_map: Dict[str, memoryview] = {}
+        # materials
+        self.textures: List[bpy.types.Texture] = []
 
     def __str__(self) -> str:
         return f'<SubmeshMesh: {self.vertex_count}verts>'

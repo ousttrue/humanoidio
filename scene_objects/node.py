@@ -1,4 +1,4 @@
-from typing import List, Optional, Iterator
+from typing import List, Optional, Iterator, Iterable
 import bpy, mathutils
 from .facemesh import FaceMesh
 from scene_translator.formats.buffertypes import Vector3
@@ -6,6 +6,9 @@ from scene_translator.formats.vrm0x import HumanoidBones
 
 
 class Node:
+    '''
+    GLTF変換との中間形式
+    '''
     def __init__(self, name: str, position: mathutils.Vector = None) -> None:
         self.name = name
         if position:
@@ -14,9 +17,24 @@ class Node:
             self.position = Vector3(0, 0, 0)
         self._children: List[Node] = []
         self.parent: Optional[Node] = None
+        self.children: List[Node] = []
         self.mesh: Optional[FaceMesh] = None
         self.skin: Optional[Node] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
+
+        # self.gltf_node = gltf_node
+        # self.blender_object: bpy.types.Object = None
+        # self.blender_armature: bpy.types.Object = None
+        # self.blender_bone: bpy.types.Bone = None
+        # self.bone_name: str = ''
+
+        # self.name = self.gltf_node.name
+        # if not self.name:
+        #     self.name = '_%03d' % self.index
+
+    def add_child(self, child: 'Node'):
+        self.children.append(child)
+        child.parent = self
 
     def get_root(self):
         current = self
@@ -58,3 +76,24 @@ class Node:
             return self.position - self.parent.position
         else:
             return self.position
+
+
+class _Node:
+
+    def __str__(self) -> str:
+        return f'{self.index}'
+
+    def __repr__(self) -> str:
+        return f'<{self.index}: {self.blender_object}>'
+
+    def traverse(self) -> Iterable['Node']:
+        yield self
+        for child in self.children:
+            for x in child.traverse():
+                yield x
+
+    def get_ancestors(self) -> Iterable['Node']:
+        yield self
+        if self.parent:
+            for x in self.parent.get_ancestors():
+                yield x

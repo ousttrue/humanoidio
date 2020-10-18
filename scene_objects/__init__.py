@@ -7,3 +7,6 @@ from . import facemesh
 importlib.reload(facemesh)
 from . import scene_scanner
 importlib.reload(scene_scanner)
+#
+from . import import_manager
+importlib.reload(import_manager)
