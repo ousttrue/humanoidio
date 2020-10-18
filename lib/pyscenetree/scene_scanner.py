@@ -2,8 +2,8 @@ from typing import List, Optional, Iterator, Dict, Any
 import bpy, mathutils
 from .facemesh import FaceMesh
 from .node import Node
-from scene_translator import bpy_helper
-from scene_translator.formats.vrm0x import HumanoidBones
+from .. import bpy_helper
+from ..formats.vrm0x import HumanoidBones
 
 
 class Vrm:

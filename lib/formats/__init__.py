@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, NamedTuple, List
 import pathlib
 import json
 import importlib
@@ -15,8 +15,19 @@ importlib.reload(buffermanager)
 from . import buffertypes
 importlib.reload(buffertypes)
 
+from ..pyscenetree import Node, SubmeshMesh
 
-def parse_gltf(path: pathlib.Path) -> Tuple[gltf.glTF, bytes]:
+
+class GltfContext(NamedTuple):
+    # parsed glTF
+    data: gltf.glTF
+    # bytes of glb binary chunk
+    binary: bytes
+    # path for file exists
+    dir: pathlib.Path
+
+
+def parse_gltf(path: pathlib.Path) -> GltfContext:
     '''
     parse gltf or glb
     '''
@@ -24,10 +35,15 @@ def parse_gltf(path: pathlib.Path) -> Tuple[gltf.glTF, bytes]:
         ext = path.suffix.lower()
         if ext == '.gltf':
             parsed = gltf.glTF.from_dict(json.load(f))
-            return parsed, b''
+            return GltfContext(parsed, b'', path.parent)
         elif ext == '.glb' or ext == '.vrm':
             glb_parsed = glb.Glb.from_bytes(f.read())
             parsed = gltf.glTF.from_dict(json.loads(glb_parsed.json))
-            return parsed, glb_parsed.bin
+            return GltfContext(parsed, glb_parsed.bin, path.parent)
         else:
             raise Exception(f'{ext} is not supported')
+
+
+def import_submesh(data: GltfContext) -> List[Node]:
+    roots = []
+    return roots

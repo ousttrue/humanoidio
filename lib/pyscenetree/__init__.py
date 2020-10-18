@@ -10,3 +10,6 @@ importlib.reload(scene_scanner)
 #
 from . import import_manager
 importlib.reload(import_manager)
+
+from .submesh_mesh import SubmeshMesh
+from .node import Node

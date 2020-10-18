@@ -2,7 +2,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import (Any, List, Dict, Optional, NamedTuple)
 import bpy, mathutils
-from scene_translator.formats.buffertypes import (Vector2, Vector3, BoneWeight)
+from ..formats.buffertypes import (Vector2, Vector3, BoneWeight)
 
 
 class FaceVertex(NamedTuple):

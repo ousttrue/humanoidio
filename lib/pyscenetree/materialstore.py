@@ -1,8 +1,8 @@
 from logging import getLogger
 logger = getLogger(__name__)
 import bpy
-from scene_translator.formats import gltf
-from scene_translator.formats.buffermanager import BufferManager
+from ..formats import gltf
+from ..formats.buffermanager import BufferManager
 
 
 def image_to_png(image: bpy.types.Image) -> bytes:

@@ -16,9 +16,9 @@
             "name": "test",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/tests/gltf_test.py",
+            "module": "test_gltf",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/tests",
+            "cwd": "${workspaceFolder}",
         }
     ]
 }

@@ -8,8 +8,8 @@ from typing import List, Tuple, Dict, Any
 import bpy, mathutils  # pylint: disable=E0401
 from bpy_extras.image_utils import load_image
 #
-from scene_translator.formats.gltf import BufferView
-from scene_translator.formats import gltf
+from ..formats.gltf import BufferView
+from ..formats import gltf
 from .submesh_mesh import SubmeshMesh
 from .node import Node
 # from . import blender_groupnode_io, gltf_pbr_node

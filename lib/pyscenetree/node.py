@@ -1,8 +1,8 @@
 from typing import List, Optional, Iterator, Iterable
 import bpy, mathutils
 from .facemesh import FaceMesh
-from scene_translator.formats.buffertypes import Vector3
-from scene_translator.formats.vrm0x import HumanoidBones
+from ..formats.buffertypes import Vector3
+from ..formats.vrm0x import HumanoidBones
 
 
 class Node:
