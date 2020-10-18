@@ -1,3 +1,4 @@
+import enum
 from lib.yup.submesh_mesh import SubmeshMesh
 from typing import List
 import bpy, mathutils
@@ -12,8 +13,10 @@ def import_submesh(data: GltfContext) -> List[Node]:
     '''
     meshes: List[SubmeshMesh] = []
     if data.gltf.meshes:
-        for m in data.gltf.meshes:
-            pass
+        for i, m in enumerate(data.gltf.meshes):
+            name = m.name if m.name else f'mesh {i}'
+            mesh = SubmeshMesh(name)
+            meshes.append(mesh)
 
     nodes: List[Node] = []
     if data.gltf.nodes:
@@ -53,6 +56,9 @@ def import_submesh(data: GltfContext) -> List[Node]:
                 node.scale.x = s[0]
                 node.scale.y = s[1]
                 node.scale.z = s[2]
+
+            if isinstance(n.mesh, int):
+                node.mesh = meshes[n.mesh]
 
             nodes.append(node)
 
