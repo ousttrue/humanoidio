@@ -3,7 +3,6 @@ import pathlib
 import json
 from .gltf import glTF
 from .glb import Glb
-from ..pyscenetree import Node, SubmeshMesh
 
 
 class GltfContext(NamedTuple):

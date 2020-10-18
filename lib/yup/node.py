@@ -1,7 +1,9 @@
-from typing import List, Optional, Iterator, Iterable
+from lib.yup.submesh_mesh import SubmeshMesh
+from typing import List, Optional, Iterator, Iterable, Union
 import bpy, mathutils
+from mathutils import Quaternion
 from .facemesh import FaceMesh
-from ..formats.buffertypes import Vector3
+from ..formats.buffertypes import Vector3, Vector4
 from ..formats.vrm0x import HumanoidBones
 
 
@@ -15,10 +17,11 @@ class Node:
             self.position = Vector3.from_Vector(position)
         else:
             self.position = Vector3(0, 0, 0)
-        self._children: List[Node] = []
+        self.rotation = Vector4(0, 0, 0, 1)
+        self.scale = Vector3(1, 1, 1)
         self.parent: Optional[Node] = None
         self.children: List[Node] = []
-        self.mesh: Optional[FaceMesh] = None
+        self.mesh: Union[SubmeshMesh, FaceMesh, None] = None
         self.skin: Optional[Node] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
 
@@ -31,10 +34,6 @@ class Node:
         # self.name = self.gltf_node.name
         # if not self.name:
         #     self.name = '_%03d' % self.index
-
-    def add_child(self, child: 'Node'):
-        self.children.append(child)
-        child.parent = self
 
     def get_root(self):
         current = self
@@ -51,12 +50,12 @@ class Node:
         if child.parent:
             child.parent.remove_child(child)
         child.parent = self
-        self._children.append(child)
+        self.children.append(child)
 
     def remove_child(self, child: 'Node'):
-        if child not in self._children:
+        if child not in self.children:
             return
-        self._children.remove(child)
+        self.children.remove(child)
         child.parent = None
 
     def __repr__(self) -> str:
@@ -67,7 +66,7 @@ class Node:
 
     def traverse(self) -> Iterator['Node']:
         yield self
-        for child in self._children:
+        for child in self.children:
             for x in child.traverse():
                 yield x
 
@@ -78,22 +77,21 @@ class Node:
             return self.position
 
 
-class _Node:
+# class _Node:
+#     def __str__(self) -> str:
+#         return f'{self.index}'
 
-    def __str__(self) -> str:
-        return f'{self.index}'
+#     def __repr__(self) -> str:
+#         return f'<{self.index}: {self.blender_object}>'
 
-    def __repr__(self) -> str:
-        return f'<{self.index}: {self.blender_object}>'
+#     def traverse(self) -> Iterable['Node']:
+#         yield self
+#         for child in self.children:
+#             for x in child.traverse():
+#                 yield x
 
-    def traverse(self) -> Iterable['Node']:
-        yield self
-        for child in self.children:
-            for x in child.traverse():
-                yield x
-
-    def get_ancestors(self) -> Iterable['Node']:
-        yield self
-        if self.parent:
-            for x in self.parent.get_ancestors():
-                yield x
+#     def get_ancestors(self) -> Iterable['Node']:
+#         yield self
+#         if self.parent:
+#             for x in self.parent.get_ancestors():
+#                 yield x

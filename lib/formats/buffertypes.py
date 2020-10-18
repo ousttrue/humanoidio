@@ -94,6 +94,9 @@ class Vector4(ctypes.LittleEndianStructure):
     _fields_ = [("x", ctypes.c_float), ("y", ctypes.c_float),
                 ("z", ctypes.c_float), ("w", ctypes.c_float)]
 
+    def __repr__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z}, {self.w})'
+
     def __mul__(self, factor: float) -> 'Vector4':
         return Vector4(self.x * factor, self.y * factor, self.z * factor,
                        self.w * factor)

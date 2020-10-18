@@ -1,3 +1,5 @@
+from lib.yup.submesh_mesh import SubmeshMesh
+from pathlib import PosixPath
 import unittest
 import os
 import pathlib
@@ -17,6 +19,13 @@ class Test_TestIncrementDecrement(unittest.TestCase):
         data = parse_gltf(path)
         roots = import_submesh(data)
         self.assertEqual(len(roots), 1)
+        root = roots[0]
+
+        mesh_node = root.children[0]
+        mesh = mesh_node.mesh
+        if not isinstance(mesh, SubmeshMesh):
+            raise Exception()
+        self.assertEqual(len(mesh.positions), 24)
 
 
 if __name__ == '__main__':
