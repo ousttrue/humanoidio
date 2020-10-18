@@ -5,7 +5,8 @@ HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 
 from lib.formats.gltf import glTF
-from lib.formats import parse_gltf, import_submesh
+from lib.formats import parse_gltf
+from lib import import_submesh
 
 
 class Test_TestIncrementDecrement(unittest.TestCase):
