@@ -23,7 +23,11 @@ class GltfTests(unittest.TestCase):
         mesh = mesh_node.mesh
         if not isinstance(mesh, SubmeshMesh):
             raise Exception()
-        self.assertEqual(len(mesh.positions), 24)
+        self.assertEqual(len(mesh.positions), 24)  # type: ignore
+        self.assertEqual(len(mesh.normals), 24)  # type: ignore
+        self.assertEqual(len(mesh.submeshes), 1)
+        submesh = mesh.submeshes[0]
+        self.assertEqual(len(submesh.indices), 36)
 
 
 if __name__ == '__main__':

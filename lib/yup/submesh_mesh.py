@@ -4,7 +4,7 @@ import bpy
 
 
 class Submesh:
-    def __init__(self, material: bpy.types.Material) -> None:
+    def __init__(self, material: Optional[bpy.types.Material]) -> None:
         self.indices: Any = array.array('I')
         self.material = material
 
