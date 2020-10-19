@@ -16,7 +16,10 @@
             "name": "test",
             "type": "python",
             "request": "launch",
-            "module": "test_gltf",
+            "module": "unittest",
+            "args": [
+                "${workspaceFolder}/tests/test_gltf.py",
+            ],
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
         }

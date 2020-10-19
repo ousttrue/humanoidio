@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "PYTHONPATH",
+        "getenv",
         "gltf",
         "unregister"
     ],
@@ -13,7 +14,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        ".",
+        "./tests",
         "-p",
         "test_*.py"
     ],

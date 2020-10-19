@@ -1,14 +1,12 @@
-from lib.yup.submesh_mesh import SubmeshMesh
-from pathlib import PosixPath
 import unittest
 import os
 import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 
-from lib.formats.gltf import glTF
-from lib.formats import parse_gltf
 from lib import import_submesh
+from lib.formats import parse_gltf
+from lib.yup.submesh_mesh import SubmeshMesh
 
 
 class Test_TestIncrementDecrement(unittest.TestCase):
