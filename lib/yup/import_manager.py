@@ -3,7 +3,7 @@ logger = getLogger(__name__)
 import pathlib
 import ctypes
 import json
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional
 #
 import bpy, mathutils  # pylint: disable=E0401
 from bpy_extras.image_utils import load_image
@@ -13,9 +13,6 @@ from ..formats import gltf
 from .submesh_mesh import SubmeshMesh
 from .node import Node
 # from . import blender_groupnode_io, gltf_pbr_node
-
-
-
 
 
 def _create_texture(manager: 'ImportManager', index: int,
@@ -280,53 +277,6 @@ def _create_mesh(manager: 'ImportManager',
     return blender_mesh, attributes
 
 
-def create_object(self: Node, collection: bpy.types.Collection,
-                  manager: 'ImportManager') -> None:
-    # create object
-    if self.gltf_node.mesh != -1:
-        self.blender_object = bpy.data.objects.new(
-            self.name, manager.meshes[self.gltf_node.mesh][0])
-    else:
-        # empty
-        self.blender_object = bpy.data.objects.new(self.name, None)
-        self.blender_object.empty_display_size = 0.1
-        # self.blender_object.empty_draw_type = 'PLAIN_AXES'
-    collection.objects.link(self.blender_object)
-    self.blender_object.select_set(True)
-
-    # self.blender_object['js'] = json.dumps(self.gltf_node.js, indent=2)
-
-    # parent
-    if self.parent:
-        self.blender_object.parent = self.parent.blender_object
-
-    if self.gltf_node.translation:
-        self.blender_object.location = manager.mod_v(
-            self.gltf_node.translation)
-
-    if self.gltf_node.rotation:
-        r = self.gltf_node.rotation
-        q = mathutils.Quaternion((r[3], r[0], r[1], r[2]))
-        with tmp_mode(self.blender_object, 'QUATERNION'):
-            self.blender_object.rotation_quaternion = manager.mod_q(q)
-
-    if self.gltf_node.scale:
-        s = self.gltf_node.scale
-        self.blender_object.scale = (s[0], s[2], s[1])
-
-    if self.gltf_node.matrix:
-        m = self.gltf_node.matrix
-        matrix = mathutils.Matrix(
-            ((m[0], m[4], m[8], m[12]), (m[1], m[5], m[9], m[13]),
-             (m[2], m[6], m[10], m[14]), (m[3], m[7], m[11], m[15])))
-        t, q, s = matrix.decompose()
-        self.blender_object.location = manager.mod_v(t)
-        with tmp_mode(self.blender_object, 'QUATERNION'):
-            self.blender_object.rotation_quaternion = manager.mod_q(q)
-        self.blender_object.scale = (s[0], s[2], s[1])
-
-    for child in self.children:
-        child.create_object(collection, manager)
 
 
 # create armature
@@ -426,15 +376,7 @@ class Skin:
 
 
 class ImportManager:
-    '''
-    中間形式作る
-    '''
-    def __init__(self, path: pathlib.Path, gltf: gltf.glTF,
-                 body: bytes) -> None:
-        self.path = path
-        self.base_dir = path.parent
-        self.gltf = gltf
-        self.body = body
+    def __init__(self) -> None:
         self.textures: List[bpy.types.Texture] = []
         self.materials: List[bpy.types.Material] = []
         self.meshes: List[Tuple[bpy.types.Mesh, Any]] = []
@@ -470,8 +412,7 @@ class ImportManager:
     def load_meshes(self):
         self.meshes = [_create_mesh(self, mesh) for mesh in self.gltf.meshes]
 
-    def load_objects(self,
-                     context: bpy.types.Context) -> Tuple[List[Node], Node]:
+    def load_objects(self, context: bpy.types.Context, roots: List[Node]):
         # collection
         view_layer = context.view_layer
         if hasattr(view_layer,
@@ -482,58 +423,57 @@ class ImportManager:
             # view_layer.collections.link(collection)
 
         # setup
-        nodes = [
-            create_node(gltf_node)
-            for i, gltf_node in enumerate(self.gltf.nodes)
-        ]
+        # nodes = [
+        #     create_node(gltf_node)
+        #     for i, gltf_node in enumerate(self.gltf.nodes)
+        # ]
 
         # set parents
-        for gltf_node, node in zip(self.gltf.nodes, nodes):
-            for child_index in gltf_node.children:
-                child = nodes[child_index]
-                node.add_child(child)
+        # for gltf_node, node in zip(self.gltf.nodes, nodes):
+        #     for child_index in gltf_node.children:
+        #         child = nodes[child_index]
+        #         node.add_child(child)
 
         # check root
-        roots = [node for node in enumerate(nodes) if not node[1].parent]
-        if len(roots) != 1:
-            root = Node(len(nodes), gltf.Node({'name': '__root__'}))
-            for _, node in roots:
-                root.children.append(node)
-                node.parent = root
-        else:
-            root = nodes[0]
-        create_object(root, collection, self)
+        # roots = [node for node in enumerate(nodes) if not node[1].parent]
+        # if len(roots) != 1:
+        #     root = Node(len(nodes), gltf.Node({'name': '__root__'}))
+        #     for _, node in roots:
+        #         root.children.append(node)
+        #         node.parent = root
+        # else:
+        #     root = nodes[0]
+        for root in roots:
+            create_object(root, collection, self)
 
-        def get_root(skin: gltf.Skin) -> Optional[Node]:
+        # def get_root(skin: gltf.Skin) -> Optional[Node]:
 
-            root = None
+        #     root = None
 
-            for joint in skin.joints:
-                node = nodes[joint]
-                if not root:
-                    root = node
-                else:
-                    if node in root.get_ancestors():
-                        root = node
+        #     for joint in skin.joints:
+        #         node = nodes[joint]
+        #         if not root:
+        #             root = node
+        #         else:
+        #             if node in root.get_ancestors():
+        #                 root = node
 
-            return root
+        #     return root
 
         # create armatures
-        root_skin = gltf.Skin.from_dict({'name': 'skin'})
+        # root_skin = gltf.Skin.from_dict({'name': 'skin'})
 
-        for skin in self.gltf.skins:
-            for joint in skin.joints:
-                if joint not in root_skin.joints:
-                    root_skin.joints.append(joint)
-        skeleton = get_root(root_skin)
+        # for skin in self.gltf.skins:
+        #     for joint in skin.joints:
+        #         if joint not in root_skin.joints:
+        #             root_skin.joints.append(joint)
+        # skeleton = get_root(root_skin)
 
-        if skeleton:
-            create_armature(skeleton, context, collection, view_layer,
-                            root_skin)
+        # if skeleton:
+        #     create_armature(skeleton, context, collection, view_layer,
+        #                     root_skin)
 
         # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-        return (nodes, root)
 
     def get_view_bytes(self, view_index: int) -> bytes:
         view = self.gltf.bufferViews[view_index]
