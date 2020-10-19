@@ -23,7 +23,6 @@ import pathlib
 from scene_objects import import_manager
 #
 import bpy
-from .formats import glb, parse_gltf
 from bpy.props import (
     BoolProperty,
     FloatProperty,
@@ -48,13 +47,20 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
     )
 
     def execute(self, context):
-        path = pathlib.Path(self.filepath).absolute()
-        gltf, bin = parse_gltf(path)
+        path = pathlib.Path(self.filepath).absolute() # type: ignore
 
-        from .scene_objects.import_manager import ImportManager
+        from .lib.formats import parse_gltf
+        data = parse_gltf(path)
+
+        from lib import import_submesh
+        roots = import_submesh(data)
+
+        # from .lib.yup cts.import_manager import ImportManager
         # return importer.builder.load(context, path, gltf, bin)
 
-        manager = ImportManager(path, gltf, bin)
+        
+
+        manager = ImportManager()
         manager.load_textures()
         manager.load_materials()
         manager.load_meshes()

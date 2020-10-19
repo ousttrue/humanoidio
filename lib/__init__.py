@@ -1,16 +1,13 @@
-from lib.formats import buffermanager
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Dict, NamedTuple, Optional, Sequence, MutableSequence
 import ctypes
 import bpy, mathutils
-from lib.yup.submesh_mesh import SubmeshMesh, Submesh
 from .formats import gltf
 from .formats import GltfContext
 from .yup import Node
+from .yup.submesh_mesh import SubmeshMesh, Submesh
 from .struct_types import Float2, Float3, Float4, UShort4
-from lib.formats.gltf import Material
-from lib.formats.buffertypes import Vector3
 
 
 def get_accessor_type_to_count(accessor_type: gltf.AccessorType) -> int:
@@ -277,11 +274,11 @@ class BytesReader:
 
         if not buffer:
             raise Exception()
-        mesh.positions = memoryview(buffer.position)
-        mesh.normals = memoryview(buffer.normal)
-        mesh.texcoord = memoryview(buffer.texcoord)
-        mesh.joints = memoryview(buffer.joints)
-        mesh.weights = memoryview(buffer.weights)
+        mesh.positions = memoryview(buffer.position) # type: ignore
+        mesh.normals = memoryview(buffer.normal) # type: ignore
+        mesh.texcoord = memoryview(buffer.texcoord) # type: ignore
+        mesh.joints = memoryview(buffer.joints) # type: ignore
+        mesh.weights = memoryview(buffer.weights) # type: ignore
 
         return mesh
 
