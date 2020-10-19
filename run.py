@@ -19,7 +19,7 @@ scene_translator.register()
 DST_FILE = HERE / 'tmp.glb'
 
 bpy.ops.scene_translator.importer(filepath=str(SRC_FILE))
-bpy.ops.scene_translator.exporter(filepath=str(DST_FILE))
+# bpy.ops.scene_translator.exporter(filepath=str(DST_FILE))
 
 # cleanup
 scene_translator.unregister()

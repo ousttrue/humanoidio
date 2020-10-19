@@ -20,7 +20,7 @@ logger = getLogger(__name__)
 import os
 import json
 import pathlib
-from scene_objects import import_manager
+
 #
 import bpy
 from bpy.props import (
@@ -52,43 +52,43 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         from .lib.formats import parse_gltf
         data = parse_gltf(path)
 
-        from lib import import_submesh
+        from .lib import import_submesh
         roots = import_submesh(data)
 
+        return {'FINISHED'}
+
         # from .lib.yup cts.import_manager import ImportManager
-        # return importer.builder.load(context, path, gltf, bin)
+        # return importer.builder.load(context, path, gltf, bin)      
 
-        
+        # manager = ImportManager()
+        # manager.load_textures()
+        # manager.load_materials()
+        # manager.load_meshes()
+        # for m, _ in manager.meshes:
+        #     logger.debug(f'[{m.name}: {len(m.vertices)}]vertices')
+        # nodes, root = manager.load_objects(context)
 
-        manager = ImportManager()
-        manager.load_textures()
-        manager.load_materials()
-        manager.load_meshes()
-        for m, _ in manager.meshes:
-            logger.debug(f'[{m.name}: {len(m.vertices)}]vertices')
-        nodes, root = manager.load_objects(context)
+        # # # skinning
+        # # armature_object = next(node for node in root.traverse()
+        # #                         if node.blender_armature)
 
-        # # skinning
-        # armature_object = next(node for node in root.traverse()
-        #                         if node.blender_armature)
+        # # for node in nodes:
+        # #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
+        # #         _, attributes = manager.meshes[node.gltf_node.mesh]
 
-        # for node in nodes:
-        #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
-        #         _, attributes = manager.meshes[node.gltf_node.mesh]
+        # #         skin = gltf.skins[node.gltf_node.skin]
+        # #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
 
-        #         skin = gltf.skins[node.gltf_node.skin]
-        #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
+        # #         #armature_object =nodes[skin.skeleton].blender_armature
 
-        #         #armature_object =nodes[skin.skeleton].blender_armature
+        # #         _setup_skinning(node.blender_object, attributes, bone_names,
+        # #                         armature_object.blender_armature)
 
-        #         _setup_skinning(node.blender_object, attributes, bone_names,
-        #                         armature_object.blender_armature)
+        # # remove empties
+        # _remove_empty(root)
 
-        # remove empties
-        _remove_empty(root)
-
-        # done
-        # context.scene.update()
+        # # done
+        # # context.scene.update()
 
 
 class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
