@@ -150,3 +150,4 @@ class BufferManager:
                 extras={})
             self.accessors.append(accessor)
             return accessor_index
+

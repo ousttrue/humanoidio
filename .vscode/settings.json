@@ -1,9 +1,13 @@
 {
     "cSpell.words": [
         "PYTHONPATH",
+        "TEXCOORD",
+        "ctypes",
         "getenv",
         "gltf",
-        "unregister"
+        "struct",
+        "unregister",
+        "ushort"
     ],
     // python
     "python.analysis.extraPaths": [
