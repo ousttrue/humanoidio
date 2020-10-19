@@ -9,7 +9,7 @@ from lib.formats import parse_gltf
 from lib.yup.submesh_mesh import SubmeshMesh
 
 
-class Test_TestIncrementDecrement(unittest.TestCase):
+class GltfTests(unittest.TestCase):
     def test_box(self):
         path = GLTF_SAMPLE_DIR / '2.0/Box/glTF/Box.gltf'
         self.assertTrue(path.exists())

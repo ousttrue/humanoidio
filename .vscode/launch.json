@@ -18,7 +18,7 @@
             "request": "launch",
             "module": "unittest",
             "args": [
-                "${workspaceFolder}/tests/test_gltf.py",
+                "${workspaceFolder}/tests/test_memoryview.py",
             ],
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
