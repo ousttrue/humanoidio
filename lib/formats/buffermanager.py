@@ -5,7 +5,7 @@ import ctypes
 from . import gltf
 from .binarybuffer import BinaryBuffer
 from .gltf_context import GltfContext
-from ..struct_types import PlanarBuffer, Float3
+from ..struct_types import PlanarBuffer, Float2, Float3, Float4, UShort4
 from ..yup.submesh_mesh import SubmeshMesh, Submesh, Material
 
 MINMAX = Callable[[memoryview], List[float]]
