@@ -4,7 +4,7 @@ from typing import List, Optional, Dict
 import bpy, mathutils
 from ..bpy_helper import disposable_mode
 from ..pyscene.node import Node
-from ..pyscene.submesh_mesh import SubmeshMesh
+from ..pyscene.submesh_mesh import SubmeshMesh, Material
 
 # def mod_v(v):
 #     return (v[0], -v[2], v[1])
@@ -14,6 +14,9 @@ from ..pyscene.submesh_mesh import SubmeshMesh
 
 
 class Importer:
+    '''
+    bpy.types.Object, Mesh, Material, Texture を作成する
+    '''
     def __init__(self, context: bpy.types.Context):
         view_layer = context.view_layer
         if hasattr(view_layer,
@@ -25,6 +28,18 @@ class Importer:
 
         self.obj_map: Dict[Node, bpy.types.Object] = {}
         self.mesh_map: Dict[SubmeshMesh, bpy.types.Mesh] = {}
+        self.material_map: Dict[Material, bpy.types.Material] = {}
+
+    def _get_or_create_material(self,
+                                material: Material) -> bpy.types.Material:
+        bl_material = self.material_map.get(material)
+        if bl_material:
+            return bl_material
+
+        bl_material = bpy.data.materials.new(material.name)
+        self.material_map[material] = bl_material
+
+        return bl_material
 
     def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
@@ -32,6 +47,11 @@ class Importer:
             return bl_mesh
 
         bl_mesh = bpy.data.meshes.new(mesh.name)
+        self.mesh_map[mesh] = bl_mesh
+
+        for submesh in mesh.submeshes:
+            bl_material = self._get_or_create_material(submesh.material)
+            bl_mesh.materials.append(bl_material)
 
         # materials = [manager.materials[prim.material] for prim in bl_mesh.primitives]
         # for m in materials:
@@ -70,7 +90,6 @@ class Importer:
         bl_mesh.validate(clean_customdata=False)
         bl_mesh.update()
 
-        self.mesh_map[mesh] = bl_mesh
         return bl_mesh
 
     def _create_object(self, node: Node) -> None:
@@ -181,7 +200,6 @@ def import_roots(context: bpy.types.Context, roots: List[Node]):
     for root in roots:
         importer.traverse(root)
 
-    # manager = ImportManager()
     # manager.load_textures()
     # manager.load_materials()
     # manager.load_meshes()
