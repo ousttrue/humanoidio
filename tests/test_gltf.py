@@ -5,9 +5,10 @@ import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 
-from lib import import_submesh
+from lib.importer.import_manager import import_submesh
 from lib.formats.gltf_context import parse_gltf
-from lib.pyscene.submesh_mesh import SubmeshMesh, Material, PBRMaterial
+from lib.pyscene.submesh_mesh import SubmeshMesh
+from lib.pyscene.material import Material, PBRMaterial
 
 
 class GltfTests(unittest.TestCase):
