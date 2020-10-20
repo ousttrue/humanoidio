@@ -26,9 +26,8 @@ class GltfTests(unittest.TestCase):
         vertices = mesh.attributes
         self.assertEqual(len(vertices.position), 24)
         self.assertEqual(len(vertices.normal), 24)
+        self.assertEqual(len(mesh.indices), 36)
         self.assertEqual(len(mesh.submeshes), 1)
-        submesh = mesh.submeshes[0]
-        self.assertEqual(len(submesh.indices), 36)
 
 
 if __name__ == '__main__':
