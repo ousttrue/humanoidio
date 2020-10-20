@@ -5,6 +5,7 @@ import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 
+from lib.struct_types import Float4
 from lib.importer.import_manager import import_submesh
 from lib.formats.gltf_context import parse_gltf
 from lib.pyscene.submesh_mesh import SubmeshMesh
@@ -72,10 +73,14 @@ class GltfTests(unittest.TestCase):
 
         submesh = mesh.submeshes[0]
         material = submesh.material
+        texture = material.texture
 
         # material
         self.assertEqual(material.name, 'material0')
         self.assertTrue(isinstance(material, PBRMaterial))
+        self.assertEqual(material.color, Float4(1, 1, 1, 1))
+        self.assertEqual(texture.image.width, 256)
+        self.assertEqual(texture.image.width, 256)
 
     def test_unlit_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'

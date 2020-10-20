@@ -1,10 +1,12 @@
-from typing import Optional
-from lib.struct_types import Float4
 from logging import getLogger
 logger = getLogger(__name__)
+from typing import Optional
+import io
 import bpy
+import PIL.Image
 from ..formats import gltf
 from ..formats.buffermanager import BufferManager
+from ..struct_types import Float4
 
 
 def image_to_png(image: bpy.types.Image) -> bytes:
@@ -41,7 +43,7 @@ def image_to_png(image: bpy.types.Image) -> bytes:
 class Texture:
     def __init__(self, name: str, data: bytes):
         self.name = name
-        self.data = data
+        self.image = PIL.Image.open(io.BytesIO(data))
 
 
 class Material:

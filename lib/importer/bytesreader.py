@@ -57,6 +57,7 @@ class BytesReader:
         # gltf の url 参照の外部ファイルバッファをキャッシュする
         self._buffer_map: Dict[str, bytes] = {}
         self._material_map: Dict[int, Material] = {}
+        self._image_map: Dict[int, bytes] = {}
 
     def get_view_bytes(self, view_index: int) -> bytes:
         view = self.data.gltf.bufferViews[view_index]
@@ -125,6 +126,22 @@ class BytesReader:
 
         raise NotImplementedError()
 
+    def get_image_bytes(self, image_index: int) -> bytes:
+        image_bytes = self._image_map.get(image_index)
+        if image_bytes:
+            return image_bytes
+
+        gl_image = self.data.gltf.images[image_index]
+        if gl_image.uri:
+            image_bytes = self.data.get_uri_bytes(gl_image.uri)
+            self._image_map[image_index] = image_bytes
+            return image_bytes
+
+        if isinstance(gl_image.bufferView, int):
+            return self.get_view_bytes(gl_image.bufferView)
+
+        raise Exception('invalid gl_image')
+
     def get_or_create_material(self,
                                material_index: Optional[int]) -> Material:
         if not isinstance(material_index, int):
@@ -153,14 +170,9 @@ class BytesReader:
                 3]
         # texture
         if gl_material.pbrMetallicRoughness.baseColorTexture:
-            gl_image = self.data.gltf.images[
-                gl_material.pbrMetallicRoughness.baseColorTexture.index]
-            image_bytes = self.get_view_bytes(
-                gl_material.pbrMetallicRoughness.baseColorTexture.index)
-            name = f'texture{gl_material.pbrMetallicRoughness.baseColorTexture.index}'
-            if gl_image.name:
-                name = gl_image.name
-            material.texture = Texture(name, image_bytes)
+            image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
+            image_bytes = self.get_image_bytes(image_index)
+            material.texture = Texture(f'texture{image_index}', image_bytes)
 
         return material
 

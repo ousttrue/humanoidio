@@ -13,6 +13,10 @@ class GltfContext(NamedTuple):
     # path for file exists
     dir: pathlib.Path
 
+    def get_uri_bytes(self, uri: str) -> bytes:
+        path = self.dir / uri
+        return path.read_bytes()
+
 
 def parse_gltf(path: pathlib.Path) -> GltfContext:
     '''

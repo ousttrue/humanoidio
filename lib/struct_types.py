@@ -78,6 +78,13 @@ class Float4(ctypes.Structure):
     def __repr__(self) -> str:
         return f'({self.x}, {self.y}, {self.z}, {self.w})'
 
+    def __eq__(self, other: 'Float4') -> bool:
+        if self.x != other.x: return False
+        if self.y != other.y: return False
+        if self.z != other.z: return False
+        if self.w != other.w: return False
+        return True
+
     def __mul__(self, factor: float) -> 'Float4':
         return Float4(self.x * factor, self.y * factor, self.z * factor,
                       self.w * factor)
