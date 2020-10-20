@@ -1,7 +1,6 @@
-from lib.yup.submesh_mesh import SubmeshMesh
 from typing import List, Optional, Iterator, Iterable, Union
 import bpy, mathutils
-from mathutils import Quaternion
+from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
 from ..formats.buffertypes import Vector3, Vector4
 from ..formats.vrm0x import HumanoidBones

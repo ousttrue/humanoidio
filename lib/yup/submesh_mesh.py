@@ -9,9 +9,11 @@ class Material:
 
 
 class Submesh:
-    def __init__(self, material: Material) -> None:
-        self.indices: Any = array.array('I')
+    def __init__(self, offset: int, vertex_count: int,
+                 material: Material) -> None:
         self.material = material
+        self.offset = offset
+        self.vertex_count = vertex_count
 
 
 class SubmeshMesh:
@@ -21,6 +23,7 @@ class SubmeshMesh:
         # morph
         self.morph_map: Dict[str, memoryview] = {}
         # indices
+        self.indices = array.array('I')
         self.submeshes: List[Submesh] = []
 
     def __str__(self) -> str:

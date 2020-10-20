@@ -227,20 +227,30 @@ class BytesReader:
             return data.gltf.accessors[prim.indices].count
 
         buffer: Optional[PlanarBuffer] = None
+
+        def add_indices(sm: SubmeshMesh, prim: gltf.MeshPrimitive,
+                        index_offset: int):
+            # indices
+            if not isinstance(prim.indices, int):
+                raise Exception()
+            mesh.indices.extend(self.get_bytes(prim.indices))
+            # submesh
+            index_count = prim_index_count(prim)
+            submesh = Submesh(index_offset, index_count,
+                              self.get_or_create_material(prim.material))
+            mesh.submeshes.append(submesh)
+            return index_count
+
         if shared:
             # share vertex buffer
             vertex_count = position_count(m.primitives[0])
             mesh = SubmeshMesh(name, vertex_count)
             self.read_attributes(mesh.attributes, 0, data, m.primitives[0])
 
+            index_offset = 0
             for i, prim in enumerate(m.primitives):
                 # indices
-                submesh = Submesh(self.get_or_create_material(prim.material))
-                if not isinstance(prim.indices, int):
-                    raise Exception()
-                submesh.indices = self.get_bytes(prim.indices)
-                mesh.submeshes.append(submesh)
-
+                index_offset += add_indices(mesh, prim, index_offset)
         else:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
@@ -248,21 +258,13 @@ class BytesReader:
             mesh = SubmeshMesh(name, vertex_count)
 
             offset = 0
+            index_offset = 0
             for i, prim in enumerate(m.primitives):
                 # vertex
                 self.read_attributes(mesh.attributes, offset, data, prim)
                 offset += position_count(prim)
-
                 # indices
-                submesh = Submesh(self.get_or_create_material(prim.material))
-                index_count = prim_index_count(prim)
-                if not isinstance(prim.indices, int):
-                    raise Exception()
-                self.indices = self.get_bytes(prim.indices)
-                for i in range(index_count):
-                    self.indices[i] += offset
-
-                mesh.submeshes.append(submesh)
+                index_offset += add_indices(mesh, prim, index_offset)
 
         return mesh
 

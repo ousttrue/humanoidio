@@ -37,21 +37,23 @@ class Importer:
         # for m in materials:
         #     bl_mesh.materials.append(m)
 
-        # attributes = VertexBuffer(manager, bl_mesh)
+        attributes = mesh.attributes
 
-        # bl_mesh.vertices.add(len(attributes.pos) / 3)
-        # bl_mesh.vertices.foreach_set("co", attributes.pos)
-        # bl_mesh.vertices.foreach_set("normal", attributes.nom)
+        bl_mesh.vertices.add(attributes.get_vertex_count())
+        bl_mesh.vertices.foreach_set(
+            "co", [n for v in attributes.position for n in (v.x, v.y, v.z)])
+        bl_mesh.vertices.foreach_set(
+            "normal", [n for v in attributes.normal for n in (v.x, v.y, v.z)])
 
-        # bl_mesh.loops.add(len(attributes.indices))
-        # bl_mesh.loops.foreach_set("vertex_index", attributes.indices)
+        bl_mesh.loops.add(len(mesh.indices))
+        bl_mesh.loops.foreach_set("vertex_index", mesh.indices)
 
-        # triangle_count = int(len(attributes.indices) / 3)
-        # bl_mesh.polygons.add(triangle_count)
-        # starts = [i * 3 for i in range(triangle_count)]
-        # bl_mesh.polygons.foreach_set("loop_start", starts)
-        # total = [3 for _ in range(triangle_count)]
-        # bl_mesh.polygons.foreach_set("loop_total", total)
+        triangle_count = len(mesh.indices) // 3
+        bl_mesh.polygons.add(triangle_count)
+        starts = [i * 3 for i in range(triangle_count)]
+        bl_mesh.polygons.foreach_set("loop_start", starts)
+        total = [3 for _ in range(triangle_count)]
+        bl_mesh.polygons.foreach_set("loop_total", total)
 
         # blen_uvs = bl_mesh.uv_layers.new()
         # for blen_poly in bl_mesh.polygons:
