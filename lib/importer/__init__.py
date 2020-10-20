@@ -4,7 +4,8 @@ from typing import List, Optional, Dict
 import bpy, mathutils
 from ..bpy_helper import disposable_mode
 from ..pyscene.node import Node
-from ..pyscene.submesh_mesh import SubmeshMesh, Material
+from ..pyscene.submesh_mesh import SubmeshMesh
+from ..pyscene.material import Material, Texture
 
 # def mod_v(v):
 #     return (v[0], -v[2], v[1])
@@ -29,6 +30,19 @@ class Importer:
         self.obj_map: Dict[Node, bpy.types.Object] = {}
         self.mesh_map: Dict[SubmeshMesh, bpy.types.Mesh] = {}
         self.material_map: Dict[Material, bpy.types.Material] = {}
+        self.image_map: Dict[Texture, bpy.types.Image] = {}
+
+    def _get_or_create_image(self, texture: Texture) -> bpy.types.Image:
+        bl_image = self.image_map.get(texture)
+        if bl_image:
+            return bl_image
+
+        image = texture.image
+        bl_image = bpy.data.images.new(texture.name,
+                                       width=image.width,
+                                       height=image.height)
+        self.image_map[texture] = bl_image
+        return bl_image
 
     def _get_or_create_material(self,
                                 material: Material) -> bpy.types.Material:
@@ -38,6 +52,14 @@ class Importer:
 
         bl_material = bpy.data.materials.new(material.name)
         self.material_map[material] = bl_material
+
+        if material.texture and material.texture.image:
+            # texture
+            bl_texture = bpy.data.textures.new(material.texture.name,
+                                               type='IMAGE')
+            bl_texture.image = self._get_or_create_image(material.texture)
+            # require node
+            # bl_material.texture_slots.add().texture = bl_texture
 
         return bl_material
 
