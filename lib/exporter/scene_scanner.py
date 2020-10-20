@@ -1,8 +1,8 @@
 from typing import List, Optional, Iterator, Dict, Any
 import bpy, mathutils
-from .facemesh import FaceMesh
-from .node import Node
 from .. import bpy_helper
+from ..pyscene.facemesh import FaceMesh
+from ..pyscene.node import Node
 from ..formats.vrm0x import HumanoidBones
 
 

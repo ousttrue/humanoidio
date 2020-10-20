@@ -2,9 +2,9 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Dict
 import bpy, mathutils
-from .bpy_helper import disposable_mode
-from .pyscene.node import Node
-from .pyscene.submesh_mesh import SubmeshMesh
+from ..bpy_helper import disposable_mode
+from ..pyscene.node import Node
+from ..pyscene.submesh_mesh import SubmeshMesh
 
 # def mod_v(v):
 #     return (v[0], -v[2], v[1])

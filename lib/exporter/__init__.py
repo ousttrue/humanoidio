@@ -1,15 +1,17 @@
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Tuple, Any
-from .pyscene import scene_scanner, materialstore
-from .pyscene.submesh_mesh import SubmeshMesh
-from .pyscene.facemesh import FaceMesh
-from .pyscene.to_submesh import facemesh_to_submesh
-from .formats import gltf, buffermanager
-from .struct_types import Float3
+from . import scene_scanner
+from ..pyscene import materialstore
+from ..pyscene.submesh_mesh import SubmeshMesh
+from ..pyscene.facemesh import FaceMesh
+from ..pyscene.to_submesh import facemesh_to_submesh
+from ..formats import gltf, buffermanager
+from ..struct_types import Float3
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'scene_translator'
+
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
     Vector3Array = (Float3 * len(buffer))

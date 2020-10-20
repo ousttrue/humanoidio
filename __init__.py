@@ -81,7 +81,7 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         from .lib import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
 
-        from .lib.pyscene.scene_scanner import Scanner
+        from .lib.exporter.scene_scanner import Scanner
         scanner = Scanner()
         scanner.scan(targets)
         scanner.add_mesh_node()
