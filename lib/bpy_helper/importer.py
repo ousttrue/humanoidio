@@ -26,6 +26,51 @@ class Importer:
         self.obj_map: Dict[Node, bpy.types.Object] = {}
         self.mesh_map: Dict[SubmeshMesh, bpy.types.Mesh] = {}
 
+    def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
+        bl_mesh = self.mesh_map.get(mesh)
+        if bl_mesh:
+            return bl_mesh
+
+        bl_mesh = bpy.data.meshes.new(mesh.name)
+
+        # materials = [manager.materials[prim.material] for prim in bl_mesh.primitives]
+        # for m in materials:
+        #     bl_mesh.materials.append(m)
+
+        # attributes = VertexBuffer(manager, bl_mesh)
+
+        # bl_mesh.vertices.add(len(attributes.pos) / 3)
+        # bl_mesh.vertices.foreach_set("co", attributes.pos)
+        # bl_mesh.vertices.foreach_set("normal", attributes.nom)
+
+        # bl_mesh.loops.add(len(attributes.indices))
+        # bl_mesh.loops.foreach_set("vertex_index", attributes.indices)
+
+        # triangle_count = int(len(attributes.indices) / 3)
+        # bl_mesh.polygons.add(triangle_count)
+        # starts = [i * 3 for i in range(triangle_count)]
+        # bl_mesh.polygons.foreach_set("loop_start", starts)
+        # total = [3 for _ in range(triangle_count)]
+        # bl_mesh.polygons.foreach_set("loop_total", total)
+
+        # blen_uvs = bl_mesh.uv_layers.new()
+        # for blen_poly in bl_mesh.polygons:
+        #     blen_poly.use_smooth = True
+        #     blen_poly.material_index = attributes.get_submesh_from_face(
+        #         blen_poly.index)
+        #     for lidx in blen_poly.loop_indices:
+        #         index = attributes.indices[lidx]
+        #         # vertex uv to face uv
+        #         uv = attributes.uv[index]
+        #         blen_uvs.data[lidx].uv = (uv.x, uv.y)  # vertical flip uv
+
+        # *Very* important to not remove lnors here!
+        bl_mesh.validate(clean_customdata=False)
+        bl_mesh.update()
+
+        self.mesh_map[mesh] = bl_mesh
+        return bl_mesh
+
     def _create_object(self, node: Node) -> None:
         '''
         Node から bpy.types.Object を作る
@@ -34,19 +79,20 @@ class Importer:
 
         # create object
         if isinstance(node.mesh, SubmeshMesh):
-            obj = bpy.data.objects.new(node.name, self.mesh_map.get(node.mesh))
+            bl_mesh = self._get_or_create_mesh(node.mesh)
+            bl_obj = bpy.data.objects.new(node.name, bl_mesh)
         else:
             # empty
-            obj = bpy.data.objects.new(node.name, None)
-            obj.empty_display_size = 0.1
+            bl_obj = bpy.data.objects.new(node.name, None)
+            bl_obj.empty_display_size = 0.1
             # self.blender_object.empty_draw_type = 'PLAIN_AXES'
-        self.collection.objects.link(obj)
-        obj.select_set(True)
-        self.obj_map[node] = obj
+        self.collection.objects.link(bl_obj)
+        bl_obj.select_set(True)
+        self.obj_map[node] = bl_obj
 
         # parent
         if node.parent:
-            obj.parent = self.obj_map.get(node.parent)
+            bl_obj.parent = self.obj_map.get(node.parent)
 
         # TRS
         # obj.location = node.position

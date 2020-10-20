@@ -1,5 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
+from typing import NamedTuple, MutableSequence
 import ctypes
 
 
@@ -81,3 +82,23 @@ class UShort4(ctypes.Structure):
             return self.w
         else:
             raise IndexError()
+
+
+class PlanarBuffer(NamedTuple):
+    position: MutableSequence[Float3]
+    normal: MutableSequence[Float3]
+    texcoord: MutableSequence[Float2]
+    joints: MutableSequence[UShort4]
+    weights: MutableSequence[Float4]
+
+    def get_vertex_count(self) -> int:
+        return len(self.position)
+
+    @staticmethod
+    def create(vertex_count: int) -> 'PlanarBuffer':
+        pos = (Float3 * vertex_count)()
+        nom = (Float3 * vertex_count)()
+        uv = (Float2 * vertex_count)()
+        joints = (UShort4 * vertex_count)()
+        weights = (Float4 * vertex_count)()
+        return PlanarBuffer(pos, nom, uv, joints, weights)  # type: ignore

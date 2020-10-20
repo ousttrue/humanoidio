@@ -7,7 +7,8 @@
         "gltf",
         "struct",
         "unregister",
-        "ushort"
+        "ushort",
+        "verts"
     ],
     // python
     "python.analysis.extraPaths": [

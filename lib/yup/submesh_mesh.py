@@ -1,29 +1,27 @@
-from typing import Any, List, Optional, Dict
+from typing import Any, List, Optional, Dict, Sequence
 import array
-import bpy
+from ..struct_types import PlanarBuffer
+
+
+class Material:
+    def __init__(self, name: str):
+        self.name = name
 
 
 class Submesh:
-    def __init__(self, material: Optional[bpy.types.Material]) -> None:
+    def __init__(self, material: Material) -> None:
         self.indices: Any = array.array('I')
         self.material = material
 
 
 class SubmeshMesh:
-    def __init__(self, name: str, positions: Optional[memoryview] = None):
+    def __init__(self, name: str, vertex_count: int):
         self.name = name
-        self.submeshes: List[Submesh] = []
-        self.vertex_count = len(positions.tobytes()) // 12 if positions else 0
-        # attributes
-        self.positions = positions
-        self.normals: Optional[memoryview] = None  # float3
-        self.texcoord: Optional[memoryview] = None  # float2
-        self.joints: Optional[memoryview] = None  # int4
-        self.weights: Optional[memoryview] = None  # float4
+        self.attributes = PlanarBuffer.create(vertex_count)
         # morph
         self.morph_map: Dict[str, memoryview] = {}
-        # materials
-        self.textures: List[bpy.types.Texture] = []
+        # indices
+        self.submeshes: List[Submesh] = []
 
     def __str__(self) -> str:
-        return f'<SubmeshMesh: {self.vertex_count}verts>'
+        return f'<SubmeshMesh: {self.attributes.get_vertex_count()}verts>'

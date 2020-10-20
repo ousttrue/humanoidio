@@ -6,8 +6,8 @@ import bpy, mathutils
 from .formats import gltf
 from .formats import GltfContext
 from .yup import Node
-from .yup.submesh_mesh import SubmeshMesh, Submesh
-from .struct_types import Float2, Float3, Float4, UShort4
+from .yup.submesh_mesh import SubmeshMesh, Submesh, Material
+from .struct_types import Float2, Float3, Float4, UShort4, PlanarBuffer
 
 
 def get_accessor_type_to_count(accessor_type: gltf.AccessorType) -> int:
@@ -52,28 +52,12 @@ def get_accessor_byteslen(accessor: gltf.Accessor) -> int:
             get_accessor_component_type_to_len(accessor.componentType))
 
 
-class PlanarBuffer(NamedTuple):
-    position: MutableSequence[Float3]
-    normal: MutableSequence[Float3]
-    texcoord: MutableSequence[Float2]
-    joints: MutableSequence[UShort4]
-    weights: MutableSequence[Float4]
-
-    @staticmethod
-    def create(vertex_count: int) -> 'PlanarBuffer':
-        pos = (Float3 * vertex_count)()
-        nom = (Float3 * vertex_count)()
-        uv = (Float2 * vertex_count)()
-        joints = (UShort4 * vertex_count)()
-        weights = (Float4 * vertex_count)()
-        return PlanarBuffer(pos, nom, uv, joints, weights)
-
-
 class BytesReader:
     def __init__(self, data: GltfContext):
         self.data = data
         # gltf の url 参照の外部ファイルバッファをキャッシュする
         self._buffer_map: Dict[str, bytes] = {}
+        self._material_map: Dict[int, Material] = {}
 
     def get_view_bytes(self, view_index: int) -> bytes:
         view = self.data.gltf.bufferViews[view_index]
@@ -140,6 +124,16 @@ class BytesReader:
                         accessor.count).from_buffer_copy(segment)
 
         raise NotImplementedError()
+
+    def get_or_create_material(self,
+                               material_index: Optional[int]) -> Material:
+        if not isinstance(material_index, int):
+            return Material(f'default')
+        material = self._material_map.get(material_index)
+        if not material:
+            material = Material(f'material{material_index}')
+            self._material_map[material_index] = material
+        return material
 
     def read_attributes(self, buffer: PlanarBuffer, offset: int,
                         data: GltfContext, prim: gltf.MeshPrimitive):
@@ -210,7 +204,6 @@ class BytesReader:
     def load_submesh(self, data: GltfContext, mesh_index: int) -> SubmeshMesh:
         m = data.gltf.meshes[mesh_index]
         name = m.name if m.name else f'mesh {mesh_index}'
-        mesh = SubmeshMesh(name)
 
         # check shared attributes
         shared = True
@@ -236,15 +229,13 @@ class BytesReader:
         buffer: Optional[PlanarBuffer] = None
         if shared:
             # share vertex buffer
-            for i, prim in enumerate(m.primitives):
-                if i == 0:
-                    # vertex
-                    vertex_count = position_count(prim)
-                    buffer = PlanarBuffer.create(vertex_count)
-                    self.read_attributes(buffer, 0, data, prim)
+            vertex_count = position_count(m.primitives[0])
+            mesh = SubmeshMesh(name, vertex_count)
+            self.read_attributes(mesh.attributes, 0, data, m.primitives[0])
 
-                submesh = Submesh(None)
+            for i, prim in enumerate(m.primitives):
                 # indices
+                submesh = Submesh(self.get_or_create_material(prim.material))
                 if not isinstance(prim.indices, int):
                     raise Exception()
                 submesh.indices = self.get_bytes(prim.indices)
@@ -254,15 +245,16 @@ class BytesReader:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
                                0)
-            buffer = PlanarBuffer.create(vertex_count)
+            mesh = SubmeshMesh(name, vertex_count)
+
             offset = 0
             for i, prim in enumerate(m.primitives):
                 # vertex
-                self.read_attributes(buffer, offset, data, prim)
+                self.read_attributes(mesh.attributes, offset, data, prim)
                 offset += position_count(prim)
 
-                submesh = Submesh(None)
                 # indices
+                submesh = Submesh(self.get_or_create_material(prim.material))
                 index_count = prim_index_count(prim)
                 if not isinstance(prim.indices, int):
                     raise Exception()
@@ -271,14 +263,6 @@ class BytesReader:
                     self.indices[i] += offset
 
                 mesh.submeshes.append(submesh)
-
-        if not buffer:
-            raise Exception()
-        mesh.positions = memoryview(buffer.position) # type: ignore
-        mesh.normals = memoryview(buffer.normal) # type: ignore
-        mesh.texcoord = memoryview(buffer.texcoord) # type: ignore
-        mesh.joints = memoryview(buffer.joints) # type: ignore
-        mesh.weights = memoryview(buffer.weights) # type: ignore
 
         return mesh
 

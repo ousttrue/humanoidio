@@ -62,7 +62,9 @@ class Node:
         return f'[{self.name} {self.position}]'
 
     def __str__(self) -> str:
-        return f'<Node {self.name}>'
+        if not self.mesh:
+            return f'<Node {self.name}>'
+        return f'<Node {self.name}: {self.mesh}>'
 
     def traverse(self) -> Iterator['Node']:
         yield self
