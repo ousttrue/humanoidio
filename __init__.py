@@ -55,7 +55,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         from .lib import import_submesh
         roots = import_submesh(data)
 
-        from .lib.bpy_helper.importer import import_roots
+        from .lib.importer import import_roots
         import_roots(context, roots)
 
         return {'FINISHED'}
@@ -81,7 +81,7 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         from .lib import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
 
-        from .lib.yup.scene_scanner import Scanner
+        from .lib.pyscene.scene_scanner import Scanner
         scanner = Scanner()
         scanner.scan(targets)
         scanner.add_mesh_node()
@@ -89,16 +89,14 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
             if not scanner.remove_empty_leaf_nodes():
                 break
 
-        from .lib import scanner_to_gltf
-        # ext = filepath.suffix
-        # is_gltf = (ext == '.gltf')
-        data, buffers = scanner_to_gltf.export(scanner)
+        from .lib.exporter import export
+        data, buffers = export(scanner)
         d = data.to_dict()
 
         from .lib.formats.glb import Glb
         text = json.dumps(d)
         json_bytes = text.encode('utf-8')
-        with open(self.filepath, 'wb') as w:
+        with open(self.filepath, 'wb') as w:  # type: ignore
             Glb(json_bytes, buffers[0].buffer.data).write_to(w)
 
         return {'FINISHED'}
@@ -120,8 +118,8 @@ def menu_func_export(self, context):
 def register():
     for c in CLASSES:
         bpy.utils.register_class(c)
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)  # type: ignore
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)  # type: ignore
 
 
 def unregister():
@@ -130,8 +128,8 @@ def unregister():
     # handle the keymap
     for c in CLASSES:
         bpy.utils.unregister_class(c)
-    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
-    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)  # type: ignore
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)  # type: ignore
 
 
 if __name__ == "__main__":

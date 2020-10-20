@@ -5,7 +5,7 @@ import bpy, mathutils
 from .formats import gltf
 from .formats.gltf_context import GltfContext
 from .formats.buffermanager import BytesReader
-from .yup import Node, SubmeshMesh
+from .pyscene import Node, SubmeshMesh
 
 
 def import_submesh(data: GltfContext) -> List[Node]:

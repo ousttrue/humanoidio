@@ -1,10 +1,10 @@
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Tuple, Any
-from .yup import scene_scanner, materialstore
-from .yup.submesh_mesh import SubmeshMesh
-from .yup.facemesh import FaceMesh
-from .yup.to_submesh import facemesh_to_submesh
+from .pyscene import scene_scanner, materialstore
+from .pyscene.submesh_mesh import SubmeshMesh
+from .pyscene.facemesh import FaceMesh
+from .pyscene.to_submesh import facemesh_to_submesh
 from .formats import gltf, buffermanager
 from .struct_types import Float3
 
