@@ -5,7 +5,7 @@ HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 
 from lib import import_submesh
-from lib.formats import parse_gltf
+from lib.formats.gltf_context import parse_gltf
 from lib.yup.submesh_mesh import SubmeshMesh
 
 

@@ -1,6 +1,6 @@
 import unittest
 import array
-from lib.formats.buffertypes import Float3
+from lib.struct_types import Float3
 
 
 class MemoryViewTests(unittest.TestCase):
