@@ -20,11 +20,13 @@ DST_FILE = HERE / 'tmp.glb'
 
 # clear scene
 logger.debug('clear scene')
-bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.select_all(action='SELECT')  # type: ignore
 bpy.ops.object.delete()
 
 bpy.ops.scene_translator.importer(filepath=str(SRC_FILE))  # type: ignore
 bpy.ops.scene_translator.exporter(filepath=str(DST_FILE))  # type: ignore
+
+# TODO: validate
 
 # cleanup
 scene_translator.unregister()

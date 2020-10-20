@@ -94,7 +94,6 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         # is_gltf = (ext == '.gltf')
         data, buffers = scanner_to_gltf.export(scanner)
         d = data.to_dict()
-        del d['extensions'] 
 
         from .lib.formats.glb import Glb
         text = json.dumps(d)

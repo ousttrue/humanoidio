@@ -8,6 +8,8 @@ from .yup.to_submesh import facemesh_to_submesh
 from .formats import gltf, buffermanager
 from .struct_types import Float3
 
+GLTF_VERSION = '2.0'
+GENERATOR_NAME = 'scene_translator'
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
     Vector3Array = (Float3 * len(buffer))
@@ -220,11 +222,11 @@ class GltfExporter:
         extensionsUsed = ['KHR_materials_unlit']
         vrm = self.export_vrm(scanner._nodes, scanner.vrm.version,
                               scanner.vrm.title, scanner.vrm.author)
-        if vrm:
-            extensionsUsed.append('VRM')
+        # if vrm:
+        #     extensionsUsed.append('VRM')
 
         data = gltf.glTF(
-            asset=gltf.Asset(generator='bl_vrm', version='2.0'),
+            asset=gltf.Asset(generator=GENERATOR_NAME, version=GLTF_VERSION),
             buffers=[gltf.Buffer(byteLength=len(self.buffer.buffer.data))],
             bufferViews=self.buffer.views,
             accessors=self.buffer.accessors,
@@ -237,7 +239,8 @@ class GltfExporter:
             skins=self.skins,
             scenes=[gltf.Scene(name='main', nodes=roots)],
             extensionsUsed=extensionsUsed,
-            extensions={'VRM': vrm})
+            # extensions={'VRM': vrm}
+        )
 
         return data, self.buffers
 
