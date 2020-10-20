@@ -2,7 +2,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Tuple, Any
 from . import scene_scanner
-from ..pyscene import materialstore
+from ..pyscene import material
 from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.facemesh import FaceMesh
 from ..pyscene.to_submesh import facemesh_to_submesh
@@ -38,7 +38,7 @@ class GltfExporter:
     def __init__(self):
         self.buffer = buffermanager.BufferManager()
         self.buffers = [self.buffer]
-        self.material_store = materialstore.MaterialStore()
+        self.material_store = material.MaterialStore()
         self.meshes: List[gltf.Mesh] = []
         self.skins: List[gltf.Skin] = []
         self.nodes: List[gltf.Node] = []

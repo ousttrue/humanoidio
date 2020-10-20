@@ -36,6 +36,22 @@ def image_to_png(image: bpy.types.Image) -> bytes:
     return png_bytes
 
 
+class Material:
+    '''
+    unlit
+    '''
+    def __init__(self, name: str):
+        self.name = name
+
+
+class PBRMaterial(Material):
+    '''
+    PBR
+    '''
+    def __init__(self, name: str):
+        super().__init__(name)
+
+
 class MaterialStore:
     def __init__(self):
         self.images: List[gltf.Image] = []

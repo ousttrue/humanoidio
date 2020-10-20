@@ -22,6 +22,7 @@ class TmpModel:
         self.submeshes: List[TmpSubmesh] = []
         self.submesh_map: Dict[int, TmpSubmesh] = {}
         self.vertices: List[TmpVertex] = []
+        self.vertex_map: Dict[TmpVertex, int] = {}
 
     def attributes(self) -> SubmeshMesh:
         mesh = SubmeshMesh('submesh', len(self.vertices), False)
@@ -42,8 +43,14 @@ class TmpModel:
         return tmp
 
     def _add_vertex(self, position: Float3, normal: Float3, uv: Float2) -> int:
+        vertex = TmpVertex(position, normal, uv)
+        i = self.vertex_map.get(vertex)
+        if isinstance(i, int):
+            return i
+        # vertex
         i = len(self.vertices)
-        self.vertices.append(TmpVertex(position, normal, uv))
+        self.vertices.append(vertex)
+        self.vertex_map[vertex] = i
         return i
 
     def push_triangle(self, material_index: int, p0: Float3, p1: Float3,

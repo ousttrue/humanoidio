@@ -16,6 +16,9 @@ class Float2(ctypes.Structure):
     def from_faceUV(uv: mathutils.Vector) -> 'Float2':
         return Float2(uv.x, -uv.y)
 
+    def __hash__(self):
+        return hash(self.x)
+
     def __eq__(self, other: 'Float2') -> bool:
         if self.x != other.x: return False
         if self.y != other.y: return False
@@ -31,6 +34,9 @@ class Float3(ctypes.Structure):
     def from_Vector(v: mathutils.Vector) -> 'Float3':
         # return Float3(v.x, v.z, -v.y)
         return Float3(-v.x, v.z, v.y)
+
+    def __hash__(self):
+        return hash(self.x)
 
     def __eq__(self, other: 'Float3') -> bool:
         if self.x != other.x: return False

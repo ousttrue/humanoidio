@@ -53,10 +53,6 @@ class Importer:
             bl_material = self._get_or_create_material(submesh.material)
             bl_mesh.materials.append(bl_material)
 
-        # materials = [manager.materials[prim.material] for prim in bl_mesh.primitives]
-        # for m in materials:
-        #     bl_mesh.materials.append(m)
-
         attributes = mesh.attributes
 
         bl_mesh.vertices.add(attributes.get_vertex_count())

@@ -1,23 +1,7 @@
 from typing import Any, List, Optional, Dict, Sequence
 import array
 from ..struct_types import PlanarBuffer
-
-
-class Material:
-    '''
-    unlit
-    '''
-    def __init__(self, name: str):
-        self.name = name
-
-
-class PBRMaterial(Material):
-    '''
-    PBR
-    '''
-    def __init__(self, name: str):
-        super().__init__(name)
-
+from .material import Material
 
 class Submesh:
     def __init__(self, offset: int, vertex_count: int,
@@ -38,4 +22,5 @@ class SubmeshMesh:
         self.submeshes: List[Submesh] = []
 
     def __str__(self) -> str:
-        return f'<SubmeshMesh: {self.attributes.get_vertex_count()}verts>'
+        vertex_count = self.attributes.get_vertex_count()
+        return f'<SubmeshMesh: {vertex_count}verts>'
