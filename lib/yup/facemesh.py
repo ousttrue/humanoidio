@@ -2,14 +2,14 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import (Any, List, Dict, Optional, NamedTuple)
 import bpy, mathutils
-from ..formats.buffertypes import (Vector2, Vector3, BoneWeight)
+from ..struct_types import Float2, Float3, BoneWeight
 
 
 class FaceVertex(NamedTuple):
     material_index: int
     position_index: int
-    normal: Vector3
-    uv: Optional[Vector2]
+    normal: Float3
+    uv: Optional[Float2]
 
     def __hash__(self):
         return hash(self.position_index)
@@ -36,7 +36,7 @@ class Triangle(NamedTuple):
     i0: int
     i1: int
     i2: int
-    normal: Optional[Vector3]
+    normal: Optional[Float3]
 
 
 class FaceMesh:
@@ -45,11 +45,11 @@ class FaceMesh:
                  vertex_groups: List[bpy.types.VertexGroup],
                  bone_names: List[str]) -> None:
         self.name = name
-        self.positions: Any = (Vector3 * len(vertices))()
-        self.normals: Any = (Vector3 * len(vertices))()
+        self.positions: Any = (Float3 * len(vertices))()
+        self.normals: Any = (Float3 * len(vertices))()
         for i, v in enumerate(vertices):
-            self.positions[i] = Vector3.from_Vector(v.co)
-            self.normals[i] = Vector3.from_Vector(v.normal)
+            self.positions[i] = Float3.from_Vector(v.co)
+            self.normals[i] = Float3.from_Vector(v.normal)
 
         self.materials: List[bpy.types.Material] = materials
 
@@ -78,7 +78,7 @@ class FaceMesh:
             if not uv_texture_layer: return None
             return uv_texture_layer.data[i].uv
 
-        face_normal = None if face.use_smooth else Vector3.from_Vector(
+        face_normal = None if face.use_smooth else Float3.from_Vector(
             face.normal)
 
         assert len(face.vertices) == 3
@@ -99,12 +99,12 @@ class FaceMesh:
 
     def _get_or_add_face_vertex(self, material_index: int, vertex_index: int,
                                 uv: Optional[mathutils.Vector],
-                                face_normal: Optional[Vector3]) -> int:
+                                face_normal: Optional[Float3]) -> int:
         # 同一頂点を考慮する
         face = FaceVertex(
             material_index, vertex_index,
             face_normal if face_normal else self.normals[vertex_index],
-            Vector2.from_faceUV(uv) if uv else None)
+            Float2.from_faceUV(uv) if uv else None)
         index = self.face_vertex_index_map.get(face, None)
         if index != None:
             return index
@@ -117,8 +117,8 @@ class FaceMesh:
     def add_morph(self, name: str, vertices: List[bpy.types.MeshVertex]):
         logger.debug(f'add_morph: {name}')
         assert (len(vertices) == len(self.positions))
-        positions = (Vector3 * len(vertices))()
+        positions = (Float3 * len(vertices))()
         for i, v in enumerate(vertices):
-            delta = Vector3.from_Vector(v.co) - self.positions[i]
+            delta = Float3.from_Vector(v.co) - self.positions[i]
             positions[i] = delta
         self.morph_map[name] = positions

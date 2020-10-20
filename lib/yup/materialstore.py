@@ -124,27 +124,27 @@ class MaterialStore:
         # material
         color = [0.5, 0.5, 0.5, 1.0]
         texture = None
-        if src.use_nodes:
-            principled_bsdf = src.node_tree.nodes['Principled BSDF']
-            if principled_bsdf:
+        # if src.use_nodes:
+        #     principled_bsdf = src.node_tree.nodes['Principled BSDF']
+        #     if principled_bsdf:
 
-                base_color = principled_bsdf.inputs["Base Color"]
+        #         base_color = principled_bsdf.inputs["Base Color"]
 
-                if base_color.is_linked:
-                    from_node = base_color.links[0].from_node
-                    if from_node.bl_idname == 'ShaderNodeTexImage':
-                        image = from_node.image
-                        if image:
-                            color_texture_index = self.get_texture_index(
-                                image, bufferManager)
-                            color_texture = gltf.TextureInfo(
-                                index=color_texture_index, texCoord=0)
+        #         if base_color.is_linked:
+        #             from_node = base_color.links[0].from_node
+        #             if from_node.bl_idname == 'ShaderNodeTexImage':
+        #                 image = from_node.image
+        #                 if image:
+        #                     color_texture_index = self.get_texture_index(
+        #                         image, bufferManager)
+        #                     color_texture = gltf.TextureInfo(
+        #                         index=color_texture_index, texCoord=0)
 
-                else:
-                    color = [x for x in base_color.default_value]
+        #         else:
+        #             color = [x for x in base_color.default_value]
 
-        else:
-            color = [x for x in src.diffuse_color]
+        # else:
+        #     color = [x for x in src.diffuse_color]
 
         dst = gltf.Material(
             name=src.name,

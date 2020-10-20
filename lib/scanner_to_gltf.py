@@ -1,17 +1,16 @@
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Tuple, Any
-import array
-from .scene_objects import scene_scanner, materialstore
-from .scene_objects.submesh_mesh import SubmeshMesh
-from .scene_objects.facemesh import FaceMesh
-from .scene_objects.to_submesh import facemesh_to_submesh
+from .yup import scene_scanner, materialstore
+from .yup.submesh_mesh import SubmeshMesh
+from .yup.facemesh import FaceMesh
+from .yup.to_submesh import facemesh_to_submesh
 from .formats import gltf, buffermanager
-from .formats.buffertypes import Vector3, Matrix4
+from .struct_types import Float3
 
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
-    Vector3Array = (Vector3 * len(buffer))
+    Vector3Array = (Float3 * len(buffer))
     values = Vector3Array.from_buffer(buffer)
     min: List[float] = [float('inf')] * 3
     max: List[float] = [float('-inf')] * 3
@@ -47,24 +46,28 @@ class GltfExporter:
         # attributes
         attributes = {
             'POSITION':
-            self.buffer.push_bytes(f'{mesh.name}.POSITION', mesh.positions,
+            self.buffer.push_bytes(f'{mesh.name}.POSITION',
+                                   memoryview(mesh.attributes.position),
                                    get_min_max3),
             'NORMAL':
-            self.buffer.push_bytes(f'{mesh.name}.NORMAL', mesh.normals),
+            self.buffer.push_bytes(f'{mesh.name}.NORMAL',
+                                   memoryview(mesh.attributes.normal)),
         }
-        if mesh.texcoord:
+        if mesh.attributes.texcoord:
             attributes['TEXCOORD_0'] = self.buffer.push_bytes(
-                f'{mesh.name}.TEXCOORD_0', mesh.texcoord)
-        if mesh.joints and mesh.weights:
+                f'{mesh.name}.TEXCOORD_0',
+                memoryview(mesh.attributes.texcoord))
+        if mesh.attributes.joints and mesh.attributes.weights:
             attributes['JOINTS_0'] = self.buffer.push_bytes(
-                f'{mesh.name}.JOINTS_0', mesh.joints)
+                f'{mesh.name}.JOINTS_0', memoryview(mesh.attributes.joints))
             attributes['WEIGHTS_0'] = self.buffer.push_bytes(
-                f'{mesh.name}.WEIGHTS_0', mesh.weights)
+                f'{mesh.name}.WEIGHTS_0', memoryview(mesh.attributes.weights))
+
         # morph targets
         targets = []
         target_names = []
         for k, v in mesh.morph_map.items():
-            zero = (Vector3 * (len(v)))()
+            zero = (Float3 * (len(v)))()
             target = {
                 'POSITION':
                 self.buffer.push_bytes(f'{mesh.name}.targets[{k}].POSITION',
@@ -83,10 +86,8 @@ class GltfExporter:
         offset = 0
         for i, submesh in enumerate(mesh.submeshes):
             # submesh indices
-            index_count = len(submesh.indices)
-            indices = array.array(
-                'I', [x for x in range(offset, offset + len(submesh.indices))])
-            offset += len(submesh.indices)
+            indices = mesh.indices[offset:offset + submesh.vertex_count]
+            offset += submesh.vertex_count
             indices_accessor_index = self.buffer.push_bytes(
                 f'{mesh.name}[{i}].INDICES', memoryview(indices))
 
@@ -118,7 +119,7 @@ class GltfExporter:
             name = 'mesh.' + name
         return gltf.Node(
             name=name,
-            children=[nodes.index(child) for child in node._children],
+            children=[nodes.index(child) for child in node.children],
             translation=(p.x, p.y, p.z),
             mesh=meshes.index(node.mesh) if node.mesh else None,
             skin=skins.index(node.skin) if node.skin else None)

@@ -17,9 +17,9 @@ class Submesh:
 
 
 class SubmeshMesh:
-    def __init__(self, name: str, vertex_count: int):
+    def __init__(self, name: str, vertex_count: int, has_bone_weight: bool):
         self.name = name
-        self.attributes = PlanarBuffer.create(vertex_count)
+        self.attributes = PlanarBuffer.create(vertex_count, has_bone_weight)
         # morph
         self.morph_map: Dict[str, memoryview] = {}
         # indices

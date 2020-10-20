@@ -2,7 +2,9 @@
     "cSpell.words": [
         "PYTHONPATH",
         "TEXCOORD",
+        "chdir",
         "ctypes",
+        "datefmt",
         "getenv",
         "gltf",
         "struct",

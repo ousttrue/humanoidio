@@ -57,7 +57,7 @@ class Scanner:
         def is_empty_leaf(node: Node) -> bool:
             if node.humanoid_bone:
                 return False
-            if node._children:
+            if node.children:
                 return False
             if node.mesh:
                 return False

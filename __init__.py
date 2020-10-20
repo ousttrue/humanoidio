@@ -49,7 +49,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         path = pathlib.Path(self.filepath).absolute()  # type: ignore
 
-        from .lib.formats import parse_gltf
+        from .lib.formats.gltf_context import parse_gltf
         data = parse_gltf(path)
 
         from .lib import import_submesh
@@ -78,27 +78,29 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
     check_extension = True
 
     def execute(self, context: bpy.types.Context):
-        from . import bpy_helper
+        from .lib import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
 
-        from . import scene_objects
-        scanner = scene_objects.scene_scanner.Scanner()
+        from .lib.yup.scene_scanner import Scanner
+        scanner = Scanner()
         scanner.scan(targets)
         scanner.add_mesh_node()
         while True:
             if not scanner.remove_empty_leaf_nodes():
                 break
 
-        from . import scanner_to_gltf
+        from .lib import scanner_to_gltf
         # ext = filepath.suffix
         # is_gltf = (ext == '.gltf')
         data, buffers = scanner_to_gltf.export(scanner)
         d = data.to_dict()
+        del d['extensions'] 
 
+        from .lib.formats.glb import Glb
         text = json.dumps(d)
         json_bytes = text.encode('utf-8')
         with open(self.filepath, 'wb') as w:
-            glb.Glb(json_bytes, buffers[0].buffer.data).write_to(w)
+            Glb(json_bytes, buffers[0].buffer.data).write_to(w)
 
         return {'FINISHED'}
 

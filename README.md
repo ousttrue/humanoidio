@@ -44,10 +44,10 @@ Blender側でVRMの追加情報をどのように保持するかなど
 * blenderのZ-UP右手系を、決め打ちでGLTFのY-UP右手系に変換する
 
 ``` py
-    def from_Vector(v: mathutils.Vector) -> 'Vector3':
-        # Vector3(v.x, v.z, -v.y) # Y-UP
-        # Vector3(-v.x, v.z, v.y) # rotate 180 degrees by Y axis
-        return Vector3(-v.x, v.z, v.y)
+    def from_Vector(v: mathutils.Vector) -> 'Float3':
+        # Float3(v.x, v.z, -v.y) # Y-UP
+        # Float3(-v.x, v.z, v.y) # rotate 180 degrees by Y axis
+        return Float3(-v.x, v.z, v.y)
 ```
 
 ``` 

@@ -2,8 +2,8 @@ from typing import List, Optional, Iterator, Iterable, Union
 import bpy, mathutils
 from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
-from ..formats.buffertypes import Vector3, Vector4
 from ..formats.vrm0x import HumanoidBones
+from ..struct_types import Float3, Float4
 
 
 class Node:
@@ -13,11 +13,11 @@ class Node:
     def __init__(self, name: str, position: mathutils.Vector = None) -> None:
         self.name = name
         if position:
-            self.position = Vector3.from_Vector(position)
+            self.position = Float3.from_Vector(position)
         else:
-            self.position = Vector3(0, 0, 0)
-        self.rotation = Vector4(0, 0, 0, 1)
-        self.scale = Vector3(1, 1, 1)
+            self.position = Float3(0, 0, 0)
+        self.rotation = Float4(0, 0, 0, 1)
+        self.scale = Float3(1, 1, 1)
         self.parent: Optional[Node] = None
         self.children: List[Node] = []
         self.mesh: Union[SubmeshMesh, FaceMesh, None] = None
@@ -71,7 +71,7 @@ class Node:
             for x in child.traverse():
                 yield x
 
-    def get_local_position(self) -> Vector3:
+    def get_local_position(self) -> Float3:
         if self.parent:
             return self.position - self.parent.position
         else:

@@ -1,14 +1,14 @@
 from typing import List, Dict, NamedTuple
 import bpy
-from scene_translator.formats.buffertypes import Vector2, Vector3, IVector4, Vector4
-from .facemesh import FaceMesh, FaceVertex
-from .submesh_mesh import Submesh, SubmeshMesh
+from ..struct_types import Float3, Float2
+from .facemesh import FaceMesh
+from .submesh_mesh import Submesh, SubmeshMesh, Material
 
 
 class TmpVertex(NamedTuple):
-    position: Vector3
-    normal: Vector3
-    uv: Vector2
+    position: Float3
+    normal: Float3
+    uv: Float2
 
 
 class TmpSubmesh:
@@ -23,15 +23,13 @@ class TmpModel:
         self.submesh_map: Dict[int, TmpSubmesh] = {}
         self.vertices: List[TmpVertex] = []
 
-    def attributes(self):
-        positions = (Vector3 * len(self.vertices))()
-        normals = (Vector3 * len(self.vertices))()
-        uvs = (Vector2 * len(self.vertices))()
+    def attributes(self) -> SubmeshMesh:
+        mesh = SubmeshMesh('submesh', len(self.vertices), False)
         for i, v in enumerate(self.vertices):
-            positions[i] = v.position
-            normals[i] = v.normal
-            uvs[i] = v.uv
-        return positions, normals, uvs
+            mesh.attributes.position[i] = v.position
+            mesh.attributes.normal[i] = v.normal
+            mesh.attributes.texcoord[i] = v.uv
+        return mesh
 
     def _get_or_create_submesh(self, material_index: int) -> TmpSubmesh:
         tmp = self.submesh_map.get(material_index)
@@ -43,15 +41,14 @@ class TmpModel:
         self.submesh_map[material_index] = tmp
         return tmp
 
-    def _add_vertex(self, position: Vector3, normal: Vector3,
-                    uv: Vector2) -> int:
+    def _add_vertex(self, position: Float3, normal: Float3, uv: Float2) -> int:
         i = len(self.vertices)
         self.vertices.append(TmpVertex(position, normal, uv))
         return i
 
-    def push_triangle(self, material_index: int, p0: Vector3, p1: Vector3,
-                      p2: Vector3, n0: Vector3, n1: Vector3, n2: Vector3, uv0,
-                      uv1, uv2):
+    def push_triangle(self, material_index: int, p0: Float3, p1: Float3,
+                      p2: Float3, n0: Float3, n1: Float3, n2: Float3, uv0, uv1,
+                      uv2):
         submesh = self._get_or_create_submesh(material_index)
         submesh.indices.append(self._add_vertex(p0, n0, uv0))
         submesh.indices.append(self._add_vertex(p1, n1, uv1))
@@ -83,9 +80,9 @@ def facemesh_to_submesh(src: FaceMesh,
             n1 = src.normals[fv1.normal_index]
             n2 = src.normals[fv2.normal_index]
 
-        uv0 = fv0.uv if fv0.uv else Vector2(0, 0)
-        uv1 = fv1.uv if fv1.uv else Vector2(0, 0)
-        uv2 = fv2.uv if fv2.uv else Vector2(0, 0)
+        uv0 = fv0.uv if fv0.uv else Float2(0, 0)
+        uv1 = fv1.uv if fv1.uv else Float2(0, 0)
+        uv2 = fv2.uv if fv2.uv else Float2(0, 0)
 
         tmp.push_triangle(t.material_index, p0, p1, p2, n0, n1, n2, uv0, uv1,
                           uv2)
@@ -120,20 +117,18 @@ def facemesh_to_submesh(src: FaceMesh,
     #         if vertex_group in skin_bone_names
     #     }
 
-    positions, normals, uvs = tmp.attributes()
-    dst = SubmeshMesh(src.name, memoryview(positions))
-    dst.normals = memoryview(normals)
-    dst.texcoord = memoryview(uvs)
+    dst = tmp.attributes()
     # dst.joints = memoryview(joints) if has_bone_weights else None
     # dst.weights = memoryview(weights) if has_bone_weights else None
     # morph
     morph_map = {}
     for k, morph in src.morph_map.items():
-        morph_positions = (Vector3 * len(tmp.vertices))()
+        morph_positions = (Float3 * len(tmp.vertices))()
         morph_map[k] = morph_positions
     dst.morph_map = {k: memoryview(v) for k, v in morph_map.items()}
     # submesh
     keys = sorted(tmp.submesh_map.keys())
+    index_offset = 0
     for key in keys:
         s = tmp.submesh_map[key]
         if s.material_index < len(src.materials):
@@ -141,8 +136,10 @@ def facemesh_to_submesh(src: FaceMesh,
         else:
             # default material
             material = bpy.data.materials[0]
-        submesh = Submesh(material)
-        submesh.indices.extend(s.indices)
+        submesh = Submesh(index_offset, len(s.indices),
+                          Material(material.name))
+        index_offset += len(s.indices)
         dst.submeshes.append(submesh)
+        dst.indices.extend(s.indices)
 
     return dst

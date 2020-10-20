@@ -1,6 +1,6 @@
 import unittest
 import array
-from lib.formats.buffertypes import Vector3
+from lib.formats.buffertypes import Float3
 
 
 class MemoryViewTests(unittest.TestCase):
@@ -15,7 +15,7 @@ class MemoryViewTests(unittest.TestCase):
         self.assertSequenceEqual(a.shape, [3])  # type: ignore
 
     def test_memoryview_ctypes_array(self):
-        a = memoryview((Vector3 * 3)())  # type: ignore
+        a = memoryview((Float3 * 3)())  # type: ignore
         self.assertEqual(a.nbytes, 36)
         self.assertEqual(a.itemsize, 12)
         self.assertEqual(len(a), 3)
