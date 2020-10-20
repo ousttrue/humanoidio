@@ -1,3 +1,5 @@
+from typing import Optional
+from lib.struct_types import Float4
 from logging import getLogger
 logger = getLogger(__name__)
 import bpy
@@ -36,12 +38,20 @@ def image_to_png(image: bpy.types.Image) -> bytes:
     return png_bytes
 
 
+class Texture:
+    def __init__(self, name: str, data: bytes):
+        self.name = name
+        self.data = data
+
+
 class Material:
     '''
     unlit
     '''
     def __init__(self, name: str):
         self.name = name
+        self.color = Float4(1, 1, 1, 1)
+        self.texture: Optional[Texture] = None
 
 
 class PBRMaterial(Material):

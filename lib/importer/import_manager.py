@@ -1,3 +1,4 @@
+from lib.formats.gltf import Material
 from lib import importer
 from logging import getLogger  # pylint: disable=C0411
 logger = getLogger(__name__)
@@ -14,6 +15,7 @@ from ..formats import gltf
 from ..formats.gltf_context import GltfContext
 from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.node import Node
+from ..pyscene.material import Material, PBRMaterial
 # from . import blender_groupnode_io, gltf_pbr_node
 
 

@@ -75,7 +75,7 @@ class GltfTests(unittest.TestCase):
 
         # material
         self.assertEqual(material.name, 'material0')
-        self.assertIs(material, PBRMaterial)
+        self.assertTrue(isinstance(material, PBRMaterial))
 
     def test_unlit_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
@@ -83,10 +83,9 @@ class GltfTests(unittest.TestCase):
 
         data = parse_gltf(path)
         roots = import_submesh(data)
-        self.assertEqual(len(roots), 1)
-        root = roots[0]
+        self.assertEqual(len(roots), 2)
 
-        mesh_node = root.children[0]
+        mesh_node = roots[0]
         mesh = mesh_node.mesh
         if not isinstance(mesh, SubmeshMesh):
             raise Exception()
@@ -95,7 +94,7 @@ class GltfTests(unittest.TestCase):
 
         # material
         self.assertEqual(material.name, 'material0')
-        self.assertIs(material, Material)
+        self.assertTrue(isinstance(material, Material))
 
 
 if __name__ == '__main__':

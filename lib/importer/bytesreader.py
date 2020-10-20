@@ -1,5 +1,3 @@
-import ctypes
-from lib import importer
 from logging import getLogger
 logger = getLogger(__name__)
 import ctypes
@@ -8,7 +6,7 @@ from ..struct_types import PlanarBuffer, Float2, Float3
 from ..formats import gltf
 from ..formats.gltf_context import GltfContext
 from ..pyscene.submesh_mesh import SubmeshMesh, Submesh
-from ..pyscene.material import Material
+from ..pyscene.material import Material, PBRMaterial, Texture
 
 
 def get_accessor_type_to_count(accessor_type: gltf.AccessorType) -> int:
@@ -88,8 +86,9 @@ class BytesReader:
         if not isinstance(accessor.bufferView, int):
             raise Exception()
         view_bytes = self.get_view_bytes(accessor.bufferView)
-        segment = view_bytes[accessor.byteOffset:accessor.byteOffset +
-                             accessor_byte_len]
+        byteOffset = accessor.byteOffset if isinstance(accessor.byteOffset,
+                                                       int) else 0
+        segment = view_bytes[byteOffset:byteOffset + accessor_byte_len]
 
         if accessor.type == gltf.AccessorType.SCALAR:
             if (accessor.componentType == gltf.AccessorComponentType.SHORT
@@ -131,9 +130,38 @@ class BytesReader:
         if not isinstance(material_index, int):
             return Material(f'default')
         material = self._material_map.get(material_index)
-        if not material:
+        if material:
+            return material
+
+        # create
+        gl_material = self.data.gltf.materials[material_index]
+        if gl_material.extensions and 'KHR_materials_unlit' in gl_material.extensions:
             material = Material(f'material{material_index}')
-            self._material_map[material_index] = material
+        else:
+            material = PBRMaterial(f'material{material_index}')
+        self._material_map[material_index] = material
+
+        # color
+        if gl_material.pbrMetallicRoughness.baseColorFactor:
+            material.color.x = gl_material.pbrMetallicRoughness.baseColorFactor[
+                0]
+            material.color.y = gl_material.pbrMetallicRoughness.baseColorFactor[
+                1]
+            material.color.z = gl_material.pbrMetallicRoughness.baseColorFactor[
+                2]
+            material.color.w = gl_material.pbrMetallicRoughness.baseColorFactor[
+                3]
+        # texture
+        if gl_material.pbrMetallicRoughness.baseColorTexture:
+            gl_image = self.data.gltf.images[
+                gl_material.pbrMetallicRoughness.baseColorTexture.index]
+            image_bytes = self.get_view_bytes(
+                gl_material.pbrMetallicRoughness.baseColorTexture.index)
+            name = f'texture{gl_material.pbrMetallicRoughness.baseColorTexture.index}'
+            if gl_image.name:
+                name = gl_image.name
+            material.texture = Texture(name, image_bytes)
+
         return material
 
     def read_attributes(self, buffer: PlanarBuffer, offset: int,
@@ -143,7 +171,6 @@ class BytesReader:
         pos_index = offset
         nom_index = offset
         uv_index = offset
-        indices_index = offset
         joint_index = offset
 
         #
