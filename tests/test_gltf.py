@@ -11,7 +11,7 @@ from lib.formats.gltf_context import parse_gltf
 from lib.pyscene.submesh_mesh import SubmeshMesh
 from lib.pyscene.material import Material, PBRMaterial
 
-EPSILON = 1e-5
+EPSILON = 5e-3
 
 
 def check_seq(_l, _r):
@@ -145,8 +145,8 @@ class GltfTests(unittest.TestCase):
         joints = [(j.x, j.y, j.z, j.w) for j in vertices.joints]
         self.assertSequenceEqual(joints[64], (0, 1, 0, 0))
         weights = [(w.x, w.y, w.z, w.w) for w in vertices.weights]
-        self.assertEqual(weights[64][0], 0.73860)
-        self.assertEqual(weights[64][1], 0.264140)
+        self.assertAlmostEqual(weights[64][0], 0.73860, delta=3e-3)
+        self.assertAlmostEqual(weights[64][1], 0.264140, delta=3e-3)
 
 
 if __name__ == '__main__':

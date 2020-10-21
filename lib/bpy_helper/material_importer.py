@@ -107,7 +107,9 @@ class MaterialImporter:
         if bl_material:
             return bl_material
 
-        bl_material = bpy.data.materials.new(material.name)
+        bl_material: bpy.types.Material = bpy.data.materials.new(material.name)
+        bl_material.diffuse_color = (material.color.x, material.color.y,
+                                     material.color.z, material.color.w)
         self.material_map[material] = bl_material
 
         if isinstance(material, pyscene.PBRMaterial):
@@ -160,6 +162,10 @@ class MaterialImporter:
         # build node
         output_node = nodes.new(type="ShaderNodeOutputMaterial")
         bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
+        bsdf_node.inputs['Base Color'].default_value = (src.color.x,
+                                                        src.color.y,
+                                                        src.color.z,
+                                                        src.color.w)
         links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
         if src.texture and src.texture.image:
             texture_node = nodes.new(type="ShaderNodeTexImage")

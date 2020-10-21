@@ -36,13 +36,23 @@ import/export for Blender-2.83
 * facemesh -> submesh: Y-UP, TopLeft-Origin
 * submesh -> gltf: Y-UP, TopLeft-Origin
 
-### Material
+## TODO
 
-EEVEE でそれなりの見た目になるようにしたい
-
-* unlit
-* PBR
-* MToon
+* [ ] remove unnecessary nodes
+* [ ] object location apply
+* [ ] apply modifier(mirror, subsurf, ...etc)
+* [ ] export shapekey
+* [ ] sparse buffer for morph target
+* [ ] morph target name
+* [ ] merge same vertex(position, normal, uv, bone weight)
+* [ ] single mesh
+* [ ] UniVRM compatible(shared morph)
+* [ ] bone weight normalize
+* [ ] export vrm meta
+* [ ] export vrm humanoid
+* [ ] default is unlit material
+* [ ] empty node for meshes
+* [ ] min, max of POSITION accessor
 
 ## 仕様
 
@@ -117,22 +127,3 @@ TODO
 
 TODO
 
-## TODO
-
-* [x] position, normal, uv
-* [ ] armature object to skin root
-* [ ] remove unnecessary nodes
-* [ ] object location apply
-* [ ] apply modifier(mirror, subsurf, ...etc)
-* [ ] export shapekey
-* [ ] sparse buffer for morph target
-* [ ] morph target name
-* [ ] merge same vertex(position, normal, uv, bone weight)
-* [ ] single mesh
-* [ ] UniVRM compatible(shared morph)
-* [ ] bone weight normalize
-* [ ] export vrm meta
-* [ ] export vrm humanoid
-* [ ] default is unlit material
-* [ ] empty node for meshes
-* [ ] min, max of POSITION accessor
