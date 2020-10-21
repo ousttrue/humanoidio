@@ -7,7 +7,8 @@ from ..struct_types import Float3, Float4
 
 
 class Skin:
-    def __init__(self, root: 'Node', joints: List['Node']):
+    def __init__(self, name: str, root: 'Node', joints: List['Node']):
+        self.name = name
         self.root = root
         self.joints = joints
 
@@ -86,22 +87,15 @@ class Node:
         else:
             return self.position
 
+    def has_mesh(self) -> bool:
+        has_mesh = False
 
-# class _Node:
-#     def __str__(self) -> str:
-#         return f'{self.index}'
+        def check_has_mesh(n: Node):
+            if n.mesh:
+                has_mesh = True
+                return
+            for c in n.children:
+                check_has_mesh(c)
 
-#     def __repr__(self) -> str:
-#         return f'<{self.index}: {self.blender_object}>'
-
-#     def traverse(self) -> Iterable['Node']:
-#         yield self
-#         for child in self.children:
-#             for x in child.traverse():
-#                 yield x
-
-#     def get_ancestors(self) -> Iterable['Node']:
-#         yield self
-#         if self.parent:
-#             for x in self.parent.get_ancestors():
-#                 yield x
+        check_has_mesh(self)
+        return has_mesh

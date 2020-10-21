@@ -20,14 +20,14 @@ from ..struct_types import Float3
 
 
 def get_skin_root(data: GltfContext, skin_index: int,
-                  nodes: List[Node]) -> Tuple[Node, List[Node]]:
+                  nodes: List[Node]) -> Skin:
     gl_skin = data.gltf.skins[skin_index]
     joints = [nodes[j] for j in gl_skin.joints]
 
-    no_root = []
+    no_parent = []
     for j in joints:
         if not j.parent:
-            no_root.append(j)
+            no_parent.append(j)
 
         included = False
         current = j.parent
@@ -38,10 +38,12 @@ def get_skin_root(data: GltfContext, skin_index: int,
             current = current.parent
 
         if not included:
-            no_root.append(j)
+            no_parent.append(j)
 
-    if len(no_root) == 1:
-        return no_root[0], joints
+    if len(no_parent) == 1:
+        root = no_parent[0]
+        name = gl_skin.name if gl_skin.name else f'{root.name}:skin'
+        return Skin(name, no_parent[0], joints)
 
     raise Exception()
 
@@ -111,8 +113,7 @@ def import_submesh(data: GltfContext) -> List[pyscene.Node]:
         # create skin
         for i, n in enumerate(data.gltf.nodes):
             if isinstance(n.skin, int):
-                root, joints = get_skin_root(data, n.skin, nodes)
-                skin = Skin(root, joints)
+                skin = get_skin_root(data, n.skin, nodes)
                 nodes[i].skin = skin
 
     scene = data.gltf.scenes[data.gltf.scene if data.gltf.scene else 0]

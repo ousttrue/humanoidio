@@ -386,6 +386,7 @@ class Importer:
     bpy.types.Object, Mesh, Material, Texture を作成する
     '''
     def __init__(self, context: bpy.types.Context):
+        self.context = context
         view_layer = context.view_layer
         if hasattr(view_layer,
                    'collections') and view_layer.collections.active:
@@ -400,12 +401,12 @@ class Importer:
 
     def execute(self, roots: List[Node]):
         for root in roots:
-            self._traverse(root)
+            self._create_tree(root)
 
         # skinning
         for root in roots:
             skin_node = next(node for node in root.traverse() if node.skin)
-            self._setup_skinning(skin_node)
+            self._create_armature(skin_node)
 
         # for node in nodes:
         #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
@@ -425,54 +426,25 @@ class Importer:
         # done
         # context.scene.update()
 
-    def _setup_skinning(self, node: Node) -> None:
+    def _create_armature(self, node: Node) -> None:
         logger.debug(f'skin')
-        
-        # # create vertex groups
-        # for bone_name in bone_names:
-        #     if bone_name:
-        #         bl_object.vertex_groups.new(name=bone_name)
+        bl_skin: bpy.types.Armature = bpy.data.armatures.new(node.name)
+        bl_obj = bpy.data.objects.new(node.skin.name, bl_skin)
+        bl_obj.show_in_front = True
 
-        # idx_already_done: Set[int] = set()
+        # bl_obj.select_set(True)
+        # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        # # each face
-        # for poly in bl_object.data.polygons:
-        #     # face vertex index
-        #     for loop_idx in range(poly.loop_start,
-        #                           poly.loop_start + poly.loop_total):
-        #         loop = bl_object.data.loops[loop_idx]
-        #         vert_idx = loop.vertex_index
-        #         if vert_idx < 0:
-        #             raise Exception()
-        #         if vert_idx >= len(attributes.joints):
-        #             raise Exception()
+        # # set identity matrix_world to armature
+        # m = mathutils.Matrix()
+        # m.identity()
+        # bl_skin.matrix_world = m
+        # self.context.scene.update()  # recalc matrix_world
 
-        #         if vert_idx in idx_already_done:
-        #             continue
-        #         idx_already_done.add(vert_idx)
+        # # edit mode
+        # bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-        #         cpt = 0
-        #         for joint_idx in attributes.joints[vert_idx]:
-        #             if cpt > 3:
-        #                 break
-        #             weight_val = attributes.weights[vert_idx][cpt]
-        #             if weight_val != 0.0:
-        #                 # It can be a problem to assign weights of 0
-        #                 # for bone index 0, if there is always 4 indices in joint_ tuple
-        #                 bone_name = bone_names[joint_idx]
-        #                 if bone_name:
-        #                     group = bl_object.vertex_groups[bone_name]
-        #                     group.add([vert_idx], weight_val, 'REPLACE')
-        #             cpt += 1
-
-        # # select
-        # # for obj_sel in bpy.context.scene.objects:
-        # #    obj_sel.select = False
-        # #blender_object.select = True
-        # #bpy.context.scene.objects.active = blender_object
-
-        # modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
-        # modifier.object = armature_object
+        # # create bones
 
     def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
@@ -564,25 +536,9 @@ class Importer:
         #     obj.rotation_quaternion = node.rotation
         # obj.scale = node.scale
 
-    def _traverse(self, node: Node, parent: Optional[Node] = None):
+    def _create_tree(self, node: Node, parent: Optional[Node] = None):
+        if not node.has_mesh():
+            return
         self._create_object(node)
         for child in node.children:
-            self._traverse(child, node)
-
-
-# def _remove_empty(node: Node):
-#     for i in range(len(node.children) - 1, -1, -1):
-#         child = node.children[i]
-#         _remove_empty(child)
-
-#     if node.children:
-#         return
-#     if node.blender_armature:
-#         return
-#     if node.blender_object.data:
-#         return
-
-#     # remove empty
-#     bpy.data.objects.remove(node.blender_object, do_unlink=True)
-#     if node.parent:
-#         node.parent.children.remove(node)
+            self._create_tree(child, node)
