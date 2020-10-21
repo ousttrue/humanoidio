@@ -323,40 +323,6 @@ class Importer:
         self.material_importer = MaterialImporter()
         self.skin_map: Dict[Skin, bpy.types.Object] = {}
 
-    def execute(self, roots: List[Node]):
-        for root in roots:
-            self._create_tree(root)
-
-        # skinning
-        for root in roots:
-            skin_node = next(node for node in root.traverse() if node.skin)
-            if skin_node.skin:
-                self._create_armature(skin_node, skin_node.skin)
-            else:
-                raise Exception()
-
-        for n, o in self.obj_map.items():
-            if o.type == 'MESH' and n.skin:
-                self._setup_skinning(n)
-
-        # for node in nodes:
-        #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
-        #         _, attributes = manager.meshes[node.gltf_node.mesh]
-
-        #         skin = gltf.skins[node.gltf_node.skin]
-        #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
-
-        #         #armature_object =nodes[skin.skeleton].blender_armature
-
-        #         _setup_skinning(obj, attributes, bone_names,
-        #                         armature_object.blender_armature)
-
-        # remove empties
-        # _remove_empty(root)
-
-        # done
-        # context.scene.update()
-
     def _setup_skinning(self, mesh_node: Node) -> None:
         if not isinstance(mesh_node.mesh, SubmeshMesh):
             return
@@ -510,9 +476,9 @@ class Importer:
         attributes = mesh.attributes
         bl_mesh.vertices.add(attributes.get_vertex_count())
         bl_mesh.vertices.foreach_set(
-            "co", [n for v in attributes.position for n in (v.x, v.y, v.z)])
+            "co", [n for v in attributes.position for n in (v.x, -v.z, v.y)])
         bl_mesh.vertices.foreach_set(
-            "normal", [n for v in attributes.normal for n in (v.x, v.y, v.z)])
+            "normal", [n for v in attributes.normal for n in (v.x, -v.z, v.y)])
 
         # indices
         bl_mesh.loops.add(len(mesh.indices))
@@ -583,3 +549,25 @@ class Importer:
         self._create_object(node)
         for child in node.children:
             self._create_tree(child, node)
+
+    def execute(self, roots: List[Node]):
+        for root in roots:
+            self._create_tree(root)
+
+        # skinning
+        for root in roots:
+            skin_node = next(node for node in root.traverse() if node.skin)
+            if skin_node.skin:
+                self._create_armature(skin_node, skin_node.skin)
+            else:
+                raise Exception()
+
+        for n, o in self.obj_map.items():
+            if o.type == 'MESH' and n.skin:
+                self._setup_skinning(n)
+
+        # remove empties
+        # _remove_empty(root)
+
+        # done
+        # context.scene.update()
