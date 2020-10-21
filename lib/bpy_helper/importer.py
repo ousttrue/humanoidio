@@ -470,39 +470,51 @@ class Importer:
         bl_mesh = bpy.data.meshes.new(mesh.name)
         self.mesh_map[mesh] = bl_mesh
 
+        material_index_map: Dict[Material, int] = {}
+        material_index = 0
         for submesh in mesh.submeshes:
             bl_material = self.material_importer.get_or_create_material(
                 submesh.material)
             bl_mesh.materials.append(bl_material)
+            material_index_map[submesh.material] = material_index
+            material_index += 1
 
+        # vertices
         attributes = mesh.attributes
-
         bl_mesh.vertices.add(attributes.get_vertex_count())
         bl_mesh.vertices.foreach_set(
             "co", [n for v in attributes.position for n in (v.x, v.y, v.z)])
         bl_mesh.vertices.foreach_set(
             "normal", [n for v in attributes.normal for n in (v.x, v.y, v.z)])
 
+        # indices
         bl_mesh.loops.add(len(mesh.indices))
         bl_mesh.loops.foreach_set("vertex_index", mesh.indices)
 
+        # face
         triangle_count = len(mesh.indices) // 3
         bl_mesh.polygons.add(triangle_count)
         starts = [i * 3 for i in range(triangle_count)]
         bl_mesh.polygons.foreach_set("loop_start", starts)
         total = [3 for _ in range(triangle_count)]
         bl_mesh.polygons.foreach_set("loop_total", total)
-
-        # blen_uvs = bl_mesh.uv_layers.new()
-        # for blen_poly in bl_mesh.polygons:
-        #     blen_poly.use_smooth = True
-        #     blen_poly.material_index = attributes.get_submesh_from_face(
-        #         blen_poly.index)
-        #     for lidx in blen_poly.loop_indices:
-        #         index = attributes.indices[lidx]
-        #         # vertex uv to face uv
-        #         uv = attributes.uv[index]
-        #         blen_uvs.data[lidx].uv = (uv.x, uv.y)  # vertical flip uv
+        # uv
+        bl_texcord = bl_mesh.uv_layers.new()
+        submesh_index = 0
+        submesh_count = 0
+        for bl_poly in bl_mesh.polygons:
+            if submesh_count >= mesh.submeshes[submesh_index].vertex_count:
+                submesh_index += 1
+            bl_poly.use_smooth = True  # enable vertex normal
+            bl_poly.material_index = material_index_map.get(
+                mesh.submeshes[submesh_index].material)
+            for lidx in bl_poly.loop_indices:
+                vertex_index = mesh.indices[lidx]
+                # vertex uv to face uv
+                uv = attributes.texcoord[vertex_index]
+                bl_texcord.data[vertex_index].uv = (uv.x, uv.y
+                                                    )  # vertical flip uv
+            submesh_count += 1
 
         # *Very* important to not remove lnors here!
         bl_mesh.validate(clean_customdata=False)

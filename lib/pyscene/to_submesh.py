@@ -83,9 +83,9 @@ def facemesh_to_submesh(src: FaceMesh,
         if t.normal:
             n0 = n1 = n2 = t.normal
         else:
-            n0 = src.normals[fv0.normal_index]
-            n1 = src.normals[fv1.normal_index]
-            n2 = src.normals[fv2.normal_index]
+            n0 = fv0.normal
+            n1 = fv1.normal
+            n2 = fv2.normal
 
         uv0 = fv0.uv if fv0.uv else Float2(0, 0)
         uv1 = fv1.uv if fv1.uv else Float2(0, 0)
