@@ -4,7 +4,7 @@
 '''
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import List, Tuple, Any
+from typing import List, Optional, Tuple, Any
 import bpy, mathutils
 from ..formats.gltf_context import GltfContext
 from .bytesreader import BytesReader
@@ -24,28 +24,11 @@ def get_skin_root(data: GltfContext, skin_index: int,
     gl_skin = data.gltf.skins[skin_index]
     joints = [nodes[j] for j in gl_skin.joints]
 
-    no_parent = []
-    for j in joints:
-        if not j.parent:
-            no_parent.append(j)
-
-        included = False
-        current = j.parent
-        while current.parent:
-            if current in joints:
-                included = True
-                break
-            current = current.parent
-
-        if not included:
-            no_parent.append(j)
-
-    if len(no_parent) == 1:
-        root = no_parent[0]
-        name = gl_skin.name if gl_skin.name else f'{root.name}:skin'
-        return Skin(name, no_parent[0], joints)
-
-    raise Exception()
+    name = gl_skin.name if gl_skin.name else f'{root.name}:skin'
+    root: Optional[Node] = None
+    if isinstance(gl_skin.skeleton, int):
+        root = nodes[gl_skin.skeleton]
+    return Skin(name, root, joints)
 
 
 def import_submesh(data: GltfContext) -> List[pyscene.Node]:

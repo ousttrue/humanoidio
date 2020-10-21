@@ -367,12 +367,15 @@ class Importer:
         # done
         # context.scene.update()
 
-    def _create_armature(self, node: Node) -> None:
+    def _create_armature(self, node: Node) -> bpy.types.Object:
         logger.debug(f'skin')
         bl_skin: bpy.types.Armature = bpy.data.armatures.new(node.skin.name)
         bl_obj = bpy.data.objects.new(node.skin.name, bl_skin)
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)
+
+        if node.skin.root:
+            bl_obj.parent = self.obj_map[node.skin.root]
 
         self.context.view_layer.objects.active = bl_obj
         bl_obj.select_set(True)
