@@ -1,11 +1,11 @@
 from logging import getLogger
 logger = getLogger(__name__)
 from contextlib import contextmanager
-from typing import List, Optional, Dict, Tuple, Any
+from typing import List, Optional, Dict, Tuple, Any, Set
 import bpy, mathutils
 from ..formats import gltf
 from ..bpy_helper import disposable_mode
-from ..pyscene.node import Node
+from ..pyscene.node import Node, Skin
 from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.material import Material, PBRMaterial, Texture
 from .material_importer import MaterialImporter
@@ -201,125 +201,107 @@ def _create_mesh(manager: 'ImportManager',
     return blender_mesh, attributes
 
 
-class Skin:
-    def __init__(self, manager: 'ImportManager', skin: gltf.Skin) -> None:
-        self.manager = manager
-        self.skin = skin
-        self.inverse_matrices: Any = None
+# class ImportManager:
+#     def __init__(self) -> None:
+#         self.textures: List[bpy.types.Texture] = []
+#         self.materials: List[bpy.types.Material] = []
+#         self.meshes: List[Tuple[bpy.types.Mesh, Any]] = []
 
-    def get_matrix(self, joint: int) -> Any:
-        if not self.inverse_matrices:
-            self.inverse_matrices = self.manager.get_array(
-                self.skin.inverseBindMatrices)
-        m = self.inverse_matrices[joint]
-        mat = mathutils.Matrix(
-            ((m.f00, m.f10, m.f20, m.f30), (m.f01, m.f11, m.f21, m.f31),
-             (m.f02, m.f12, m.f22, m.f32), (m.f03, m.f13, m.f23, m.f33)))
-        # d = mat.decompose()
-        return mat
+#         # yup_to_zup
+#         self.mod_v = lambda v: (v[0], -v[2], v[1])
+#         self.mod_q = lambda q: mathutils.Quaternion(self.mod_v(q.axis), q.angle
+#                                                     )
+#         self._buffer_map: Dict[str, bytes] = {}
 
+#     def load_textures(self):
+#         '''
+#         gltf.textures => List[bpy.types.Texture]
+#         '''
+#         if not self.gltf.textures:
+#             return
+#         self.textures = [
+#             _create_texture(self, i, texture)
+#             for i, texture in enumerate(self.gltf.textures)
+#         ]
 
-class ImportManager:
-    def __init__(self) -> None:
-        self.textures: List[bpy.types.Texture] = []
-        self.materials: List[bpy.types.Material] = []
-        self.meshes: List[Tuple[bpy.types.Mesh, Any]] = []
+#     def load_materials(self):
+#         '''
+#         gltf.materials => List[bpy.types.Material]
+#         '''
+#         if not self.gltf.materials:
+#             return
+#         self.materials = [
+#             _create_material(self, material)
+#             for material in self.gltf.materials
+#         ]
 
-        # yup_to_zup
-        self.mod_v = lambda v: (v[0], -v[2], v[1])
-        self.mod_q = lambda q: mathutils.Quaternion(self.mod_v(q.axis), q.angle
-                                                    )
-        self._buffer_map: Dict[str, bytes] = {}
+#     def load_meshes(self):
+#         self.meshes = [_create_mesh(self, mesh) for mesh in self.gltf.meshes]
 
-    def load_textures(self):
-        '''
-        gltf.textures => List[bpy.types.Texture]
-        '''
-        if not self.gltf.textures:
-            return
-        self.textures = [
-            _create_texture(self, i, texture)
-            for i, texture in enumerate(self.gltf.textures)
-        ]
+#     def get_view_bytes(self, view_index: int) -> bytes:
+#         view = self.gltf.bufferViews[view_index]
+#         buffer = self.gltf.buffers[view.buffer]
+#         if buffer.uri:
+#             if buffer.uri in self._buffer_map:
+#                 return self._buffer_map[
+#                     buffer.uri][view.byteOffset:view.byteOffset +
+#                                 view.byteLength]
+#             else:
+#                 path = self.base_dir / buffer.uri
+#                 with path.open('rb') as f:
+#                     data = f.read()
+#                     self._buffer_map[buffer.uri] = data
+#                     return data[view.byteOffset:view.byteOffset +
+#                                 view.byteLength]
+#         else:
+#             return self.body[view.byteOffset:view.byteOffset + view.byteLength]
 
-    def load_materials(self):
-        '''
-        gltf.materials => List[bpy.types.Material]
-        '''
-        if not self.gltf.materials:
-            return
-        self.materials = [
-            _create_material(self, material)
-            for material in self.gltf.materials
-        ]
+#     def get_array(self, accessor_index: int):
+#         accessor = self.gltf.accessors[
+#             accessor_index] if self.gltf.accessors else None
+#         if not accessor:
+#             raise Exception()
+#         accessor_byte_len = get_accessor_byteslen(accessor)
+#         if not isinstance(accessor.bufferView, int):
+#             raise Exception()
+#         view_bytes = self.get_view_bytes(accessor.bufferView)
+#         segment = view_bytes[accessor.byteOffset:accessor.byteOffset +
+#                              accessor_byte_len]
 
-    def load_meshes(self):
-        self.meshes = [_create_mesh(self, mesh) for mesh in self.gltf.meshes]
+#         if accessor.type == gltf.AccessorType.SCALAR:
+#             if (accessor.componentType == gltf.AccessorComponentType.SHORT
+#                     or accessor.componentType
+#                     == gltf.AccessorComponentType.UNSIGNED_SHORT):
+#                 return (ctypes.c_ushort *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
+#             elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_INT:
+#                 return (ctypes.c_uint *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
+#         elif accessor.type == gltf.AccessorType.VEC2:
+#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
+#                 return (Float2 *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
 
-    def get_view_bytes(self, view_index: int) -> bytes:
-        view = self.gltf.bufferViews[view_index]
-        buffer = self.gltf.buffers[view.buffer]
-        if buffer.uri:
-            if buffer.uri in self._buffer_map:
-                return self._buffer_map[
-                    buffer.uri][view.byteOffset:view.byteOffset +
-                                view.byteLength]
-            else:
-                path = self.base_dir / buffer.uri
-                with path.open('rb') as f:
-                    data = f.read()
-                    self._buffer_map[buffer.uri] = data
-                    return data[view.byteOffset:view.byteOffset +
-                                view.byteLength]
-        else:
-            return self.body[view.byteOffset:view.byteOffset + view.byteLength]
+#         elif accessor.type == gltf.AccessorType.VEC3:
+#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
+#                 return (Float3 *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
 
-    def get_array(self, accessor_index: int):
-        accessor = self.gltf.accessors[
-            accessor_index] if self.gltf.accessors else None
-        if not accessor:
-            raise Exception()
-        accessor_byte_len = get_accessor_byteslen(accessor)
-        if not isinstance(accessor.bufferView, int):
-            raise Exception()
-        view_bytes = self.get_view_bytes(accessor.bufferView)
-        segment = view_bytes[accessor.byteOffset:accessor.byteOffset +
-                             accessor_byte_len]
+#         elif accessor.type == gltf.AccessorType.VEC4:
+#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
+#                 return (Float4 *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
 
-        if accessor.type == gltf.AccessorType.SCALAR:
-            if (accessor.componentType == gltf.AccessorComponentType.SHORT
-                    or accessor.componentType
-                    == gltf.AccessorComponentType.UNSIGNED_SHORT):
-                return (ctypes.c_ushort *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
-            elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_INT:
-                return (ctypes.c_uint *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
-        elif accessor.type == gltf.AccessorType.VEC2:
-            if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-                return (Float2 *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
+#             elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_SHORT:
+#                 return (UShort4 *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
 
-        elif accessor.type == gltf.AccessorType.VEC3:
-            if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-                return (Float3 *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
+#         elif accessor.type == gltf.AccessorType.MAT4:
+#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
+#                 return (Mat16 *  # type: ignore
+#                         accessor.count).from_buffer_copy(segment)
 
-        elif accessor.type == gltf.AccessorType.VEC4:
-            if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-                return (Float4 *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
-
-            elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_SHORT:
-                return (UShort4 *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
-
-        elif accessor.type == gltf.AccessorType.MAT4:
-            if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-                return (Mat16 *  # type: ignore
-                        accessor.count).from_buffer_copy(segment)
-
-        raise NotImplementedError()
+#         raise NotImplementedError()
 
 
 class Importer:
@@ -339,6 +321,7 @@ class Importer:
         self.obj_map: Dict[Node, bpy.types.Object] = {}
         self.mesh_map: Dict[SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
+        self.skin_map: Dict[Skin, bpy.types.Object] = {}
 
     def execute(self, roots: List[Node]):
         for root in roots:
@@ -347,7 +330,14 @@ class Importer:
         # skinning
         for root in roots:
             skin_node = next(node for node in root.traverse() if node.skin)
-            self._create_armature(skin_node)
+            if skin_node.skin:
+                self._create_armature(skin_node, skin_node.skin)
+            else:
+                raise Exception()
+
+        for n, o in self.obj_map.items():
+            if o.type == 'MESH' and n.skin:
+                self._setup_skinning(n)
 
         # for node in nodes:
         #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
@@ -367,15 +357,74 @@ class Importer:
         # done
         # context.scene.update()
 
-    def _create_armature(self, node: Node) -> bpy.types.Object:
+    def _setup_skinning(self, mesh_node: Node) -> None:
+        if not isinstance(mesh_node.mesh, SubmeshMesh):
+            return
+        if not mesh_node.skin:
+            return
+
+        skin = mesh_node.skin
+        bone_names = [joint.name for joint in skin.joints]
+        bl_object = self.obj_map[mesh_node]
+
+        # create vertex groups
+        for bone_name in bone_names:
+            if bone_name:
+                bl_object.vertex_groups.new(name=bone_name)
+
+        idx_already_done: Set[int] = set()
+
+        attributes = mesh_node.mesh.attributes
+
+        # each face
+        for poly in bl_object.data.polygons:
+            # face vertex index
+            for loop_idx in range(poly.loop_start,
+                                  poly.loop_start + poly.loop_total):
+                loop = bl_object.data.loops[loop_idx]
+                vert_idx = loop.vertex_index
+                if vert_idx < 0:
+                    raise Exception()
+                if vert_idx >= len(attributes.joints):
+                    raise Exception()
+
+                if vert_idx in idx_already_done:
+                    continue
+                idx_already_done.add(vert_idx)
+
+                cpt = 0
+                for joint_idx in attributes.joints[vert_idx]:
+                    if cpt > 3:
+                        break
+                    weight_val = attributes.weights[vert_idx][cpt]
+                    if weight_val != 0.0:
+                        # It can be a problem to assign weights of 0
+                        # for bone index 0, if there is always 4 indices in joint_ tuple
+                        bone_name = bone_names[joint_idx]
+                        if bone_name:
+                            group = bl_object.vertex_groups[bone_name]
+                            group.add([vert_idx], weight_val, 'REPLACE')
+                    cpt += 1
+
+        # select
+        # for obj_sel in bpy.context.scene.objects:
+        #    obj_sel.select = False
+        #bl_object.select = True
+        #bpy.context.scene.objects.active = bl_object
+
+        modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
+        modifier.object = self.skin_map[skin]
+
+    def _create_armature(self, node: Node, skin: Skin) -> bpy.types.Object:
         logger.debug(f'skin')
-        bl_skin: bpy.types.Armature = bpy.data.armatures.new(node.skin.name)
-        bl_obj = bpy.data.objects.new(node.skin.name, bl_skin)
+        bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
+        bl_obj = bpy.data.objects.new(skin.name, bl_skin)
+        self.skin_map[skin] = bl_obj
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)
 
-        if node.skin.root:
-            bl_obj.parent = self.obj_map[node.skin.root]
+        if skin.root:
+            bl_obj.parent = self.obj_map[skin.root]
 
         self.context.view_layer.objects.active = bl_obj
         bl_obj.select_set(True)
@@ -389,7 +438,7 @@ class Importer:
 
         # create bones
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-        self._create_bone(bl_skin, node.skin.root, None, False)
+        self._create_bone(bl_skin, skin.root, None, False)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     def _create_bone(self, armature: bpy.types.Armature, node: Node,

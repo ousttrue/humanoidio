@@ -16,7 +16,7 @@ from ..pyscene.facemesh import FaceMesh
 from ..pyscene.to_submesh import facemesh_to_submesh
 from ..pyscene.node import Node, Skin
 from ..formats import gltf, buffermanager
-from ..struct_types import Float3
+from ..struct_types import Float3, Mat4
 
 
 def get_skin_root(data: GltfContext, skin_index: int,
@@ -226,10 +226,10 @@ class GltfExporter:
     def to_gltf_skin(self, skin: Node, nodes: List[Node]):
         joints = [joint for joint in skin.traverse()][1:]
 
-        matrices = (Matrix4 * len(joints))()
+        matrices = (Mat4 * len(joints))()
         for i, _ in enumerate(joints):
             p = joints[i].position
-            matrices[i] = Matrix4.translation(-p.x, -p.y, -p.z)
+            matrices[i] = Mat4.translation(-p.x, -p.y, -p.z)
         matrix_index = self.buffer.push_bytes(
             f'{skin.name}.inverseBindMatrices',
             memoryview(matrices))  # type: ignore

@@ -90,15 +90,16 @@ class Scanner:
                      bone: bpy.types.Bone) -> Node:
         armature_local_head_position = bone.head_local
         node = Node(bone.name, armature_local_head_position)
-        humanoid_bone = bone.humanoid_bone
-        if humanoid_bone:
-            try:
-                parsed = HumanoidBones[humanoid_bone]
-                if parsed != HumanoidBones.unknown:
-                    node.humanoid_bone = parsed
-            except Exception:
-                # unknown
-                pass
+        if hasattr(bone, 'humanoid_bone'):
+            humanoid_bone = bone.humanoid_bone
+            if humanoid_bone:
+                try:
+                    parsed = HumanoidBones[humanoid_bone]
+                    if parsed != HumanoidBones.unknown:
+                        node.humanoid_bone = parsed
+                except Exception:
+                    # unknown
+                    pass
 
         parent.add_child(node)
         self._add_node(bone, node)
@@ -126,9 +127,9 @@ class Scanner:
                                       armature_object.matrix_world, b)
 
         # get vrm meta
-        self.vrm.version = armature_object['vrm_version']
-        self.vrm.title = armature_object['vrm_title']
-        self.vrm.author = armature_object['vrm_author']
+        self.vrm.version = armature_object.get('vrm_version')
+        self.vrm.title = armature_object.get('vrm_title')
+        self.vrm.author = armature_object.get('vrm_author')
         # self.vrm.contactInformation = armature_object['vrm_contactInformation']
         # self.vrm.reference = armature_object['vrm_reference']
 

@@ -14,6 +14,24 @@ class Skin:
         self.joints = joints
 
 
+# class Skin:
+#     def __init__(self, manager: 'ImportManager', skin: gltf.Skin) -> None:
+#         self.manager = manager
+#         self.skin = skin
+#         self.inverse_matrices: Any = None
+
+#     def get_matrix(self, joint: int) -> Any:
+#         if not self.inverse_matrices:
+#             self.inverse_matrices = self.manager.get_array(
+#                 self.skin.inverseBindMatrices)
+#         m = self.inverse_matrices[joint]
+#         mat = mathutils.Matrix(
+#             ((m.f00, m.f10, m.f20, m.f30), (m.f01, m.f11, m.f21, m.f31),
+#              (m.f02, m.f12, m.f22, m.f32), (m.f03, m.f13, m.f23, m.f33)))
+#         # d = mat.decompose()
+#         return mat
+
+
 class Node:
     '''
     GLTF変換との中間形式

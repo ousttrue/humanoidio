@@ -60,6 +60,8 @@ def format_to_componentType(values: memoryview) -> Tuple[gltf.AccessorComponentT
         return gltf.AccessorComponentType.FLOAT, 3
     if values.itemsize == 16:
         return gltf.AccessorComponentType.FLOAT, 4
+    if values.itemsize == 64:
+        return gltf.AccessorComponentType.FLOAT, 16
 
     raise NotImplementedError()
 
