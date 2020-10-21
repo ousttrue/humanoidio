@@ -34,6 +34,9 @@ class Node:
         # if not self.name:
         #     self.name = '_%03d' % self.index
 
+    def __getitem__(self, i: int) -> 'Node':
+        return self.children[i]
+
     def get_root(self):
         current = self
         while True:

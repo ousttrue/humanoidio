@@ -131,6 +131,9 @@ class UShort4(ctypes.Structure):
         ("w", ctypes.c_ushort),
     ]
 
+    def __repr__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z}, {self.w})'
+
     def __getitem__(self, i: int) -> int:
         if i == 0:
             return self.x

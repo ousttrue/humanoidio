@@ -1,8 +1,9 @@
+from lib.formats.gltf import MeshPrimitive
 from logging import getLogger
 logger = getLogger(__name__)
 import ctypes
 from typing import Dict, Optional, List
-from ..struct_types import PlanarBuffer, Float2, Float3
+from ..struct_types import PlanarBuffer, Float2, Float3, Float4, UShort4
 from ..formats import gltf
 from ..formats.gltf_context import GltfContext
 from ..pyscene.submesh_mesh import SubmeshMesh, Submesh
@@ -49,6 +50,14 @@ def get_accessor_component_type_to_len(
 def get_accessor_byteslen(accessor: gltf.Accessor) -> int:
     return (accessor.count * get_accessor_type_to_count(accessor.type) *
             get_accessor_component_type_to_len(accessor.componentType))
+
+
+def check_has_skin(prim: gltf.MeshPrimitive) -> bool:
+    if not prim.attributes.get('JOINTS_0'):
+        return False
+    if not prim.attributes.get('WEIGHTS_0'):
+        return False
+    return True
 
 
 class BytesReader:
@@ -214,6 +223,8 @@ class BytesReader:
             if len(weights) != len(pos):
                 raise Exception("len(weights) different from len(pos)")
 
+        has_skin = joints and weights
+
         for p in pos:
             buffer.position[pos_index] = p
             pos_index += 1
@@ -228,7 +239,7 @@ class BytesReader:
                 buffer.texcoord[uv_index] = xy
                 uv_index += 1
 
-        if joints and weights:
+        if has_skin:
             for joint, weight in zip(joints, weights):
                 buffer.joints[joint_index] = joint
                 buffer.weights[joint_index] = weight
@@ -274,12 +285,12 @@ class BytesReader:
             mesh.submeshes.append(submesh)
             return index_count
 
-        has_bone_weight = False
+        has_skin = check_has_skin(m.primitives[0])
 
         if shared:
             # share vertex buffer
             vertex_count = position_count(m.primitives[0])
-            mesh = SubmeshMesh(name, vertex_count, has_bone_weight)
+            mesh = SubmeshMesh(name, vertex_count, has_skin)
             self.read_attributes(mesh.attributes, 0, data, m.primitives[0])
 
             index_offset = 0
@@ -290,7 +301,7 @@ class BytesReader:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
                                0)
-            mesh = SubmeshMesh(name, vertex_count, has_bone_weight)
+            mesh = SubmeshMesh(name, vertex_count, has_skin)
 
             offset = 0
             index_offset = 0

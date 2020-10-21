@@ -15,7 +15,8 @@ HERE = pathlib.Path(__file__).absolute().parent
 os.chdir(HERE)
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/Box/glTF/Box.gltf'
-SRC_FILE = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF/BoxTextured.gltf'
+# SRC_FILE = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF/BoxTextured.gltf'
+SRC_FILE = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
 scene_translator.register()
 DST_FILE = HERE / 'tmp.glb'
 

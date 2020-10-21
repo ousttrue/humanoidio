@@ -127,6 +127,27 @@ class GltfTests(unittest.TestCase):
         self.assertEqual(material.name, 'material0')
         self.assertTrue(isinstance(material, Material))
 
+    def test_rig_gltf(self):
+        path = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
+        self.assertTrue(path.exists())
+
+        data = parse_gltf(path)
+        roots = serialization.import_submesh(data)
+        self.assertEqual(len(roots), 1)
+        root = roots[0]
+
+        mesh_node = roots[0][0][1]
+        mesh = mesh_node.mesh
+        if not isinstance(mesh, SubmeshMesh):
+            raise Exception()
+        vertices = mesh.attributes
+
+        joints = [(j.x, j.y, j.z, j.w) for j in vertices.joints]
+        self.assertSequenceEqual(joints[64], (0, 1, 0, 0))
+        weights = [(w.x, w.y, w.z, w.w) for w in vertices.weights]
+        self.assertEqual(weights[64][0], 0.73860)
+        self.assertEqual(weights[64][1], 0.264140)
+
 
 if __name__ == '__main__':
     unittest.main()
