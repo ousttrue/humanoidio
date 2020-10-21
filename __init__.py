@@ -15,7 +15,7 @@ bl_info = {
     "warning": "This addon is still in development.",
 }
 
-from logging import getLogger  # pylint: disable=C0411
+from logging import getLogger
 logger = getLogger(__name__)
 import os
 import json
@@ -81,7 +81,7 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         from .lib import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
 
-        from .lib.exporter.scene_scanner import Scanner
+        from .lib.bpy_helper.scene_scanner import Scanner
         scanner = Scanner()
         scanner.scan(targets)
         scanner.add_mesh_node()
@@ -123,7 +123,7 @@ def register():
 
 
 def unregister():
-    # Note: when unregistering, it's usually good practice to do it in reverse order you registered.
+    # Note: when unregister, it's usually good practice to do it in reverse order you registered.
     # Can avoid strange issues like keymap still referring to operators already unregistered...
     # handle the keymap
     for c in CLASSES:

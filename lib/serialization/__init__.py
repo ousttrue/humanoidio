@@ -8,12 +8,13 @@ from typing import List, Tuple, Any
 import bpy, mathutils
 from ..formats.gltf_context import GltfContext
 from .bytesreader import BytesReader
-from ..exporter import scene_scanner
+from ..bpy_helper.scene_scanner import Scanner
 from .. import pyscene
 from ..pyscene import material
 from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.facemesh import FaceMesh
 from ..pyscene.to_submesh import facemesh_to_submesh
+from ..pyscene.node import Node
 from ..formats import gltf, buffermanager
 from ..struct_types import Float3
 
@@ -191,9 +192,9 @@ class GltfExporter:
                          extensions={},
                          extras={})
 
-    def to_gltf_node(self, node: scene_scanner.Node,
-                     nodes: List[scene_scanner.Node],
-                     skins: List[scene_scanner.Node],
+    def to_gltf_node(self, node: Node,
+                     nodes: List[Node],
+                     skins: List[Node],
                      meshes: List[FaceMesh]) -> gltf.Node:
         p = node.get_local_position()
         name = node.name
@@ -206,8 +207,8 @@ class GltfExporter:
             mesh=meshes.index(node.mesh) if node.mesh else None,
             skin=skins.index(node.skin) if node.skin else None)
 
-    def to_gltf_skin(self, skin: scene_scanner.Node,
-                     nodes: List[scene_scanner.Node]):
+    def to_gltf_skin(self, skin: Node,
+                     nodes: List[Node]):
         joints = [joint for joint in skin.traverse()][1:]
 
         matrices = (Matrix4 * len(joints))()
@@ -223,7 +224,7 @@ class GltfExporter:
                          skeleton=nodes.index(skin),
                          joints=[nodes.index(joint) for joint in joints])
 
-    def export_vrm(self, nodes: List[scene_scanner.Node], version: str,
+    def export_vrm(self, nodes: List[Node], version: str,
                    title: str, author: str):
         humanoid_bones = [node for node in nodes if node.humanoid_bone]
         if humanoid_bones:
@@ -272,7 +273,7 @@ class GltfExporter:
             }
             return VRM
 
-    def export(self, scanner: scene_scanner.Scanner,
+    def export(self, scanner: Scanner,
                separate_images: bool) -> Tuple[gltf.glTF, List[Any]]:
         for mesh in scanner.meshes:
             logger.debug(mesh)
@@ -325,7 +326,7 @@ class GltfExporter:
         return data, self.buffers
 
 
-def export(scanner: scene_scanner.Scanner,
+def export(scanner: Scanner,
            separate_images: bool = False) -> Tuple[gltf.glTF, List[Any]]:
     exporter = GltfExporter()
     return exporter.export(scanner, separate_images)
