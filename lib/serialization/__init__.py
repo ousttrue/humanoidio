@@ -14,10 +14,36 @@ from ..pyscene import material
 from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.facemesh import FaceMesh
 from ..pyscene.to_submesh import facemesh_to_submesh
-from ..pyscene.node import Node
+from ..pyscene.node import Node, Skin
 from ..formats import gltf, buffermanager
 from ..struct_types import Float3
 
+
+def get_skin_root(data: GltfContext, skin_index: int,
+                  nodes: List[Node]) -> Tuple[Node, List[Node]]:
+    gl_skin = data.gltf.skins[skin_index]
+    joints = [nodes[j] for j in gl_skin.joints]
+
+    no_root = []
+    for j in joints:
+        if not j.parent:
+            no_root.append(j)
+
+        included = False
+        current = j.parent
+        while current.parent:
+            if current in joints:
+                included = True
+                break
+            current = current.parent
+
+        if not included:
+            no_root.append(j)
+
+    if len(no_root) == 1:
+        return no_root[0], joints
+
+    raise Exception()
 
 
 def import_submesh(data: GltfContext) -> List[pyscene.Node]:
@@ -76,10 +102,18 @@ def import_submesh(data: GltfContext) -> List[pyscene.Node]:
 
             nodes.append(node)
 
+        # build hierarchy
         for i, n in enumerate(data.gltf.nodes):
             if n.children:
                 for c in n.children:
                     nodes[i].add_child(nodes[c])
+
+        # create skin
+        for i, n in enumerate(data.gltf.nodes):
+            if isinstance(n.skin, int):
+                root, joints = get_skin_root(data, n.skin, nodes)
+                skin = Skin(root, joints)
+                nodes[i].skin = skin
 
     scene = data.gltf.scenes[data.gltf.scene if data.gltf.scene else 0]
     if not scene.nodes:
@@ -192,9 +226,7 @@ class GltfExporter:
                          extensions={},
                          extras={})
 
-    def to_gltf_node(self, node: Node,
-                     nodes: List[Node],
-                     skins: List[Node],
+    def to_gltf_node(self, node: Node, nodes: List[Node], skins: List[Node],
                      meshes: List[FaceMesh]) -> gltf.Node:
         p = node.get_local_position()
         name = node.name
@@ -207,8 +239,7 @@ class GltfExporter:
             mesh=meshes.index(node.mesh) if node.mesh else None,
             skin=skins.index(node.skin) if node.skin else None)
 
-    def to_gltf_skin(self, skin: Node,
-                     nodes: List[Node]):
+    def to_gltf_skin(self, skin: Node, nodes: List[Node]):
         joints = [joint for joint in skin.traverse()][1:]
 
         matrices = (Matrix4 * len(joints))()
@@ -224,8 +255,8 @@ class GltfExporter:
                          skeleton=nodes.index(skin),
                          joints=[nodes.index(joint) for joint in joints])
 
-    def export_vrm(self, nodes: List[Node], version: str,
-                   title: str, author: str):
+    def export_vrm(self, nodes: List[Node], version: str, title: str,
+                   author: str):
         humanoid_bones = [node for node in nodes if node.humanoid_bone]
         if humanoid_bones:
             meta = {

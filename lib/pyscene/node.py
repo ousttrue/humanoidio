@@ -6,6 +6,12 @@ from ..formats.vrm0x import HumanoidBones
 from ..struct_types import Float3, Float4
 
 
+class Skin:
+    def __init__(self, root: 'Node', joints: List['Node']):
+        self.root = root
+        self.joints = joints
+
+
 class Node:
     '''
     GLTF変換との中間形式
@@ -21,7 +27,7 @@ class Node:
         self.parent: Optional[Node] = None
         self.children: List[Node] = []
         self.mesh: Union[SubmeshMesh, FaceMesh, None] = None
-        self.skin: Optional[Node] = None
+        self.skin: Optional[Skin] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
 
         # self.gltf_node = gltf_node

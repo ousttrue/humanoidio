@@ -184,8 +184,7 @@ def _create_mesh(manager: 'ImportManager',
 
 
 # create armature
-def create_armature(self: Node, context, collection, view_layer,
-                    skin: gltf.Skin) -> bpy.types.Object:
+def create_armature(self: Node, context) -> bpy.types.Object:
     skin_name = skin.name
 
     armature = bpy.data.armatures.new(skin_name)
@@ -316,69 +315,6 @@ class ImportManager:
     def load_meshes(self):
         self.meshes = [_create_mesh(self, mesh) for mesh in self.gltf.meshes]
 
-    def load_objects(self, context: bpy.types.Context, roots: List[Node]):
-        # collection
-        view_layer = context.view_layer
-        if hasattr(view_layer,
-                   'collections') and view_layer.collections.active:
-            collection = view_layer.collections.active.collection
-        else:
-            collection = context.scene.collection
-            # view_layer.collections.link(collection)
-
-        # setup
-        # nodes = [
-        #     create_node(gltf_node)
-        #     for i, gltf_node in enumerate(self.gltf.nodes)
-        # ]
-
-        # set parents
-        # for gltf_node, node in zip(self.gltf.nodes, nodes):
-        #     for child_index in gltf_node.children:
-        #         child = nodes[child_index]
-        #         node.add_child(child)
-
-        # check root
-        # roots = [node for node in enumerate(nodes) if not node[1].parent]
-        # if len(roots) != 1:
-        #     root = Node(len(nodes), gltf.Node({'name': '__root__'}))
-        #     for _, node in roots:
-        #         root.children.append(node)
-        #         node.parent = root
-        # else:
-        #     root = nodes[0]
-        for root in roots:
-            create_object(root, collection, self)
-
-        # def get_root(skin: gltf.Skin) -> Optional[Node]:
-
-        #     root = None
-
-        #     for joint in skin.joints:
-        #         node = nodes[joint]
-        #         if not root:
-        #             root = node
-        #         else:
-        #             if node in root.get_ancestors():
-        #                 root = node
-
-        #     return root
-
-        # create armatures
-        # root_skin = gltf.Skin.from_dict({'name': 'skin'})
-
-        # for skin in self.gltf.skins:
-        #     for joint in skin.joints:
-        #         if joint not in root_skin.joints:
-        #             root_skin.joints.append(joint)
-        # skeleton = get_root(root_skin)
-
-        # if skeleton:
-        #     create_armature(skeleton, context, collection, view_layer,
-        #                     root_skin)
-
-        # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
     def get_view_bytes(self, view_index: int) -> bytes:
         view = self.gltf.bufferViews[view_index]
         buffer = self.gltf.buffers[view.buffer]
@@ -461,6 +397,82 @@ class Importer:
         self.obj_map: Dict[Node, bpy.types.Object] = {}
         self.mesh_map: Dict[SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
+
+    def execute(self, roots: List[Node]):
+        for root in roots:
+            self._traverse(root)
+
+        # skinning
+        for root in roots:
+            skin_node = next(node for node in root.traverse() if node.skin)
+            self._setup_skinning(skin_node)
+
+        # for node in nodes:
+        #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
+        #         _, attributes = manager.meshes[node.gltf_node.mesh]
+
+        #         skin = gltf.skins[node.gltf_node.skin]
+        #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
+
+        #         #armature_object =nodes[skin.skeleton].blender_armature
+
+        #         _setup_skinning(obj, attributes, bone_names,
+        #                         armature_object.blender_armature)
+
+        # remove empties
+        # _remove_empty(root)
+
+        # done
+        # context.scene.update()
+
+    def _setup_skinning(self, node: Node) -> None:
+        logger.debug(f'skin')
+        
+        # # create vertex groups
+        # for bone_name in bone_names:
+        #     if bone_name:
+        #         bl_object.vertex_groups.new(name=bone_name)
+
+        # idx_already_done: Set[int] = set()
+
+        # # each face
+        # for poly in bl_object.data.polygons:
+        #     # face vertex index
+        #     for loop_idx in range(poly.loop_start,
+        #                           poly.loop_start + poly.loop_total):
+        #         loop = bl_object.data.loops[loop_idx]
+        #         vert_idx = loop.vertex_index
+        #         if vert_idx < 0:
+        #             raise Exception()
+        #         if vert_idx >= len(attributes.joints):
+        #             raise Exception()
+
+        #         if vert_idx in idx_already_done:
+        #             continue
+        #         idx_already_done.add(vert_idx)
+
+        #         cpt = 0
+        #         for joint_idx in attributes.joints[vert_idx]:
+        #             if cpt > 3:
+        #                 break
+        #             weight_val = attributes.weights[vert_idx][cpt]
+        #             if weight_val != 0.0:
+        #                 # It can be a problem to assign weights of 0
+        #                 # for bone index 0, if there is always 4 indices in joint_ tuple
+        #                 bone_name = bone_names[joint_idx]
+        #                 if bone_name:
+        #                     group = bl_object.vertex_groups[bone_name]
+        #                     group.add([vert_idx], weight_val, 'REPLACE')
+        #             cpt += 1
+
+        # # select
+        # # for obj_sel in bpy.context.scene.objects:
+        # #    obj_sel.select = False
+        # #blender_object.select = True
+        # #bpy.context.scene.objects.active = blender_object
+
+        # modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
+        # modifier.object = armature_object
 
     def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
@@ -552,61 +564,11 @@ class Importer:
         #     obj.rotation_quaternion = node.rotation
         # obj.scale = node.scale
 
-    def traverse(self, node: Node, parent: Optional[Node] = None):
+    def _traverse(self, node: Node, parent: Optional[Node] = None):
         self._create_object(node)
         for child in node.children:
-            self.traverse(child, node)
+            self._traverse(child, node)
 
-
-# def _setup_skinning(blender_object: bpy.types.Object,
-#                     attributes: gltf_buffer.VertexBuffer,
-#                     bone_names: List[str],
-#                     armature_object: bpy.types.Object) -> None:
-#     # create vertex groups
-#     for bone_name in bone_names:
-#         if bone_name:
-#             blender_object.vertex_groups.new(name=bone_name)
-
-#     idx_already_done: Set[int] = set()
-
-#     # each face
-#     for poly in blender_object.data.polygons:
-#         # face vertex index
-#         for loop_idx in range(poly.loop_start,
-#                               poly.loop_start + poly.loop_total):
-#             loop = blender_object.data.loops[loop_idx]
-#             vert_idx = loop.vertex_index
-#             if vert_idx < 0:
-#                 raise Exception()
-#             if vert_idx >= len(attributes.joints):
-#                 raise Exception()
-
-#             if vert_idx in idx_already_done:
-#                 continue
-#             idx_already_done.add(vert_idx)
-
-#             cpt = 0
-#             for joint_idx in attributes.joints[vert_idx]:
-#                 if cpt > 3:
-#                     break
-#                 weight_val = attributes.weights[vert_idx][cpt]
-#                 if weight_val != 0.0:
-#                     # It can be a problem to assign weights of 0
-#                     # for bone index 0, if there is always 4 indices in joint_ tuple
-#                     bone_name = bone_names[joint_idx]
-#                     if bone_name:
-#                         group = blender_object.vertex_groups[bone_name]
-#                         group.add([vert_idx], weight_val, 'REPLACE')
-#                 cpt += 1
-
-#     # select
-#     # for obj_sel in bpy.context.scene.objects:
-#     #    obj_sel.select = False
-#     #blender_object.select = True
-#     #bpy.context.scene.objects.active = blender_object
-
-#     modifier = blender_object.modifiers.new(name="Armature", type="ARMATURE")
-#     modifier.object = armature_object
 
 # def _remove_empty(node: Node):
 #     for i in range(len(node.children) - 1, -1, -1):
@@ -624,31 +586,3 @@ class Importer:
 #     bpy.data.objects.remove(node.blender_object, do_unlink=True)
 #     if node.parent:
 #         node.parent.children.remove(node)
-
-
-def import_roots(context: bpy.types.Context, roots: List[Node]):
-    importer = Importer(context)
-    for root in roots:
-        importer.traverse(root)
-
-    # # skinning
-    # armature_object = next(node for node in root.traverse()
-    #                         if node.blender_armature)
-
-    # for node in nodes:
-    #     if node.gltf_node.mesh != -1 and node.gltf_node.skin != -1:
-    #         _, attributes = manager.meshes[node.gltf_node.mesh]
-
-    #         skin = gltf.skins[node.gltf_node.skin]
-    #         bone_names = [nodes[joint].bone_name for joint in skin.joints]
-
-    #         #armature_object =nodes[skin.skeleton].blender_armature
-
-    #         _setup_skinning(obj, attributes, bone_names,
-    #                         armature_object.blender_armature)
-
-    # remove empties
-    # _remove_empty(root)
-
-    # done
-    # context.scene.update()
