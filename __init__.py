@@ -89,8 +89,8 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
             if not scanner.remove_empty_leaf_nodes():
                 break
 
-        from .lib.exporter import export
-        data, buffers = export(scanner)
+        from .lib import serialization
+        data, buffers = serialization.export(scanner)
         d = data.to_dict()
 
         from .lib.formats.glb import Glb
