@@ -23,4 +23,5 @@ class SubmeshMesh:
 
     def __str__(self) -> str:
         vertex_count = self.attributes.get_vertex_count()
-        return f'<SubmeshMesh: {vertex_count}verts>'
+        submeshes = [f'[{sm.material.__class__.__name__}]' for sm in self.submeshes]
+        return f'<SubmeshMesh: {vertex_count}verts {"".join(submeshes)}>'
