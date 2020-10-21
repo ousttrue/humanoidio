@@ -502,6 +502,7 @@ class Importer:
         bl_texcord = bl_mesh.uv_layers.new()
         submesh_index = 0
         submesh_count = 0
+        tmp = []
         for bl_poly in bl_mesh.polygons:
             if submesh_count >= mesh.submeshes[submesh_index].vertex_count:
                 submesh_index += 1
@@ -509,11 +510,11 @@ class Importer:
             bl_poly.material_index = material_index_map.get(
                 mesh.submeshes[submesh_index].material)
             for lidx in bl_poly.loop_indices:
+                tmp.append(lidx)
                 vertex_index = mesh.indices[lidx]
                 # vertex uv to face uv
                 uv = attributes.texcoord[vertex_index]
-                bl_texcord.data[vertex_index].uv = (uv.x, uv.y
-                                                    )  # vertical flip uv
+                bl_texcord.data[lidx].uv = (uv.x, uv.y)  # vertical flip uv
             submesh_count += 1
 
         # *Very* important to not remove lnors here!

@@ -158,8 +158,8 @@ class MaterialImporter:
         nodes.clear()
 
         # build node
-        bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
         output_node = nodes.new(type="ShaderNodeOutputMaterial")
+        bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
         links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
         if src.texture and src.texture.image:
             texture_node = nodes.new(type="ShaderNodeTexImage")

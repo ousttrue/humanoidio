@@ -11,6 +11,17 @@ from lib.formats.gltf_context import parse_gltf
 from lib.pyscene.submesh_mesh import SubmeshMesh
 from lib.pyscene.material import Material, PBRMaterial
 
+EPSILON = 1e-5
+
+
+def check_seq(_l, _r):
+    for l, r in zip(_l, _r):
+        for ll, rr in zip(l, r):
+            d = abs(ll - rr)
+            if d > EPSILON:
+                return False
+    return True
+
 
 class GltfTests(unittest.TestCase):
     def test_box_gltf(self):
@@ -66,9 +77,24 @@ class GltfTests(unittest.TestCase):
             raise Exception()
         vertices = mesh.attributes
         self.assertEqual(len(vertices.position), 24)
+        position = [(p.x, p.y, p.z) for p in vertices.position]
+        self.assertEqual(position[0], (-0.5, -0.5, 0.5))
         self.assertEqual(len(vertices.normal), 24)
+        normal = [(n.x, n.y, n.z) for n in vertices.normal]
+        self.assertEqual(normal[0], (0, 0, 1))
         self.assertEqual(len(vertices.texcoord), 24)
+        texcord = [(uv.x, uv.y) for uv in vertices.texcoord]
+        self.assertTrue(
+            check_seq(texcord, [(6, 0), (5, 0), (6, 1), (5, 1), (4, 0), (5, 0),
+                                (4, 1), (5, 1), (2, 0), (1, 0), (2, 1), (1, 1),
+                                (3, 0), (4, 0), (3, 1), (4, 1), (3, 0), (2, 0),
+                                (3, 1), (2, 1), (0, 0), (0, 1), (1, 0),
+                                (1, 1)]))
         self.assertEqual(len(mesh.indices), 36)
+        self.assertSequenceEqual(mesh.indices, [
+            0, 1, 2, 3, 2, 1, 4, 5, 6, 7, 6, 5, 8, 9, 10, 11, 10, 9, 12, 13,
+            14, 15, 14, 13, 16, 17, 18, 19, 18, 17, 20, 21, 22, 23, 22, 21
+        ])
         self.assertEqual(len(mesh.submeshes), 1)
 
         submesh = mesh.submeshes[0]

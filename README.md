@@ -19,15 +19,22 @@ import/export for Blender-2.83
     Serialize               Export
 ```
 
-* SubmeshMesh(each submesh has material)
-* FaceMesh(each face has material, normal, uv)
-
-
 * 手前向き T-Pose で作成する
 * modifier の上から作った shapekey をそのままエクスポートできる。Apply も不要
 * object.location, rotation, scale を apply する
   * objectの親子あってもapplyできる
   * blenderのZ-UP右手系を、決め打ちでGLTFのY-UP右手系に変換する。ルート付近に X90度回転を残さない
+
+### Import
+
+* gltf -> submesh: Y-UP, TopLeft-Origin
+* submesh -> bpy: Z-UP, BottomLeft-Origin
+
+### Export
+
+* bpy -> facemesh: Z-UP, BottomLeft-Origin
+* facemesh -> submesh: Y-UP, TopLeft-Origin
+* submesh -> gltf: Y-UP, TopLeft-Origin
 
 ### Material
 

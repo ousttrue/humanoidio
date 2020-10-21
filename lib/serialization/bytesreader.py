@@ -215,23 +215,16 @@ class BytesReader:
                 raise Exception("len(weights) different from len(pos)")
 
         for p in pos:
-            # to zup
-            buffer.position[pos_index].x = p.x
-            buffer.position[pos_index].y = -p.z
-            buffer.position[pos_index].z = p.y
+            buffer.position[pos_index] = p
             pos_index += 1
 
         if nom:
             for n in nom:
-                # to zup
-                buffer.normal[nom_index].x = n.x
-                buffer.normal[nom_index].y = -n.z
-                buffer.normal[nom_index].z = n.y
+                buffer.normal[nom_index] = n
                 nom_index += 1
 
         if uv:
             for xy in uv:
-                xy.y = 1.0 - xy.y  # flip vertical
                 buffer.texcoord[uv_index] = xy
                 uv_index += 1
 
