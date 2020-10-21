@@ -55,7 +55,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         from .lib import serialization
         roots = serialization.import_submesh(data)
 
-        from .lib.importer import import_roots
+        from .lib.bpy_helper.importer import import_roots
         import_roots(context, roots)
 
         return {'FINISHED'}
