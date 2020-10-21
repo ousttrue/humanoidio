@@ -101,8 +101,8 @@ class MaterialImporter:
         self.material_map: Dict[pyscene.Material, bpy.types.Material] = {}
         self.image_map: Dict[pyscene.Texture, bpy.types.Image] = {}
 
-    def get_or_create_material(self,
-                                material: pyscene.Material) -> bpy.types.Material:
+    def get_or_create_material(
+            self, material: pyscene.Material) -> bpy.types.Material:
         bl_material = self.material_map.get(material)
         if bl_material:
             return bl_material
@@ -138,10 +138,20 @@ class MaterialImporter:
 
     def create_pbr(self, bl_material: bpy.types.Material,
                    src: pyscene.PBRMaterial):
-        # if material.texture and material.texture.image:
-        #     # texture
-        #     bl_texture = bpy.data.textures.new(material.texture.name, type='IMAGE')
-        #     bl_texture.image = self._get_or_create_image(material.texture)
-        #     # require node
-        #     # bl_material.texture_slots.add().texture = bl_texture
         bl_material.use_nodes = True
+        nodes: bpy.types.Nodes = bl_material.node_tree.nodes
+        links: bpy.types.NodeLinks = bl_material.node_tree.links
+
+        # clear nodes
+        nodes.clear()
+
+        # build node
+        bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
+        output_node = nodes.new(type="ShaderNodeOutputMaterial")
+        links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
+        if src.texture and src.texture.image:
+            texture_node = nodes.new(type="ShaderNodeTexImage")
+            nodes.active = texture_node
+            texture_node.image = self._get_or_create_image(src.texture)
+            links.new(texture_node.outputs[0],
+                      bsdf_node.inputs[0])  # type: ignore
