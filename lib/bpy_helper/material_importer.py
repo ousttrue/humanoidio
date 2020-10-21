@@ -126,9 +126,21 @@ class MaterialImporter:
             return bl_image
 
         image = texture.image
-        bl_image = bpy.data.images.new(texture.name,
-                                       width=image.width,
-                                       height=image.height)
+
+        if image.mode == 'RGBA':
+            bl_image = bpy.data.images.new(texture.name,
+                                           alpha=True,
+                                           width=image.width,
+                                           height=image.height)
+
+            # RGBA[0-255] to float[0-1]
+            pixels = [e / 255 for pixel in image.getdata() for e in pixel]
+
+            bl_image.pixels = pixels
+
+        else:
+            raise NotImplementedError()
+
         self.image_map[texture] = bl_image
         return bl_image
 
