@@ -428,23 +428,25 @@ class Importer:
 
     def _create_armature(self, node: Node) -> None:
         logger.debug(f'skin')
-        bl_skin: bpy.types.Armature = bpy.data.armatures.new(node.name)
+        bl_skin: bpy.types.Armature = bpy.data.armatures.new(node.skin.name)
         bl_obj = bpy.data.objects.new(node.skin.name, bl_skin)
         bl_obj.show_in_front = True
+        self.collection.objects.link(bl_obj)
 
-        # bl_obj.select_set(True)
-        # bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        self.context.view_layer.objects.active = bl_obj
+        bl_obj.select_set(True)
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        # # set identity matrix_world to armature
-        # m = mathutils.Matrix()
-        # m.identity()
-        # bl_skin.matrix_world = m
+        # set identity matrix_world to armature
+        m = mathutils.Matrix()
+        m.identity()
+        bl_obj.matrix_world = m
         # self.context.scene.update()  # recalc matrix_world
 
-        # # edit mode
-        # bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        # edit mode
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
-        # # create bones
+        # create bones
 
     def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)

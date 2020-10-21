@@ -88,14 +88,14 @@ class Node:
             return self.position
 
     def has_mesh(self) -> bool:
-        has_mesh = False
+        has_mesh = []
 
         def check_has_mesh(n: Node):
             if n.mesh:
-                has_mesh = True
+                has_mesh.append(True)
                 return
             for c in n.children:
                 check_has_mesh(c)
 
         check_has_mesh(self)
-        return has_mesh
+        return len(has_mesh) > 0

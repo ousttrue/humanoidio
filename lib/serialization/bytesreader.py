@@ -1,4 +1,3 @@
-from lib.formats.gltf import MeshPrimitive
 from logging import getLogger
 logger = getLogger(__name__)
 import ctypes
