@@ -35,6 +35,16 @@ class Float3(ctypes.Structure):
         # return Float3(v.x, v.z, -v.y)
         return Float3(-v.x, v.z, v.y)
 
+    def __getitem__(self, i: int) -> int:
+        if i == 0:
+            return self.x
+        elif i == 1:
+            return self.y
+        elif i == 2:
+            return self.z
+        else:
+            raise IndexError()
+
     def __hash__(self):
         return hash(self.x)
 

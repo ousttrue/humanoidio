@@ -1,5 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
+from contextlib import contextmanager
 from typing import List, Optional, Dict, Tuple, Any
 import bpy, mathutils
 from ..formats import gltf
@@ -9,11 +10,28 @@ from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.material import Material, PBRMaterial, Texture
 from .material_importer import MaterialImporter
 
-# def mod_v(v):
-#     return (v[0], -v[2], v[1])
 
-# def mod_q(q):
-#     return mathutils.Quaternion(mod_v(q.axis), q.angle)
+def mod_v(v):
+    return (v[0], -v[2], v[1])
+
+
+def mod_q(_q):
+    q = mathutils.Quaternion((_q.w, _q.x, _q.y, _q.z))
+    return mathutils.Quaternion(mod_v(q.axis), q.angle)
+
+
+def mod_s(s):
+    return (s[0], s[2], s[1])
+
+
+@contextmanager
+def tmp_mode(obj, tmp: str):
+    mode = obj.rotation_mode
+    obj.rotation_mode = tmp
+    try:
+        yield
+    finally:
+        obj.rotation_mode = mode
 
 
 class VertexBuffer:
@@ -181,83 +199,6 @@ def _create_mesh(manager: 'ImportManager',
     blender_mesh.update()
 
     return blender_mesh, attributes
-
-
-# create armature
-def create_armature(self: Node, context) -> bpy.types.Object:
-    skin_name = skin.name
-
-    armature = bpy.data.armatures.new(skin_name)
-    self.blender_armature = bpy.data.objects.new(skin_name, armature)
-    collection.objects.link(self.blender_armature)
-    self.blender_armature.show_in_front = True
-    if not self.blender_object:
-        raise Exception('no blender_object: %s' % self)
-
-    self.blender_armature.parent = self.blender_object.parent
-
-    # select
-    self.blender_armature.select_set("SELECT")
-    view_layer.objects.active = self.blender_armature
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-    # set identity matrix_world to armature
-    m = mathutils.Matrix()
-    m.identity()
-    self.blender_armature.matrix_world = m
-    context.scene.update()  # recalc matrix_world
-
-    # edit mode
-    bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-
-    self.create_bone(skin, armature, None, False)
-
-
-def create_bone(self, skin: gltf.Skin, armature: bpy.types.Armature,
-                parent_bone: bpy.types.Bone, is_connect: bool) -> None:
-
-    self.blender_bone = armature.edit_bones.new(self.name)
-    self.bone_name = self.blender_bone.name
-    self.blender_bone.parent = parent_bone
-    if is_connect:
-        self.blender_bone.use_connect = True
-
-    object_pos = self.blender_object.matrix_world.to_translation()
-    self.blender_bone.head = object_pos
-
-    if not is_connect:
-        if parent_bone and parent_bone.tail == (0, 0, 0):
-            tail_offset = (self.blender_bone.head -
-                           parent_bone.head).normalized() * 0.1
-            parent_bone.tail = parent_bone.head + tail_offset
-
-    if not self.children:
-        if parent_bone:
-            self.blender_bone.tail = self.blender_bone.head + \
-                (self.blender_bone.head - parent_bone.head)
-    else:
-
-        def get_child_is_connect(child_pos) -> bool:
-            if len(self.children) == 1:
-                return True
-
-            if abs(child_pos.x) < 0.001:
-                return True
-
-            return False
-
-        if parent_bone:
-            child_is_connect = 0
-            for i, child in enumerate(self.children):
-                if get_child_is_connect(
-                        child.blender_object.matrix_world.to_translation()):
-                    child_is_connect = i
-        else:
-            child_is_connect = -1
-
-        for i, child in enumerate(self.children):
-            child.create_bone(skin, armature, self.blender_bone,
-                              i == child_is_connect)
 
 
 class Skin:
@@ -443,10 +384,58 @@ class Importer:
         bl_obj.matrix_world = m
         # self.context.scene.update()  # recalc matrix_world
 
-        # edit mode
-        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-
         # create bones
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        self._create_bone(bl_skin, node.skin.root, None, False)
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    def _create_bone(self, armature: bpy.types.Armature, node: Node,
+                     parent_bone: Optional[bpy.types.Bone],
+                     is_connect: bool) -> None:
+
+        logger.debug(node.name)
+        bl_bone = armature.edit_bones.new(node.name)
+        bl_bone.parent = parent_bone
+        if is_connect:
+            bl_bone.use_connect = True
+
+        bl_object = self.obj_map[node]
+        object_pos = bl_object.matrix_world.to_translation()
+        bl_bone.head = object_pos
+
+        if not is_connect:
+            if parent_bone and parent_bone.tail == (0, 0, 0):
+                tail_offset = (bl_bone.head -
+                               parent_bone.head).normalized() * 0.1
+                parent_bone.tail = parent_bone.head + tail_offset
+
+        if not node.children:
+            if parent_bone:
+                bl_bone.tail = bl_bone.head + \
+                    (bl_bone.head - parent_bone.head)
+        else:
+
+            def get_child_is_connect(child_pos) -> bool:
+                if len(node.children) == 1:
+                    return True
+
+                if abs(child_pos.x) < 0.001:
+                    return True
+
+                return False
+
+            if parent_bone:
+                child_is_connect = 0
+                for i, child in enumerate(node.children):
+                    if get_child_is_connect(
+                            self.obj_map[child].matrix_world.to_translation()):
+                        child_is_connect = i
+            else:
+                child_is_connect = -1
+
+            for i, child in enumerate(node.children):
+                self._create_bone(armature, child, bl_bone,
+                                  i == child_is_connect)
 
     def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
@@ -518,12 +507,12 @@ class Importer:
         # create object
         if isinstance(node.mesh, SubmeshMesh):
             bl_mesh = self._get_or_create_mesh(node.mesh)
-            bl_obj = bpy.data.objects.new(node.name, bl_mesh)
+            bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
         else:
             # empty
-            bl_obj = bpy.data.objects.new(node.name, None)
+            bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, None)
             bl_obj.empty_display_size = 0.1
-            # self.blender_object.empty_draw_type = 'PLAIN_AXES'
+            # bl_object.empty_draw_type = 'PLAIN_AXES'
         self.collection.objects.link(bl_obj)
         bl_obj.select_set(True)
         self.obj_map[node] = bl_obj
@@ -533,14 +522,12 @@ class Importer:
             bl_obj.parent = self.obj_map.get(node.parent)
 
         # TRS
-        # obj.location = node.position
-        # with disposable_mode(obj, 'QUATERNION'):
-        #     obj.rotation_quaternion = node.rotation
-        # obj.scale = node.scale
+        bl_obj.location = mod_v(node.position)
+        with tmp_mode(bl_obj, 'QUATERNION'):
+            bl_obj.rotation_quaternion = mod_q(node.rotation)
+        bl_obj.scale = mod_s(node.scale)
 
     def _create_tree(self, node: Node, parent: Optional[Node] = None):
-        if not node.has_mesh():
-            return
         self._create_object(node)
         for child in node.children:
             self._create_tree(child, node)
