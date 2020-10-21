@@ -11,10 +11,12 @@ import/export for Blender-2.83
 ## memo
 
 ```
-+----+   +-------------+-->zup-----------------> +-----+
-|gltf|-->| SubmeshMesh |          +--------+     | bpy |
-|    |<--|             |<--pyscene<-- |FaceMesh| <-- |     |
-+----+   +-------------+          +--------+     +-----+
+    Deserialize             Import
++----+   +-------------+----------------> +-----+
+|gltf|-->| SubmeshMesh |   +--------+     | bpy |
+|    |<--|             |<--|FaceMesh| <-- |     |
++----+   +-------------+   +--------+     +-----+
+    Serialize               Export
 ```
 
 * SubmeshMesh(each submesh has material)

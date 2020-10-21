@@ -52,8 +52,8 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         from .lib.formats.gltf_context import parse_gltf
         data = parse_gltf(path)
 
-        from .lib.importer.import_manager import import_submesh
-        roots = import_submesh(data)
+        from .lib import serialization
+        roots = serialization.import_submesh(data)
 
         from .lib.importer import import_roots
         import_roots(context, roots)

@@ -5,8 +5,8 @@ import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 
+from lib import serialization
 from lib.struct_types import Float4
-from lib.importer.import_manager import import_submesh
 from lib.formats.gltf_context import parse_gltf
 from lib.pyscene.submesh_mesh import SubmeshMesh
 from lib.pyscene.material import Material, PBRMaterial
@@ -18,7 +18,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = import_submesh(data)
+        roots = serialization.import_submesh(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -37,7 +37,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = import_submesh(data)
+        roots = serialization.import_submesh(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -56,7 +56,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = import_submesh(data)
+        roots = serialization.import_submesh(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -87,7 +87,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = import_submesh(data)
+        roots = serialization.import_submesh(data)
         self.assertEqual(len(roots), 2)
 
         mesh_node = roots[0]
