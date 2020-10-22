@@ -38,21 +38,14 @@ import/export for Blender-2.83
 
 ## TODO
 
-* [ ] remove unnecessary nodes
-* [ ] object location apply
-* [ ] apply modifier(mirror, subsurf, ...etc)
-* [ ] export shapekey
-* [ ] sparse buffer for morph target
-* [ ] morph target name
-* [ ] merge same vertex(position, normal, uv, bone weight)
-* [ ] single mesh
-* [ ] UniVRM compatible(shared morph)
-* [ ] bone weight normalize
-* [ ] export vrm meta
-* [ ] export vrm humanoid
-* [ ] default is unlit material
-* [ ] empty node for meshes
-* [ ] min, max of POSITION accessor
+* [ ] remove empty
+* [ ] shape key
+
+### VRM
+
+* [ ] VRM
+* [ ] armature 一個にまとめる
+* [ ] MToon
 
 ## 仕様
 

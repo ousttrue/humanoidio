@@ -499,6 +499,7 @@ class Importer:
         for bl_poly in bl_mesh.polygons:
             if submesh_count >= mesh.submeshes[submesh_index].vertex_count:
                 submesh_index += 1
+                submesh_count = 0
             bl_poly.use_smooth = True  # enable vertex normal
             bl_poly.material_index = material_index_map.get(
                 mesh.submeshes[submesh_index].material)
@@ -508,7 +509,7 @@ class Importer:
                 # vertex uv to face uv
                 uv = attributes.texcoord[vertex_index]
                 bl_texcord.data[lidx].uv = (uv.x, uv.y)  # vertical flip uv
-            submesh_count += 1
+            submesh_count += 3
 
         # *Very* important to not remove lnors here!
         bl_mesh.validate(clean_customdata=False)
@@ -556,11 +557,9 @@ class Importer:
 
         # skinning
         for root in roots:
-            skin_node = next(node for node in root.traverse() if node.skin)
-            if skin_node.skin:
-                self._create_armature(skin_node, skin_node.skin)
-            else:
-                raise Exception()
+            for skin_node in root.traverse():
+                if skin_node.skin:
+                    self._create_armature(skin_node, skin_node.skin)
 
         for n, o in self.obj_map.items():
             if o.type == 'MESH' and n.skin:

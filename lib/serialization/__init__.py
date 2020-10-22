@@ -24,11 +24,10 @@ def get_skin_root(data: GltfContext, skin_index: int,
     gl_skin = data.gltf.skins[skin_index]
     joints = [nodes[j] for j in gl_skin.joints]
 
-    name = gl_skin.name if gl_skin.name else f'{root.name}:skin'
     root: Optional[Node] = None
     if isinstance(gl_skin.skeleton, int):
         root = nodes[gl_skin.skeleton]
-    return Skin(name, root, joints)
+    return Skin(gl_skin.name, root, joints)
 
 
 def import_submesh(data: GltfContext) -> List[pyscene.Node]:
@@ -97,6 +96,8 @@ def import_submesh(data: GltfContext) -> List[pyscene.Node]:
         for i, n in enumerate(data.gltf.nodes):
             if isinstance(n.skin, int):
                 skin = get_skin_root(data, n.skin, nodes)
+                if not skin.name:
+                    skin.name = n.name
                 nodes[i].skin = skin
 
     scene = data.gltf.scenes[data.gltf.scene if data.gltf.scene else 0]

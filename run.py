@@ -14,9 +14,11 @@ import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 os.chdir(HERE)
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
+VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/Box/glTF/Box.gltf'
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF/BoxTextured.gltf'
-SRC_FILE = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
+# SRC_FILE = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
+SRC_FILE = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
 scene_translator.register()
 DST_FILE = HERE / 'tmp.glb'
 

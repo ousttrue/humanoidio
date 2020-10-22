@@ -7,7 +7,7 @@ from ..struct_types import Float3, Float4
 
 
 class Skin:
-    def __init__(self, name: str, root: Optional['Node'],
+    def __init__(self, name: Optional[str], root: Optional['Node'],
                  joints: List['Node']):
         self.name = name
         self.root = root

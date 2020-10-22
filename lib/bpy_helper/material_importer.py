@@ -148,7 +148,27 @@ class MaterialImporter:
 
     def create_unlit(self, bl_material: bpy.types.Material,
                      src: pyscene.Material):
-        raise NotImplementedError()
+        bl_material.use_nodes = True
+        nodes: bpy.types.Nodes = bl_material.node_tree.nodes
+        links: bpy.types.NodeLinks = bl_material.node_tree.links
+
+        # clear nodes
+        nodes.clear()
+
+        # build node
+        output_node = nodes.new(type="ShaderNodeOutputMaterial")
+        bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
+        bsdf_node.inputs['Base Color'].default_value = (src.color.x,
+                                                        src.color.y,
+                                                        src.color.z,
+                                                        src.color.w)
+        links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
+        if src.texture and src.texture.image:
+            texture_node = nodes.new(type="ShaderNodeTexImage")
+            nodes.active = texture_node
+            texture_node.image = self._get_or_create_image(src.texture)
+            links.new(texture_node.outputs[0],
+                      bsdf_node.inputs[0])  # type: ignore
 
     def create_pbr(self, bl_material: bpy.types.Material,
                    src: pyscene.PBRMaterial):
@@ -164,6 +184,7 @@ class MaterialImporter:
         bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
         bsdf_node.inputs['Base Color'].default_value = (src.color.x,
                                                         src.color.y,
+                                                        
                                                         src.color.z,
                                                         src.color.w)
         links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore

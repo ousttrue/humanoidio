@@ -4,7 +4,7 @@ import os
 import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
-
+VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
 from lib import serialization
 from lib.struct_types import Float4
 from lib.formats.gltf_context import parse_gltf
@@ -147,6 +147,27 @@ class GltfTests(unittest.TestCase):
         weights = [(w.x, w.y, w.z, w.w) for w in vertices.weights]
         self.assertAlmostEqual(weights[64][0], 0.73860, delta=3e-3)
         self.assertAlmostEqual(weights[64][1], 0.264140, delta=3e-3)
+
+    def test_vivi(self):
+        path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
+        self.assertTrue(path.exists())
+
+        data = parse_gltf(path)
+        roots = serialization.import_submesh(data)
+        self.assertEqual(len(roots), 5)
+        root = roots[0]
+
+        # mesh_node = roots[0][0][1]
+        # mesh = mesh_node.mesh
+        # if not isinstance(mesh, SubmeshMesh):
+        #     raise Exception()
+        # vertices = mesh.attributes
+
+        # joints = [(j.x, j.y, j.z, j.w) for j in vertices.joints]
+        # self.assertSequenceEqual(joints[64], (0, 1, 0, 0))
+        # weights = [(w.x, w.y, w.z, w.w) for w in vertices.weights]
+        # self.assertAlmostEqual(weights[64][0], 0.73860, delta=3e-3)
+        # self.assertAlmostEqual(weights[64][1], 0.264140, delta=3e-3)
 
 
 if __name__ == '__main__':
