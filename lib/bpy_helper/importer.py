@@ -230,7 +230,7 @@ class Importer:
                 vertex_index = mesh.indices[lidx]
                 # vertex uv to face uv
                 uv = attributes.texcoord[vertex_index]
-                bl_texcord.data[lidx].uv = (uv.x, uv.y)  # vertical flip uv
+                bl_texcord.data[lidx].uv = (uv.x, 1.0 - uv.y)  # vertical flip uv
             submesh_count += 3
 
         # *Very* important to not remove lnors here!

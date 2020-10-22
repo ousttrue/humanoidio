@@ -39,6 +39,8 @@ import/export for Blender-2.83
 ## TODO
 
 * [x] remove empty
+* [ ] blend mode
+* [ ] threshold
 * [ ] Unlit Transparent
 * [ ] Standard Transparent
 * [ ] shape key

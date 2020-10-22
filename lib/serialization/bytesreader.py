@@ -65,7 +65,7 @@ class BytesReader:
         # gltf の url 参照の外部ファイルバッファをキャッシュする
         self._buffer_map: Dict[str, bytes] = {}
         self._material_map: Dict[int, Material] = {}
-        self._image_map: Dict[int, bytes] = {}
+        self._texture_map: Dict[int, Texture] = {}
 
     def get_view_bytes(self, view_index: int) -> bytes:
         view = self.data.gltf.bufferViews[view_index]
@@ -100,23 +100,33 @@ class BytesReader:
         segment = view_bytes[byteOffset:byteOffset + accessor_byte_len]
 
         if accessor.type == gltf.AccessorType.SCALAR:
-            if (accessor.componentType == gltf.AccessorComponentType.SHORT
+            if (accessor.componentType == gltf.AccessorComponentType.BYTE
                     or accessor.componentType
-                    == gltf.AccessorComponentType.UNSIGNED_SHORT):
-                return (ctypes.c_ushort *  # type: ignore
+                    == gltf.AccessorComponentType.UNSIGNED_BYTE):
+                return (ctypes.c_ubyte *
+                        accessor.count).from_buffer_copy(segment)
+            elif (accessor.componentType == gltf.AccessorComponentType.SHORT
+                  or accessor.componentType
+                  == gltf.AccessorComponentType.UNSIGNED_SHORT):
+                return (ctypes.c_ushort *
                         accessor.count).from_buffer_copy(segment)
             elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_INT:
-                return (ctypes.c_uint *  # type: ignore
+                return (ctypes.c_uint *
                         accessor.count).from_buffer_copy(segment)
+
+            raise NotImplementedError()
+
         elif accessor.type == gltf.AccessorType.VEC2:
             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
                 return (Float2 *  # type: ignore
                         accessor.count).from_buffer_copy(segment)
+            raise NotImplementedError()
 
         elif accessor.type == gltf.AccessorType.VEC3:
             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
                 return (Float3 *  # type: ignore
                         accessor.count).from_buffer_copy(segment)
+            raise NotImplementedError()
 
         elif accessor.type == gltf.AccessorType.VEC4:
             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
@@ -127,28 +137,40 @@ class BytesReader:
                 return (UShort4 *  # type: ignore
                         accessor.count).from_buffer_copy(segment)
 
+            raise NotImplementedError()
+
         elif accessor.type == gltf.AccessorType.MAT4:
             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
                 return (Mat16 *  # type: ignore
                         accessor.count).from_buffer_copy(segment)
+            raise NotImplementedError()
 
         raise NotImplementedError()
 
-    def get_image_bytes(self, image_index: int) -> bytes:
-        image_bytes = self._image_map.get(image_index)
-        if image_bytes:
-            return image_bytes
+    def _get_or_create_texture(self, image_index: int) -> Texture:
+        texture = self._texture_map.get(image_index)
+        if texture:
+            return texture
 
         gl_image = self.data.gltf.images[image_index]
+
+        texture_bytes = None
         if gl_image.uri:
-            image_bytes = self.data.get_uri_bytes(gl_image.uri)
-            self._image_map[image_index] = image_bytes
-            return image_bytes
+            texture_bytes = self.data.get_uri_bytes(gl_image.uri)
 
         if isinstance(gl_image.bufferView, int):
-            return self.get_view_bytes(gl_image.bufferView)
+            texture_bytes = self.get_view_bytes(gl_image.bufferView)
 
-        raise Exception('invalid gl_image')
+        if texture_bytes:
+            name = gl_image.name
+            if not name:
+                name = f'image{image_index}'
+            texture = Texture(name, texture_bytes)
+            self._texture_map[image_index] = texture
+            return texture
+
+        else:
+            raise Exception('invalid gl_image')
 
     def get_or_create_material(self,
                                material_index: Optional[int]) -> Material:
@@ -182,8 +204,8 @@ class BytesReader:
         # texture
         if gl_material.pbrMetallicRoughness.baseColorTexture:
             image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
-            image_bytes = self.get_image_bytes(image_index)
-            material.texture = Texture(f'texture{image_index}', image_bytes)
+            texture = self._get_or_create_texture(image_index)
+            material.texture = texture
 
         return material
 
@@ -225,8 +247,6 @@ class BytesReader:
             if len(weights) != len(pos):
                 raise Exception("len(weights) different from len(pos)")
 
-        has_skin = joints and weights
-
         for p in pos:
             buffer.position[pos_index] = p
             pos_index += 1
@@ -241,7 +261,7 @@ class BytesReader:
                 buffer.texcoord[uv_index] = xy
                 uv_index += 1
 
-        if has_skin:
+        if joints and weights:
             for joint, weight in zip(joints, weights):
                 buffer.joints[joint_index] = joint
                 buffer.weights[joint_index] = weight
