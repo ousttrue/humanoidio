@@ -2,8 +2,10 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import Optional
 import io
-import bpy
+from enum import Enum
 import PIL.Image
+#
+import bpy
 from ..formats import gltf
 from ..formats.buffermanager import BufferManager
 from ..struct_types import Float4
@@ -46,6 +48,12 @@ class Texture:
         self.image = PIL.Image.open(io.BytesIO(data))
 
 
+class BlendMode(Enum):
+    Opaque = 1
+    AlphaBlend = 2
+    Mask = 3
+
+
 class Material:
     '''
     unlit
@@ -54,6 +62,9 @@ class Material:
         self.name = name
         self.color = Float4(1, 1, 1, 1)
         self.texture: Optional[Texture] = None
+        self.blend_mode: BlendMode = BlendMode.Opaque
+        self.threshold = 0.5
+        self.double_sided = False
 
 
 class PBRMaterial(Material):
@@ -62,6 +73,8 @@ class PBRMaterial(Material):
     '''
     def __init__(self, name: str):
         super().__init__(name)
+        self.metallic = 0.0
+        self.roughness = 0.0  # 1 - smoothness
 
 
 class MaterialStore:

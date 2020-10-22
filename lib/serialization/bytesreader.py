@@ -5,8 +5,7 @@ from typing import Dict, Optional, List
 from ..struct_types import PlanarBuffer, Float2, Float3, Float4, UShort4
 from ..formats import gltf
 from ..formats.gltf_context import GltfContext
-from ..pyscene.submesh_mesh import SubmeshMesh, Submesh
-from ..pyscene.material import Material, PBRMaterial, Texture
+from .. import pyscene
 
 
 def get_accessor_type_to_count(accessor_type: gltf.AccessorType) -> int:
@@ -64,8 +63,8 @@ class BytesReader:
         self.data = data
         # gltf の url 参照の外部ファイルバッファをキャッシュする
         self._buffer_map: Dict[str, bytes] = {}
-        self._material_map: Dict[int, Material] = {}
-        self._texture_map: Dict[int, Texture] = {}
+        self._material_map: Dict[int, pyscene.Material] = {}
+        self._texture_map: Dict[int, pyscene.Texture] = {}
 
     def get_view_bytes(self, view_index: int) -> bytes:
         view = self.data.gltf.bufferViews[view_index]
@@ -147,7 +146,7 @@ class BytesReader:
 
         raise NotImplementedError()
 
-    def _get_or_create_texture(self, image_index: int) -> Texture:
+    def _get_or_create_texture(self, image_index: int) -> pyscene.Texture:
         texture = self._texture_map.get(image_index)
         if texture:
             return texture
@@ -165,17 +164,17 @@ class BytesReader:
             name = gl_image.name
             if not name:
                 name = f'image{image_index}'
-            texture = Texture(name, texture_bytes)
+            texture = pyscene.Texture(name, texture_bytes)
             self._texture_map[image_index] = texture
             return texture
 
         else:
             raise Exception('invalid gl_image')
 
-    def get_or_create_material(self,
-                               material_index: Optional[int]) -> Material:
+    def get_or_create_material(
+            self, material_index: Optional[int]) -> pyscene.Material:
         if not isinstance(material_index, int):
-            return Material(f'default')
+            return pyscene.Material(f'default')
         material = self._material_map.get(material_index)
         if material:
             return material
@@ -186,9 +185,9 @@ class BytesReader:
         if not name:
             name = f'material{material_index}'
         if gl_material.extensions and 'KHR_materials_unlit' in gl_material.extensions:
-            material = Material(name)
+            material = pyscene.Material(name)
         else:
-            material = PBRMaterial(name)
+            material = pyscene.PBRMaterial(name)
         self._material_map[material_index] = material
 
         # color
@@ -206,6 +205,21 @@ class BytesReader:
             image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
             texture = self._get_or_create_texture(image_index)
             material.texture = texture
+
+        # alpha blending
+        if isinstance(gl_material.alphaMode, gltf.MaterialAlphaMode):
+            if gl_material.alphaMode == gltf.MaterialAlphaMode.OPAQUE:
+                material.blend_mode = pyscene.BlendMode.Opaque
+            elif gl_material.alphaMode == gltf.MaterialAlphaMode.BLEND:
+                material.blend_mode = pyscene.BlendMode.AlphaBlend
+            elif gl_material.alphaMode == gltf.MaterialAlphaMode.MASK:
+                material.blend_mode = pyscene.BlendMode.Mask
+                if isinstance(gl_material.alphaCutoff, float):
+                    material.threshold = gl_material.alphaCutoff
+            else:
+                raise NotImplementedError()
+        else:
+            pass
 
         return material
 
@@ -267,7 +281,8 @@ class BytesReader:
                 buffer.weights[joint_index] = weight
                 joint_index += 1
 
-    def load_submesh(self, data: GltfContext, mesh_index: int) -> SubmeshMesh:
+    def load_submesh(self, data: GltfContext,
+                     mesh_index: int) -> pyscene.SubmeshMesh:
         m = data.gltf.meshes[mesh_index]
         name = m.name if m.name else f'mesh {mesh_index}'
 
@@ -292,9 +307,7 @@ class BytesReader:
                 return 0
             return data.gltf.accessors[prim.indices].count
 
-        buffer: Optional[PlanarBuffer] = None
-
-        def add_indices(sm: SubmeshMesh, prim: gltf.MeshPrimitive,
+        def add_indices(sm: pyscene.SubmeshMesh, prim: gltf.MeshPrimitive,
                         index_offset: int):
             # indices
             if not isinstance(prim.indices, int):
@@ -302,8 +315,9 @@ class BytesReader:
             mesh.indices.extend(self.get_bytes(prim.indices))
             # submesh
             index_count = prim_index_count(prim)
-            submesh = Submesh(index_offset, index_count,
-                              self.get_or_create_material(prim.material))
+            submesh = pyscene.Submesh(
+                index_offset, index_count,
+                self.get_or_create_material(prim.material))
             mesh.submeshes.append(submesh)
             return index_count
 
@@ -312,7 +326,7 @@ class BytesReader:
         if shared:
             # share vertex buffer
             vertex_count = position_count(m.primitives[0])
-            mesh = SubmeshMesh(name, vertex_count, has_skin)
+            mesh = pyscene.SubmeshMesh(name, vertex_count, has_skin)
             self.read_attributes(mesh.attributes, 0, data, m.primitives[0])
 
             index_offset = 0
@@ -323,7 +337,7 @@ class BytesReader:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
                                0)
-            mesh = SubmeshMesh(name, vertex_count, has_skin)
+            mesh = pyscene.SubmeshMesh(name, vertex_count, has_skin)
 
             offset = 0
             index_offset = 0

@@ -5,6 +5,16 @@ import bpy, mathutils
 from .. import pyscene
 
 
+class NodePostion:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+
+    def increment(self, node: bpy.types.ShaderNode):
+        node.location = (self.x, self.y)
+        self.x -= 100
+
+
 class MaterialImporter:
     def __init__(self):
         self.material_map: Dict[pyscene.Material, bpy.types.Material] = {}
@@ -16,13 +26,21 @@ class MaterialImporter:
         if bl_material:
             return bl_material
 
+        # base color
         bl_material: bpy.types.Material = bpy.data.materials.new(material.name)
         bl_material.diffuse_color = (material.color.x, material.color.y,
                                      material.color.z, material.color.w)
         self.material_map[material] = bl_material
+        bl_material.use_backface_culling = not material.double_sided
 
-        bl_material.blend_method = 'BLEND'  # 'CLIP', 'OPAQUE'
-        # bl_material.alpha_threshold = 
+        # alpha blend
+        if material.blend_mode == pyscene.BlendMode.Opaque:
+            bl_material.blend_method = 'OPAQUE'
+        elif material.blend_mode == pyscene.BlendMode.AlphaBlend:
+            bl_material.blend_method = 'BLEND'
+        elif material.blend_mode == pyscene.BlendMode.Mask:
+            bl_material.blend_method = 'CLIP'
+            bl_material.alpha_threshold = material.threshold
 
         if isinstance(material, pyscene.PBRMaterial):
             # PBR
@@ -103,8 +121,13 @@ class MaterialImporter:
         nodes.clear()
 
         # build node
+        pos = NodePostion()
         output_node = nodes.new(type="ShaderNodeOutputMaterial")
+        pos.increment(output_node)
+
         bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
+        pos.increment(bsdf_node)
+        bsdf_node.location = (300, 0)
         bsdf_node.inputs['Base Color'].default_value = (src.color.x,
                                                         src.color.y,
                                                         src.color.z,
@@ -112,7 +135,10 @@ class MaterialImporter:
         links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
         if src.texture and src.texture.image:
             texture_node = nodes.new(type="ShaderNodeTexImage")
+            pos.increment(texture_node)
             nodes.active = texture_node
             texture_node.image = self._get_or_create_image(src.texture)
             links.new(texture_node.outputs[0],
                       bsdf_node.inputs[0])  # type: ignore
+            links.new(texture_node.outputs[1],
+                      bsdf_node.inputs['Alpha'])  # type: ignore
