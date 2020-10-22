@@ -1,13 +1,11 @@
 from logging import getLogger
 logger = getLogger(__name__)
 from contextlib import contextmanager
-from typing import List, Optional, Dict, Tuple, Any, Set
+from typing import List, Optional, Dict, Set
 import bpy, mathutils
-from ..formats import gltf
-from ..bpy_helper import disposable_mode
 from ..pyscene.node import Node, Skin
 from ..pyscene.submesh_mesh import SubmeshMesh
-from ..pyscene.material import Material, PBRMaterial, Texture
+from ..pyscene.material import Material
 from .material_importer import MaterialImporter
 
 
@@ -32,276 +30,6 @@ def tmp_mode(obj, tmp: str):
         yield
     finally:
         obj.rotation_mode = mode
-
-
-class VertexBuffer:
-    def __init__(self, manager, mesh: gltf.Mesh) -> None:
-        # check shared attributes
-        attributes: Dict[str, int] = {}
-        shared = True
-        for prim in mesh.primitives:
-            if not attributes:
-                attributes = prim.attributes
-            else:
-                if attributes != prim.attributes:
-                    shared = False
-                    break
-        logger.debug(f'SHARED: {shared}')
-
-        #submeshes = [Submesh(path, gltf, prim) for prim in mesh.primitives]
-
-        # merge submesh
-        def position_count(prim):
-            accessor_index = prim.attributes['POSITION']
-            return manager.gltf.accessors[accessor_index].count
-
-        pos_count = sum((position_count(prim) for prim in mesh.primitives), 0)
-
-        self.pos = (ctypes.c_float * (pos_count * 3))()
-        self.nom = (ctypes.c_float * (pos_count * 3))()
-        self.uv = (Float2 * pos_count)()
-        self.joints = (UShort4 * pos_count)()
-        self.weights = (Float4 * pos_count)()
-
-        def index_count(prim: gltf.MeshPrimitive) -> int:
-            return manager.gltf.accessors[prim.indices].count
-
-        index_count = sum(
-            (
-                index_count(prim)  # type: ignore
-                for prim in mesh.primitives),
-            0)
-        self.indices = (ctypes.c_int * index_count)()  # type: ignore
-        self.submesh_index_count: List[int] = []
-
-        pos_index = 0
-        nom_index = 0
-        uv_index = 0
-        indices_index = 0
-        offset = 0
-        joint_index = 0
-        for prim in mesh.primitives:
-            #
-            # attributes
-            #
-            pos = manager.get_array(prim.attributes['POSITION'])
-
-            nom = None
-            if 'NORMAL' in prim.attributes:
-                nom = manager.get_array(prim.attributes['NORMAL'])
-                if len(nom) != len(pos):
-                    raise Exception("len(nom) different from len(pos)")
-
-            uv = None
-            if 'TEXCOORD_0' in prim.attributes:
-                uv = manager.get_array(prim.attributes['TEXCOORD_0'])
-                if len(uv) != len(pos):
-                    raise Exception("len(uv) different from len(pos)")
-
-            joints = None
-            if 'JOINTS_0' in prim.attributes:
-                joints = manager.get_array(prim.attributes['JOINTS_0'])
-                if len(joints) != len(pos):
-                    raise Exception("len(joints) different from len(pos)")
-
-            weights = None
-            if 'WEIGHTS_0' in prim.attributes:
-                weights = manager.get_array(prim.attributes['WEIGHTS_0'])
-                if len(weights) != len(pos):
-                    raise Exception("len(weights) different from len(pos)")
-
-            for p in pos:
-                self.pos[pos_index] = p.x
-                pos_index += 1
-                self.pos[pos_index] = -p.z
-                pos_index += 1
-                self.pos[pos_index] = p.y
-                pos_index += 1
-
-            if nom:
-                for n in nom:
-                    self.nom[nom_index] = n.x
-                    nom_index += 1
-                    self.nom[nom_index] = -n.z
-                    nom_index += 1
-                    self.nom[nom_index] = n.y
-                    nom_index += 1
-
-            if uv:
-                for xy in uv:
-                    xy.y = 1.0 - xy.y  # flip vertical
-                    self.uv[uv_index] = xy
-                    uv_index += 1
-
-            if joints and weights:
-                for joint, weight in zip(joints, weights):
-                    self.joints[joint_index] = joint
-                    self.weights[joint_index] = weight
-                    joint_index += 1
-
-            #
-            # indices
-            #
-            indices = manager.get_array(prim.indices)
-            for i in indices:
-                self.indices[indices_index] = offset + i
-                indices_index += 1
-
-            self.submesh_index_count.append(len(indices))
-            offset += len(pos)
-
-    def get_submesh_from_face(self, face_index) -> int:
-        target = face_index * 3
-        n = 0
-        for i, count in enumerate(self.submesh_index_count):
-            n += count
-            if target < n:
-                return i
-        return -1
-
-
-def _create_mesh(manager: 'ImportManager',
-                 mesh: gltf.Mesh) -> Tuple[bpy.types.Mesh, VertexBuffer]:
-    blender_mesh = bpy.data.meshes.new(mesh.name)
-    materials = [manager.materials[prim.material] for prim in mesh.primitives]
-    for m in materials:
-        blender_mesh.materials.append(m)
-
-    attributes = VertexBuffer(manager, mesh)
-
-    blender_mesh.vertices.add(len(attributes.pos) / 3)
-    blender_mesh.vertices.foreach_set("co", attributes.pos)
-    blender_mesh.vertices.foreach_set("normal", attributes.nom)
-
-    blender_mesh.loops.add(len(attributes.indices))
-    blender_mesh.loops.foreach_set("vertex_index", attributes.indices)
-
-    triangle_count = int(len(attributes.indices) / 3)
-    blender_mesh.polygons.add(triangle_count)
-    starts = [i * 3 for i in range(triangle_count)]
-    blender_mesh.polygons.foreach_set("loop_start", starts)
-    total = [3 for _ in range(triangle_count)]
-    blender_mesh.polygons.foreach_set("loop_total", total)
-
-    blen_uvs = blender_mesh.uv_layers.new()
-    for blen_poly in blender_mesh.polygons:
-        blen_poly.use_smooth = True
-        blen_poly.material_index = attributes.get_submesh_from_face(
-            blen_poly.index)
-        for lidx in blen_poly.loop_indices:
-            index = attributes.indices[lidx]
-            # vertex uv to face uv
-            uv = attributes.uv[index]
-            blen_uvs.data[lidx].uv = (uv.x, uv.y)  # vertical flip uv
-
-    # *Very* important to not remove lnors here!
-    blender_mesh.validate(clean_customdata=False)
-    blender_mesh.update()
-
-    return blender_mesh, attributes
-
-
-# class ImportManager:
-#     def __init__(self) -> None:
-#         self.textures: List[bpy.types.Texture] = []
-#         self.materials: List[bpy.types.Material] = []
-#         self.meshes: List[Tuple[bpy.types.Mesh, Any]] = []
-
-#         # yup_to_zup
-#         self.mod_v = lambda v: (v[0], -v[2], v[1])
-#         self.mod_q = lambda q: mathutils.Quaternion(self.mod_v(q.axis), q.angle
-#                                                     )
-#         self._buffer_map: Dict[str, bytes] = {}
-
-#     def load_textures(self):
-#         '''
-#         gltf.textures => List[bpy.types.Texture]
-#         '''
-#         if not self.gltf.textures:
-#             return
-#         self.textures = [
-#             _create_texture(self, i, texture)
-#             for i, texture in enumerate(self.gltf.textures)
-#         ]
-
-#     def load_materials(self):
-#         '''
-#         gltf.materials => List[bpy.types.Material]
-#         '''
-#         if not self.gltf.materials:
-#             return
-#         self.materials = [
-#             _create_material(self, material)
-#             for material in self.gltf.materials
-#         ]
-
-#     def load_meshes(self):
-#         self.meshes = [_create_mesh(self, mesh) for mesh in self.gltf.meshes]
-
-#     def get_view_bytes(self, view_index: int) -> bytes:
-#         view = self.gltf.bufferViews[view_index]
-#         buffer = self.gltf.buffers[view.buffer]
-#         if buffer.uri:
-#             if buffer.uri in self._buffer_map:
-#                 return self._buffer_map[
-#                     buffer.uri][view.byteOffset:view.byteOffset +
-#                                 view.byteLength]
-#             else:
-#                 path = self.base_dir / buffer.uri
-#                 with path.open('rb') as f:
-#                     data = f.read()
-#                     self._buffer_map[buffer.uri] = data
-#                     return data[view.byteOffset:view.byteOffset +
-#                                 view.byteLength]
-#         else:
-#             return self.body[view.byteOffset:view.byteOffset + view.byteLength]
-
-#     def get_array(self, accessor_index: int):
-#         accessor = self.gltf.accessors[
-#             accessor_index] if self.gltf.accessors else None
-#         if not accessor:
-#             raise Exception()
-#         accessor_byte_len = get_accessor_byteslen(accessor)
-#         if not isinstance(accessor.bufferView, int):
-#             raise Exception()
-#         view_bytes = self.get_view_bytes(accessor.bufferView)
-#         segment = view_bytes[accessor.byteOffset:accessor.byteOffset +
-#                              accessor_byte_len]
-
-#         if accessor.type == gltf.AccessorType.SCALAR:
-#             if (accessor.componentType == gltf.AccessorComponentType.SHORT
-#                     or accessor.componentType
-#                     == gltf.AccessorComponentType.UNSIGNED_SHORT):
-#                 return (ctypes.c_ushort *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-#             elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_INT:
-#                 return (ctypes.c_uint *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-#         elif accessor.type == gltf.AccessorType.VEC2:
-#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-#                 return (Float2 *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-
-#         elif accessor.type == gltf.AccessorType.VEC3:
-#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-#                 return (Float3 *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-
-#         elif accessor.type == gltf.AccessorType.VEC4:
-#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-#                 return (Float4 *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-
-#             elif accessor.componentType == gltf.AccessorComponentType.UNSIGNED_SHORT:
-#                 return (UShort4 *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-
-#         elif accessor.type == gltf.AccessorType.MAT4:
-#             if accessor.componentType == gltf.AccessorComponentType.FLOAT:
-#                 return (Mat16 *  # type: ignore
-#                         accessor.count).from_buffer_copy(segment)
-
-#         raise NotImplementedError()
 
 
 class Importer:
@@ -371,12 +99,6 @@ class Importer:
                             group = bl_object.vertex_groups[bone_name]
                             group.add([vert_idx], weight_val, 'REPLACE')
                     cpt += 1
-
-        # select
-        # for obj_sel in bpy.context.scene.objects:
-        #    obj_sel.select = False
-        #bl_object.select = True
-        #bpy.context.scene.objects.active = bl_object
 
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map[skin]
@@ -551,6 +273,35 @@ class Importer:
         for child in node.children:
             self._create_tree(child, node)
 
+    def _remove_empty(self, node: Node):
+        '''
+        深さ優先で、深いところから順に削除する
+        '''
+        for i in range(len(node.children) - 1, -1, -1):
+            child = node.children[i]
+            self._remove_empty(child)
+
+        if node.children:
+            return
+        if node.mesh:
+            return
+        for skin, v in self.skin_map.items():
+            if skin.root == node:
+                bl_parent = self.obj_map[node]
+                bl_skin = self.skin_map[skin]
+                tmp = bl_skin.matrix_world
+                bl_skin.parent = bl_parent.parent               
+                bpy.data.objects.remove(bl_parent, do_unlink=True)
+                bl_skin.matrix_world = tmp
+                return
+
+        # remove empty
+        logger.debug(f'remove: {node}')
+        bl_obj = self.obj_map[node]
+        bpy.data.objects.remove(bl_obj, do_unlink=True)
+        if node.parent:
+            node.parent.children.remove(node)
+
     def execute(self, roots: List[Node]):
         for root in roots:
             self._create_tree(root)
@@ -566,7 +317,5 @@ class Importer:
                 self._setup_skinning(n)
 
         # remove empties
-        # _remove_empty(root)
-
-        # done
-        # context.scene.update()
+        for root in roots:
+            self._remove_empty(root)

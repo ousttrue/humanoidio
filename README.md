@@ -38,7 +38,7 @@ import/export for Blender-2.83
 
 ## TODO
 
-* [ ] remove empty
+* [x] remove empty
 * [ ] shape key
 
 ### VRM

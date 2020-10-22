@@ -184,7 +184,6 @@ class MaterialImporter:
         bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
         bsdf_node.inputs['Base Color'].default_value = (src.color.x,
                                                         src.color.y,
-                                                        
                                                         src.color.z,
                                                         src.color.w)
         links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
