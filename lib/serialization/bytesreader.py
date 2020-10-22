@@ -160,10 +160,13 @@ class BytesReader:
 
         # create
         gl_material = self.data.gltf.materials[material_index]
+        name = gl_material.name
+        if not name:
+            name = f'material{material_index}'
         if gl_material.extensions and 'KHR_materials_unlit' in gl_material.extensions:
-            material = Material(f'material{material_index}')
+            material = Material(name)
         else:
-            material = PBRMaterial(f'material{material_index}')
+            material = PBRMaterial(name)
         self._material_map[material_index] = material
 
         # color

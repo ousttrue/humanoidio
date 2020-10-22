@@ -14,12 +14,18 @@ from lib.pyscene.material import Material, PBRMaterial
 EPSILON = 5e-3
 
 
+def check_vec(_l, _r):
+    for ll, rr in zip(_l, _r):
+        d = abs(ll - rr)
+        if d > EPSILON:
+            return False
+    return True
+
+
 def check_seq(_l, _r):
     for l, r in zip(_l, _r):
-        for ll, rr in zip(l, r):
-            d = abs(ll - rr)
-            if d > EPSILON:
-                return False
+        if not check_vec(l, r):
+            return False
     return True
 
 
@@ -102,7 +108,7 @@ class GltfTests(unittest.TestCase):
         texture = material.texture
 
         # material
-        self.assertEqual(material.name, 'material0')
+        self.assertEqual(material.name, 'Texture')
         self.assertTrue(isinstance(material, PBRMaterial))
         self.assertEqual(material.color, Float4(1, 1, 1, 1))
         self.assertEqual(texture.image.width, 256)
@@ -116,16 +122,23 @@ class GltfTests(unittest.TestCase):
         roots = serialization.import_submesh(data)
         self.assertEqual(len(roots), 2)
 
-        mesh_node = roots[0]
-        mesh = mesh_node.mesh
-        if not isinstance(mesh, SubmeshMesh):
+        # Orange
+        mesh0 = roots[0].mesh
+        if not isinstance(mesh0, SubmeshMesh):
             raise Exception()
-        submesh = mesh.submeshes[0]
-        material = submesh.material
+        material0 = mesh0.submeshes[0].material
+        self.assertEqual(material0.name, 'Orange')
+        self.assertIsInstance(material0, Material)
+        self.assertTrue(check_vec(material0.color, (1, 0.21763764, 0, 1)))
 
-        # material
-        self.assertEqual(material.name, 'material0')
-        self.assertTrue(isinstance(material, Material))
+        # Blue
+        mesh1 = roots[1].mesh
+        if not isinstance(mesh1, SubmeshMesh):
+            raise Exception()
+        material1 = mesh1.submeshes[0].material
+        self.assertEqual(material1.name, 'Blue')
+        self.assertIsInstance(material1, Material)
+        self.assertTrue(check_vec(material1.color, (0, 0.21763764, 1, 1)))
 
     def test_rig_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
