@@ -116,7 +116,15 @@ class NodeTree:
                 False, bsdf_node.inputs['Emission'], None)
 
         if src.metallic_roughness_texture:
-            pass
+            separate_node = self._create_node("SeparateRGB")
+            self.links.new(separate_node.outputs['G'],
+                           bsdf_node.inputs['Roughness'])  # type: ignore
+            self.links.new(separate_node.outputs['B'],
+                           bsdf_node.inputs['Metallic'])  # type: ignore
+            self._create_texture_node(
+                'MetallicRoughness',
+                get_or_create_image(src.metallic_roughness_texture), False,
+                separate_node.inputs[0], None)
 
         if src.occlusion_texture:
             pass
