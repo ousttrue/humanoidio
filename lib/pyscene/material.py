@@ -42,10 +42,25 @@ def image_to_png(image: bpy.types.Image) -> bytes:
     return png_bytes
 
 
+class TextureUsage(Enum):
+    Unknown = 0
+    Color = 1
+    NormalMap = 2
+    EmissiveTexture = 3
+    OcclusionTexture = 4
+    MetallicRoughnessTexture = 5
+
+
 class Texture:
     def __init__(self, name: str, data: bytes):
         self.name = name
         self.image = PIL.Image.open(io.BytesIO(data))
+        self.usage = TextureUsage.Unknown
+
+    def set_usage(self, usage: TextureUsage):
+        if self.usage != TextureUsage.Unknown and self.usage != usage:
+            raise Exception('multi perpose')
+        self.usage = usage
 
 
 class BlendMode(Enum):
@@ -76,6 +91,9 @@ class PBRMaterial(Material):
         self.metallic = 0.0
         self.roughness = 0.0  # 1 - smoothness
         self.normal_map: Optional[Texture] = None
+        self.emissive_texture: Optional[Texture] = None
+        self.metallic_roughness_texture: Optional[Texture] = None
+        self.occlusion_texture: Optional[Texture] = None
 
 
 class MaterialStore:

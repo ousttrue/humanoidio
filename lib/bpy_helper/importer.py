@@ -226,8 +226,6 @@ class Importer:
         '''
         Node から bpy.types.Object を作る
         '''
-        logger.debug(f'create: {node}')
-
         # create object
         if isinstance(node.mesh, pyscene.SubmeshMesh):
             bl_mesh = self._get_or_create_mesh(node.mesh)

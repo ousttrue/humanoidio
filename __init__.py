@@ -47,6 +47,8 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
     )
 
     def execute(self, context):
+        logger.debug('#### start ####')
+
         path = pathlib.Path(self.filepath).absolute()  # type: ignore
 
         from .lib.formats.gltf_context import parse_gltf
@@ -79,6 +81,8 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
     check_extension = True
 
     def execute(self, context: bpy.types.Context):
+        logger.debug('#### start ####')
+
         from .lib import bpy_helper
         targets = bpy_helper.objects_selected_or_roots()
 

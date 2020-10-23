@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 from typing import Dict, List, Callable
 import bpy, mathutils, bmesh
 from .. import pyscene
@@ -7,6 +9,8 @@ UV0 = 'texcoord0'
 
 def create_bmesh(mesh: pyscene.SubmeshMesh,
                  indicesindex_to_materialindex: Callable[[int], int]):
+    logger.debug(f'create: {mesh}')
+
     bm = bmesh.new()  # create an empty BMesh
 
     attributes = mesh.attributes

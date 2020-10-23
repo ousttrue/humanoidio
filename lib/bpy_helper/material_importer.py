@@ -1,3 +1,5 @@
+from logging import getLogger
+logger = getLogger(__name__)
 from typing import Dict, List, Callable, Tuple, Any
 import PIL.Image
 import PIL.ImageOps
@@ -113,6 +115,8 @@ class MaterialImporter:
             return bl_material
 
         # base color
+        logger.debug(f'create: {material}')
+
         bl_material: bpy.types.Material = bpy.data.materials.new(material.name)
         bl_material.diffuse_color = (material.color.x, material.color.y,
                                      material.color.z, material.color.w)
