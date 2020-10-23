@@ -31,6 +31,8 @@ class NodeTree:
         texture_node.label = label
         texture_node.image = image
         self.links.new(texture_node.outputs[0], input_color)  # type: ignore
+
+        # alpha blending
         if is_opaque:
             # alpha を強制的に 1 にする
             math_node = self._create_node("Math")
@@ -52,6 +54,9 @@ class NodeTree:
 
         # build node
         mix_node = self._create_node("ShaderNodeMixShader")
+        self.links.new(mix_node.outputs[0],
+                       output_node.inputs[0])  # type: ignore
+
         transparent = self._create_node("ShaderNodeBsdfTransparent")
         self.links.new(transparent.outputs[0],
                        mix_node.inputs[1])  # type: ignore

@@ -47,7 +47,10 @@ import/export for Blender-2.83
 
 ## TODO
 
-* [ ] BMesh
+* [x] BMesh
+* [ ] emissiveTexture
+* [ ] occlusionTexture
+* [ ] metallicRoughnessTexture
 * [x] remove empty
 * [x] blend mode
 * [x] alpha cutout
