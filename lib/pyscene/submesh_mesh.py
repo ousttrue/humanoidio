@@ -13,8 +13,9 @@ class Submesh:
 
 
 class MorphTarget:
-    def __init__(self, name):
+    def __init__(self, name: str, vertex_count: int):
         self.name = name
+        self.attributes = PlanarBuffer.create(vertex_count, False)
 
 
 class SubmeshMesh:
@@ -34,4 +35,16 @@ class SubmeshMesh:
         submeshes = [
             f'[{sm.material.__class__.__name__}]' for sm in self.submeshes
         ]
-        return f'<SubmeshMesh: {vertex_count}verts {"".join(submeshes)}>'
+        morph = f' {len(self.morphtargets)}morph' if self.morphtargets else ''
+        return f'<SubmeshMesh: {vertex_count}verts {"".join(submeshes)}{morph}>'
+
+    def get_or_create_morphtarget(self, i: int) -> MorphTarget:
+        if i < len(self.morphtargets):
+            return self.morphtargets[i]
+
+        if len(self.morphtargets) != i:
+            raise Exception()
+
+        morphtarget = MorphTarget(f'{i}', self.attributes.get_vertex_count())
+        self.morphtargets.append(morphtarget)
+        return morphtarget

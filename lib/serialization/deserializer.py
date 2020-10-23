@@ -1,3 +1,4 @@
+from lib.pyscene.submesh_mesh import MorphTarget
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, Optional, List
@@ -198,10 +199,6 @@ class Deserializer:
                 # indices
                 index_offset += add_indices(mesh, prim, index_offset)
 
-                # morph
-                if prim.targets:
-                    logger.debug(f'morph: {len(prim.targets)}')
-
         else:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
@@ -218,9 +215,14 @@ class Deserializer:
                 # indices
                 index_offset += add_indices(mesh, prim, index_offset)
 
-                # morph
-                if prim.targets:
-                    logger.debug(f'morph: {len(prim.targets)}')
+        # morph target
+        for prim in m.primitives:
+            if prim.targets:
+                for j, t in enumerate(prim.targets):
+                    morphtarget = mesh.get_or_create_morphtarget(j)
+                    for k, v in t.items():
+                        # self.reader.read_attributes(v)
+                        pass
 
         return mesh
 
