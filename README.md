@@ -47,12 +47,14 @@ import/export for Blender-2.83
 
 ## TODO
 
+* [ ] BMesh
 * [x] remove empty
-* [ ] blend mode
-* [ ] threshold
-* [ ] Unlit Transparent
-* [ ] Standard Transparent
+* [x] blend mode
+* [x] alpha cutout
+* [x] Unlit Transparent
+* [x] Standard Transparent
 * [ ] shape key
+* [ ] texture/uv flip flip
 
 ### VRM
 

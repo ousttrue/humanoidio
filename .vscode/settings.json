@@ -11,6 +11,7 @@
         "pyscene",
         "struct",
         "submesh",
+        "ubyte",
         "unregister",
         "ushort",
         "verts"
