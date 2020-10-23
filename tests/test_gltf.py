@@ -5,7 +5,7 @@ import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
-from lib import serialization
+from lib.serialization import deserializer
 from lib.struct_types import Float4
 from lib.formats.gltf_context import parse_gltf
 from lib.pyscene.submesh_mesh import SubmeshMesh
@@ -35,7 +35,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = serialization.import_submesh(data)
+        roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -54,7 +54,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = serialization.import_submesh(data)
+        roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -73,7 +73,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = serialization.import_submesh(data)
+        roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -119,7 +119,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = serialization.import_submesh(data)
+        roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 2)
 
         # Orange
@@ -145,7 +145,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = serialization.import_submesh(data)
+        roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -166,7 +166,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = parse_gltf(path)
-        roots = serialization.import_submesh(data)
+        roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 5)
         root = roots[0]
 
