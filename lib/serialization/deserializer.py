@@ -189,6 +189,12 @@ class BytesReader:
             material = pyscene.Material(name)
         else:
             material = pyscene.PBRMaterial(name)
+
+            # normal map
+            if gl_material.normalTexture:
+                material.normal_map = self._get_or_create_texture(
+                    gl_material.normalTexture.index)
+
         self._material_map[material_index] = material
 
         # color

@@ -58,7 +58,7 @@ class NodeTree:
 
         if src.texture and src.texture.image:
             self._create_texture_node(
-                'BaseColor', get_or_create_image(src.texture),
+                'ColorTexture', get_or_create_image(src.texture),
                 src.blend_mode == pyscene.BlendMode.Opaque, mix_node.inputs[2],
                 mix_node.inputs[0])
 
@@ -74,11 +74,25 @@ class NodeTree:
                                                         src.color.w)
         self.links.new(bsdf_node.outputs[0],
                        output_node.inputs[0])  # type: ignore
+
         if src.texture and src.texture.image:
+            # color texture
             self._create_texture_node(
-                'BaseColor', get_or_create_image(src.texture),
+                'ColorTexture', get_or_create_image(src.texture),
                 src.blend_mode == pyscene.BlendMode.Opaque,
                 bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
+
+        if src.normal_map and src.normal_map.image:
+            # normal map
+            normal_texture_node = self._create_node("ShaderNodeTexImage")
+            normal_texture_node.label = 'NormalTexture'
+            normal_texture_node.image = get_or_create_image(src.normal_map)
+
+            normal_map = self._create_node("NormalMap")
+            self.links.new(normal_texture_node.outputs[0],
+                           normal_map.inputs[1])  # type: ignore
+            self.links.new(normal_map.outputs[0],
+                           bsdf_node.inputs['Normal'])  # type: ignore
 
 
 class MaterialImporter:
