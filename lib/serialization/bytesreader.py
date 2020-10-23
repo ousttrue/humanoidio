@@ -57,9 +57,9 @@ class BytesReader:
         buffer = self.data.gltf.buffers[view.buffer]
         if buffer.uri:
             if buffer.uri in self._buffer_map:
-                return self._buffer_map[
-                    buffer.uri][view.byteOffset:view.byteOffset +
-                                view.byteLength]
+                data = self._buffer_map[buffer.uri]
+                offset = view.byteOffset if view.byteOffset else 0
+                return data[offset:offset + view.byteLength]
             else:
                 path = self.data.dir / buffer.uri
                 with path.open('rb') as f:

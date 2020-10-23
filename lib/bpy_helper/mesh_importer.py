@@ -7,8 +7,10 @@ from .. import pyscene
 UV0 = 'texcoord0'
 
 
-def create_bmesh(mesh: pyscene.SubmeshMesh,
-                 indicesindex_to_materialindex: Callable[[int], int]):
+def create_bmesh(
+        mesh: pyscene.SubmeshMesh,
+        indicesindex_to_materialindex: Callable[[int],
+                                                int]) -> bmesh.types.BMesh:
     logger.debug(f'create: {mesh}')
 
     bm = bmesh.new()  # create an empty BMesh
@@ -46,42 +48,5 @@ def create_bmesh(mesh: pyscene.SubmeshMesh,
             for loop in face.loops:
                 uv = attributes.texcoord[loop.vert.index]
                 loop[uv_layer].uv = (uv.x, 1 - uv.y)
-
-    # bl_mesh.vertices.add(attributes.get_vertex_count())
-    # bl_mesh.vertices.foreach_set(
-    #     "co", [n for v in attributes.position for n in (v.x, -v.z, v.y)])
-    # bl_mesh.vertices.foreach_set(
-    #     "normal", [n for v in attributes.normal for n in (v.x, -v.z, v.y)])
-
-    # # indices
-    # bl_mesh.loops.add(len(mesh.indices))
-    # bl_mesh.loops.foreach_set("vertex_index", mesh.indices)
-
-    # # face
-    # triangle_count = len(mesh.indices) // 3
-    # bl_mesh.polygons.add(triangle_count)
-    # starts = [i * 3 for i in range(triangle_count)]
-    # bl_mesh.polygons.foreach_set("loop_start", starts)
-    # total = [3 for _ in range(triangle_count)]
-    # bl_mesh.polygons.foreach_set("loop_total", total)
-    # # uv
-    # bl_texcord = bl_mesh.uv_layers.new()
-    # submesh_index = 0
-    # submesh_count = 0
-    # tmp = []
-    # for bl_poly in bl_mesh.polygons:
-    #     if submesh_count >= mesh.submeshes[submesh_index].vertex_count:
-    #         submesh_index += 1
-    #         submesh_count = 0
-    #     bl_poly.use_smooth = True  # enable vertex normal
-    #     bl_poly.material_index = material_index_map.get(
-    #         mesh.submeshes[submesh_index].material)
-    #     for lidx in bl_poly.loop_indices:
-    #         tmp.append(lidx)
-    #         vertex_index = mesh.indices[lidx]
-    #         # vertex uv to face uv
-    #         uv = attributes.texcoord[vertex_index]
-    #         bl_texcord.data[lidx].uv = (uv.x, 1.0 - uv.y)  # vertical flip uv
-    #     submesh_count += 3
 
     return bm

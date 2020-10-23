@@ -161,6 +161,16 @@ class GltfTests(unittest.TestCase):
         self.assertAlmostEqual(weights[64][0], 0.73860, delta=3e-3)
         self.assertAlmostEqual(weights[64][1], 0.264140, delta=3e-3)
 
+    def test_animated_morph_cube_gltf(self):
+        path = GLTF_SAMPLE_DIR / '2.0/AnimatedMorphCube/glTF/AnimatedMorphCube.gltf'
+        self.assertTrue(path.exists())
+
+        data = parse_gltf(path)
+
+        self.assertIsNone(data.gltf.bufferViews[0].byteOffset)
+
+        roots = deserializer.load_nodes(data)
+
     def test_vivi(self):
         path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
         self.assertTrue(path.exists())

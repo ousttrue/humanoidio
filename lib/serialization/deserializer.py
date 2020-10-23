@@ -197,6 +197,11 @@ class Deserializer:
             for i, prim in enumerate(m.primitives):
                 # indices
                 index_offset += add_indices(mesh, prim, index_offset)
+
+                # morph
+                if prim.targets:
+                    logger.debug(f'morph: {len(prim.targets)}')
+
         else:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
@@ -212,6 +217,10 @@ class Deserializer:
                 offset += position_count(prim)
                 # indices
                 index_offset += add_indices(mesh, prim, index_offset)
+
+                # morph
+                if prim.targets:
+                    logger.debug(f'morph: {len(prim.targets)}')
 
         return mesh
 
