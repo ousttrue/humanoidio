@@ -56,11 +56,22 @@ class Texture:
         self.name = name
         self.image = PIL.Image.open(io.BytesIO(data))
         self.usage = TextureUsage.Unknown
+        self.is_data = False
+
+    def __str__(self) -> str:
+        return f'<[{self.usage}] {self.name} {self.image.width} x {self.image.height}>'
 
     def set_usage(self, usage: TextureUsage):
         if self.usage != TextureUsage.Unknown and self.usage != usage:
-            raise Exception('multi perpose')
+            raise Exception('multi use by different usage')
         self.usage = usage
+        if usage in [
+                TextureUsage.Color,
+                TextureUsage.EmissiveTexture,
+        ]:
+            self.is_data = False
+        else:
+            self.is_data = True
 
 
 class BlendMode(Enum):

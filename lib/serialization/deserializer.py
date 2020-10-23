@@ -1,4 +1,3 @@
-from lib.pyscene.material import TextureUsage
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, Optional, List
@@ -42,16 +41,18 @@ class Deserializer:
             return texture
 
         gl_image = self.data.gltf.images[image_index]
+        name = gl_image.name
 
         texture_bytes = None
         if gl_image.uri:
             texture_bytes = self.data.get_uri_bytes(gl_image.uri)
+            if not name:
+                name = gl_image.uri
 
         if isinstance(gl_image.bufferView, int):
             texture_bytes = self.reader.get_view_bytes(gl_image.bufferView)
 
         if texture_bytes:
-            name = gl_image.name
             if not name:
                 name = f'image{image_index}'
             texture = pyscene.Texture(name, texture_bytes)
@@ -83,14 +84,14 @@ class Deserializer:
             if gl_material.normalTexture:
                 material.normal_map = self._get_or_create_texture(
                     gl_material.normalTexture.index)
-                material.normal_map.set_usage(TextureUsage.NormalMap)
+                material.normal_map.set_usage(pyscene.TextureUsage.NormalMap)
 
             # emissive
             if gl_material.emissiveTexture:
                 material.emissive_texture = self._get_or_create_texture(
                     gl_material.emissiveTexture.index)
                 material.emissive_texture.set_usage(
-                    TextureUsage.EmissiveTexture)
+                    pyscene.TextureUsage.EmissiveTexture)
 
             # metallic roughness
             if gl_material.pbrMetallicRoughness and gl_material.pbrMetallicRoughness.metallicRoughnessTexture:
@@ -98,14 +99,14 @@ class Deserializer:
                     gl_material.pbrMetallicRoughness.metallicRoughnessTexture.
                     index)
                 material.metallic_roughness_texture.set_usage(
-                    TextureUsage.MetallicRoughnessTexture)
+                    pyscene.TextureUsage.MetallicRoughnessTexture)
 
             # oculusion
             if gl_material.occlusionTexture:
                 material.occlusion_texture = self._get_or_create_texture(
                     gl_material.occlusionTexture.index)
                 material.occlusion_texture.set_usage(
-                    TextureUsage.OcclusionTexture)
+                    pyscene.TextureUsage.OcclusionTexture)
 
         self._material_map[material_index] = material
 
@@ -123,7 +124,7 @@ class Deserializer:
         if gl_material.pbrMetallicRoughness.baseColorTexture:
             image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
             texture = self._get_or_create_texture(image_index)
-            texture.set_usage(TextureUsage.Color)
+            texture.set_usage(pyscene.TextureUsage.Color)
             material.texture = texture
 
         # alpha blending

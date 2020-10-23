@@ -28,38 +28,43 @@ class NodeTree:
 
     def _create_texture_node(self, label: str, image: bpy.types.Image,
                              is_opaque: bool, input_color, input_alpha):
-        texture_node = self._create_node("ShaderNodeTexImage")
+        texture_node = self._create_node("TexImage")
         # self.nodes.active = texture_node
         texture_node.label = label
         texture_node.image = image
         self.links.new(texture_node.outputs[0], input_color)  # type: ignore
 
         # alpha blending
-        if is_opaque:
-            # alpha を強制的に 1 にする
-            math_node = self._create_node("Math")
-            math_node.operation = 'MAXIMUM'
-            math_node.inputs[1].default_value = 1.0
-            self.links.new(
-                texture_node.outputs[1],  # type: ignore
-                math_node.inputs[0])  # type: ingore
+        if input_alpha:
+            if is_opaque:
+                # alpha を強制的に 1 にする
+                math_node = self._create_node("Math")
+                math_node.operation = 'MAXIMUM'
+                math_node.inputs[1].default_value = 1.0
+                self.links.new(
+                    texture_node.outputs[1],  # type: ignore
+                    math_node.inputs[0])  # type: ingore
 
-            self.links.new(math_node.outputs[0], input_alpha)  # type: ignore
-        else:
-            self.links.new(texture_node.outputs[1],
-                           input_alpha)  # type: ignore
+                self.links.new(math_node.outputs[0],
+                               input_alpha)  # type: ignore
+            else:
+                self.links.new(texture_node.outputs[1],
+                               input_alpha)  # type: ignore
 
     def create_unlit(self, src: pyscene.Material,
                      get_or_create_image: Callable[[pyscene.Texture],
                                                    bpy.types.Image]):
-        output_node = self._create_node("ShaderNodeOutputMaterial")
+        '''
+        Unlit(texture color without shading)
+        '''
+        output_node = self._create_node("OutputMaterial")
 
         # build node
-        mix_node = self._create_node("ShaderNodeMixShader")
+        mix_node = self._create_node("MixShader")
         self.links.new(mix_node.outputs[0],
                        output_node.inputs[0])  # type: ignore
 
-        transparent = self._create_node("ShaderNodeBsdfTransparent")
+        transparent = self._create_node("BsdfTransparent")
         self.links.new(transparent.outputs[0],
                        mix_node.inputs[1])  # type: ignore
 
@@ -72,9 +77,12 @@ class NodeTree:
     def create_pbr(self, src: pyscene.PBRMaterial,
                    get_or_create_image: Callable[[pyscene.Texture],
                                                  bpy.types.Image]):
+        '''
+        BsdfPrincipled
+        '''
         # build node
-        output_node = self._create_node("ShaderNodeOutputMaterial")
-        bsdf_node = self._create_node("ShaderNodeBsdfPrincipled")
+        output_node = self._create_node("OutputMaterial")
+        bsdf_node = self._create_node("BsdfPrincipled")
         bsdf_node.inputs['Base Color'].default_value = (src.color.x,
                                                         src.color.y,
                                                         src.color.z,
@@ -91,9 +99,9 @@ class NodeTree:
 
         if src.normal_map and src.normal_map.image:
             # normal map
-            normal_texture_node = self._create_node("ShaderNodeTexImage")
+            normal_texture_node = self._create_node("TexImage")
             normal_texture_node.label = 'NormalTexture'
-            normal_image = get_or_create_image(src.normal_map, True)
+            normal_image = get_or_create_image(src.normal_map)  # type: ignore
             normal_texture_node.image = normal_image
 
             normal_map = self._create_node("NormalMap")
@@ -101,6 +109,17 @@ class NodeTree:
                            normal_map.inputs[1])  # type: ignore
             self.links.new(normal_map.outputs[0],
                            bsdf_node.inputs['Normal'])  # type: ignore
+
+        if src.emissive_texture:
+            self._create_texture_node(
+                'EmissiveTexture', get_or_create_image(src.emissive_texture),
+                False, bsdf_node.inputs['Emission'], None)
+
+        if src.metallic_roughness_texture:
+            pass
+
+        if src.occlusion_texture:
+            pass
 
 
 class MaterialImporter:
@@ -143,21 +162,22 @@ class MaterialImporter:
         return bl_material
 
     def _get_or_create_image(self,
-                             texture: pyscene.Texture,
-                             is_data=False) -> bpy.types.Image:
+                             texture: pyscene.Texture) -> bpy.types.Image:
         bl_image = self.image_map.get(texture)
         if bl_image:
             return bl_image
 
+        logger.debug(f'create {texture}')
         image = texture.image
 
         if image.mode == 'RGBA':
             image = PIL.ImageOps.flip(image)
-            bl_image = bpy.data.images.new(texture.name,
-                                           alpha=True,
-                                           width=image.width,
-                                           height=image.height,
-                                           is_data=is_data)
+            bl_image = bpy.data.images.new(
+                texture.name,
+                alpha=True,
+                width=image.width,
+                height=image.height,
+                is_data=texture.is_data)  # type: ignore
             # RGBA[0-255] to float[0-1]
             pixels = [e / 255 for pixel in image.getdata() for e in pixel]
             bl_image.pixels = pixels
@@ -165,14 +185,15 @@ class MaterialImporter:
         elif image.mode == 'RGB':
             image = PIL.ImageOps.flip(image)
             # image = image.convert('RGBA')
-            bl_image = bpy.data.images.new(texture.name,
-                                           alpha=False,
-                                           width=image.width,
-                                           height=image.height,
-                                           is_data=is_data)
+            bl_image = bpy.data.images.new(
+                texture.name,
+                alpha=False,
+                width=image.width,
+                height=image.height,
+                is_data=texture.is_data)  # type: ignore
             # RGBA[0-255] to float[0-1]
             pixels = [
-                e / 255 for r, g, b in image.getdata() for e in (r, g, b, 0)
+                e / 255 for r, g, b in image.getdata() for e in (r, g, b, 255)
             ]
             bl_image.pixels = pixels
 
