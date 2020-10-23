@@ -1,6 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import Optional
+from typing import Optional, List, Dict
 import io
 from enum import Enum
 import PIL.Image
@@ -75,6 +75,7 @@ class PBRMaterial(Material):
         super().__init__(name)
         self.metallic = 0.0
         self.roughness = 0.0  # 1 - smoothness
+        self.normal_map: Optional[Texture] = None
 
 
 class MaterialStore:
@@ -82,7 +83,7 @@ class MaterialStore:
         self.images: List[gltf.Image] = []
         self.samplers: List[gltf.Sampler] = []
         self.textures: List[gltf.Texture] = []
-        self.texture_map: Dict[bpy.tyeps.Image, int] = {}
+        self.texture_map: Dict[bpy.types.Image, int] = {}
         self.materials: List[gltf.Material] = []
         self.material_map: Dict[bpy.types.Material, int] = {}
 

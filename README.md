@@ -6,7 +6,16 @@ import/export for Blender-2.83
 
 * https://docs.blender.org/manual/en/2.83/
   * https://docs.blender.org/manual/en/2.83/advanced/scripting/addon_tutorial.html
+* https://docs.blender.org/api/2.83/index.html
 
+## pillow install
+
+```bat
+# run as administrator
+> cd 'C:\Program Files\Blender Foundation\Blender 2.83\2.83\python\bin\'
+> .\python -m pip install --upgrade pip
+> .\python.exe -m pip install pillow
+```
 
 ## memo
 

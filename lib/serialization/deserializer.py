@@ -2,10 +2,11 @@ from logging import getLogger
 logger = getLogger(__name__)
 import ctypes
 from typing import Dict, Optional, List
+import bpy, mathutils
+from .. import formats
+from .. import pyscene
 from ..struct_types import PlanarBuffer, Float2, Float3, Float4, UShort4
 from ..formats import gltf
-from ..formats.gltf_context import GltfContext
-from .. import pyscene
 
 
 def get_accessor_type_to_count(accessor_type: gltf.AccessorType) -> int:
@@ -59,7 +60,7 @@ def check_has_skin(prim: gltf.MeshPrimitive) -> bool:
 
 
 class BytesReader:
-    def __init__(self, data: GltfContext):
+    def __init__(self, data: formats.GltfContext):
         self.data = data
         # gltf の url 参照の外部ファイルバッファをキャッシュする
         self._buffer_map: Dict[str, bytes] = {}
@@ -224,7 +225,7 @@ class BytesReader:
         return material
 
     def read_attributes(self, buffer: PlanarBuffer, offset: int,
-                        data: GltfContext, prim: gltf.MeshPrimitive):
+                        data: formats.GltfContext, prim: gltf.MeshPrimitive):
         self.submesh_index_count: List[int] = []
 
         pos_index = offset
@@ -281,7 +282,7 @@ class BytesReader:
                 buffer.weights[joint_index] = weight
                 joint_index += 1
 
-    def load_submesh(self, data: GltfContext,
+    def load_submesh(self, data: formats.GltfContext,
                      mesh_index: int) -> pyscene.SubmeshMesh:
         m = data.gltf.meshes[mesh_index]
         name = m.name if m.name else f'mesh {mesh_index}'
@@ -349,3 +350,91 @@ class BytesReader:
                 index_offset += add_indices(mesh, prim, index_offset)
 
         return mesh
+
+
+def get_skin_root(data: formats.GltfContext, skin_index: int,
+                  nodes: List[pyscene.Node]) -> pyscene.Skin:
+    gl_skin = data.gltf.skins[skin_index]
+    joints = [nodes[j] for j in gl_skin.joints]
+
+    root: Optional[pyscene.Node] = None
+    if isinstance(gl_skin.skeleton, int):
+        root = nodes[gl_skin.skeleton]
+    return Skin(gl_skin.name, root, joints)
+
+
+def import_submesh(data: formats.GltfContext) -> List[pyscene.Node]:
+    '''
+    glTFを中間形式のSubmesh形式に変換する
+    '''
+    reader = BytesReader(data)
+
+    meshes: List[pyscene.SubmeshMesh] = []
+    if data.gltf.meshes:
+        for i, m in enumerate(data.gltf.meshes):
+            mesh = reader.load_submesh(data, i)
+            meshes.append(mesh)
+
+    nodes: List[pyscene.Node] = []
+    if data.gltf.nodes:
+        for i, n in enumerate(data.gltf.nodes):
+            name = n.name if n.name else f'node {i}'
+            node = pyscene.Node(name)
+
+            if n.translation:
+                node.position.x = n.translation[0]
+                node.position.y = n.translation[1]
+                node.position.z = n.translation[2]
+
+            if n.rotation:
+                node.rotation.x = n.rotation[0]
+                node.rotation.y = n.rotation[1]
+                node.rotation.z = n.rotation[2]
+                node.rotation.w = n.rotation[3]
+
+            if n.scale:
+                node.scale.x = n.scale[0]
+                node.scale.y = n.scale[1]
+                node.scale.z = n.scale[2]
+
+            if n.matrix:
+                m = n.matrix
+                matrix = mathutils.Matrix(
+                    ((m[0], m[4], m[8], m[12]), (m[1], m[5], m[9], m[13]),
+                     (m[2], m[6], m[10], m[14]), (m[3], m[7], m[11], m[15])))
+                t, q, s = matrix.decompose()
+                node.position.x = t.x
+                node.position.y = t.y
+                node.position.z = t.z
+                node.rotation.x = q.x
+                node.rotation.y = q.y
+                node.rotation.z = q.z
+                node.rotation.w = q.w
+                node.scale.x = s.x
+                node.scale.y = s.y
+                node.scale.z = s.z
+
+            if isinstance(n.mesh, int):
+                node.mesh = meshes[n.mesh]
+
+            nodes.append(node)
+
+        # build hierarchy
+        for i, n in enumerate(data.gltf.nodes):
+            if n.children:
+                for c in n.children:
+                    nodes[i].add_child(nodes[c])
+
+        # create skin
+        for i, n in enumerate(data.gltf.nodes):
+            if isinstance(n.skin, int):
+                skin = get_skin_root(data, n.skin, nodes)
+                if not skin.name:
+                    skin.name = n.name
+                nodes[i].skin = skin
+
+    scene = data.gltf.scenes[data.gltf.scene if data.gltf.scene else 0]
+    if not scene.nodes:
+        return []
+
+    return [nodes[root] for root in scene.nodes]

@@ -1,18 +1,84 @@
-from typing import Dict, List
+from typing import Dict, List, Callable, Tuple, Any
 import PIL.Image
 import PIL.ImageOps
 import bpy, mathutils
 from .. import pyscene
 
 
-class NodePostion:
-    def __init__(self, x=0, y=0):
+class NodeTree:
+    def __init__(self, bl_material: bpy.types.Material, x=0, y=0):
         self.x = x
         self.y = y
 
-    def increment(self, node: bpy.types.ShaderNode):
+        bl_material.use_nodes = True
+        self.nodes: bpy.types.Nodes = bl_material.node_tree.nodes
+        self.links: bpy.types.NodeLinks = bl_material.node_tree.links
+        # clear nodes
+        self.nodes.clear()
+
+    def _create_node(self, name: str) -> Any:
+        if not name.startswith("ShaderNode"):
+            name = "ShaderNode" + name
+        node = self.nodes.new(type=name)
         node.location = (self.x, self.y)
-        self.x -= 100
+        self.x -= 200
+        return node
+
+    def _create_texture_node(self, label: str, image: bpy.types.Image,
+                             is_opaque: bool, input_color, input_alpha):
+        texture_node = self._create_node("ShaderNodeTexImage")
+        # self.nodes.active = texture_node
+        texture_node.label = label
+        texture_node.image = image
+        self.links.new(texture_node.outputs[0], input_color)  # type: ignore
+        if is_opaque:
+            # alpha を強制的に 1 にする
+            math_node = self._create_node("Math")
+            math_node.operation = 'MAXIMUM'
+            math_node.inputs[1].default_value = 1.0
+            self.links.new(
+                texture_node.outputs[1],  # type: ignore
+                math_node.inputs[0])  # type: ingore
+
+            self.links.new(math_node.outputs[0], input_alpha)  # type: ignore
+        else:
+            self.links.new(texture_node.outputs[1],
+                           input_alpha)  # type: ignore
+
+    def create_unlit(self, src: pyscene.Material,
+                     get_or_create_image: Callable[[pyscene.Texture],
+                                                   bpy.types.Image]):
+        output_node = self._create_node("ShaderNodeOutputMaterial")
+
+        # build node
+        mix_node = self._create_node("ShaderNodeMixShader")
+        transparent = self._create_node("ShaderNodeBsdfTransparent")
+        self.links.new(transparent.outputs[0],
+                       mix_node.inputs[1])  # type: ignore
+
+        if src.texture and src.texture.image:
+            self._create_texture_node(
+                'BaseColor', get_or_create_image(src.texture),
+                src.blend_mode == pyscene.BlendMode.Opaque, mix_node.inputs[2],
+                mix_node.inputs[0])
+
+    def create_pbr(self, src: pyscene.PBRMaterial,
+                   get_or_create_image: Callable[[pyscene.Texture],
+                                                 bpy.types.Image]):
+        # build node
+        output_node = self._create_node("ShaderNodeOutputMaterial")
+        bsdf_node = self._create_node("ShaderNodeBsdfPrincipled")
+        bsdf_node.inputs['Base Color'].default_value = (src.color.x,
+                                                        src.color.y,
+                                                        src.color.z,
+                                                        src.color.w)
+        self.links.new(bsdf_node.outputs[0],
+                       output_node.inputs[0])  # type: ignore
+        if src.texture and src.texture.image:
+            self._create_texture_node(
+                'BaseColor', get_or_create_image(src.texture),
+                src.blend_mode == pyscene.BlendMode.Opaque,
+                bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
 
 
 class MaterialImporter:
@@ -42,12 +108,13 @@ class MaterialImporter:
             bl_material.blend_method = 'CLIP'
             bl_material.alpha_threshold = material.threshold
 
+        tree = NodeTree(bl_material)
         if isinstance(material, pyscene.PBRMaterial):
             # PBR
-            self.create_pbr(bl_material, material)
+            tree.create_pbr(material, self._get_or_create_image)
         else:
             # unlit
-            self.create_unlit(bl_material, material)
+            tree.create_unlit(material, self._get_or_create_image)
 
         return bl_material
 
@@ -86,59 +153,3 @@ class MaterialImporter:
 
         self.image_map[texture] = bl_image
         return bl_image
-
-    def create_unlit(self, bl_material: bpy.types.Material,
-                     src: pyscene.Material):
-        bl_material.use_nodes = True
-        nodes: bpy.types.Nodes = bl_material.node_tree.nodes
-        links: bpy.types.NodeLinks = bl_material.node_tree.links
-
-        # clear nodes
-        nodes.clear()
-
-        # build node
-        output_node = nodes.new(type="ShaderNodeOutputMaterial")
-        mix_node = nodes.new(type="ShaderNodeMixRGB")
-        mix_node.blend_type = 'MULTIPLY'
-        mix_node.inputs['Fac'].default_value = 1.0
-        mix_node.inputs['Color2'].default_value = (src.color.x, src.color.y,
-                                                   src.color.z, src.color.w)
-        links.new(mix_node.outputs[0], output_node.inputs[0])  # type: ignore
-        if src.texture and src.texture.image:
-            texture_node = nodes.new(type="ShaderNodeTexImage")
-            nodes.active = texture_node
-            texture_node.image = self._get_or_create_image(src.texture)
-            links.new(texture_node.outputs[0],
-                      mix_node.inputs[0])  # type: ignore
-
-    def create_pbr(self, bl_material: bpy.types.Material,
-                   src: pyscene.PBRMaterial):
-        bl_material.use_nodes = True
-        nodes: bpy.types.Nodes = bl_material.node_tree.nodes
-        links: bpy.types.NodeLinks = bl_material.node_tree.links
-
-        # clear nodes
-        nodes.clear()
-
-        # build node
-        pos = NodePostion()
-        output_node = nodes.new(type="ShaderNodeOutputMaterial")
-        pos.increment(output_node)
-
-        bsdf_node = nodes.new(type="ShaderNodeBsdfPrincipled")
-        pos.increment(bsdf_node)
-        bsdf_node.location = (300, 0)
-        bsdf_node.inputs['Base Color'].default_value = (src.color.x,
-                                                        src.color.y,
-                                                        src.color.z,
-                                                        src.color.w)
-        links.new(bsdf_node.outputs[0], output_node.inputs[0])  # type: ignore
-        if src.texture and src.texture.image:
-            texture_node = nodes.new(type="ShaderNodeTexImage")
-            pos.increment(texture_node)
-            nodes.active = texture_node
-            texture_node.image = self._get_or_create_image(src.texture)
-            links.new(texture_node.outputs[0],
-                      bsdf_node.inputs[0])  # type: ignore
-            links.new(texture_node.outputs[1],
-                      bsdf_node.inputs['Alpha'])  # type: ignore
