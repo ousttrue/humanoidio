@@ -1,11 +1,12 @@
-from typing import Dict, List
+from typing import Dict, List, Callable
 import bpy, mathutils, bmesh
 from .. import pyscene
 
 UV0 = 'texcoord0'
 
 
-def create_bmesh(mesh: pyscene.SubmeshMesh):
+def create_bmesh(mesh: pyscene.SubmeshMesh,
+                 indicesindex_to_materialindex: Callable[[int], int]):
     bm = bmesh.new()  # create an empty BMesh
 
     attributes = mesh.attributes
@@ -32,7 +33,8 @@ def create_bmesh(mesh: pyscene.SubmeshMesh):
         v1 = bm.verts[i1]
         v2 = bm.verts[i2]
         face = bm.faces.new((v0, v1, v2))
-        face.smooth = True
+        face.smooth = True  # use vertex normal
+        face.material_index = indicesindex_to_materialindex(i)
 
     # uv
     if uv_layer:

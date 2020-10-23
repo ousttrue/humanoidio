@@ -194,7 +194,19 @@ class Importer:
             material_index_map[submesh.material] = material_index
             material_index += 1
 
-        bm = create_bmesh(mesh)
+        # indices to material_index
+        current = [0]
+        def to_material_index(indices_index: int) -> int:
+            submesh = mesh.submeshes[current[0]]
+            indices_index -= submesh.offset
+            if indices_index < 0:
+                raise Exception()
+            if indices_index >= submesh.vertex_count:
+                current[0] += 1
+                submesh = mesh.submeshes[current[0]]
+            return material_index_map[submesh.material]
+
+        bm = create_bmesh(mesh, to_material_index)
         bm.to_mesh(bl_mesh)
 
         # *Very* important to not remove lnors here!
