@@ -2,6 +2,8 @@ from typing import Dict, List
 import bpy, mathutils, bmesh
 from .. import pyscene
 
+UV0 = 'texcoord0'
+
 
 def create_bmesh(mesh: pyscene.SubmeshMesh):
     bm = bmesh.new()  # create an empty BMesh
@@ -19,7 +21,7 @@ def create_bmesh(mesh: pyscene.SubmeshMesh):
 
     uv_layer = None
     if attributes.texcoord:
-        uv_layer = bm.loops.layers.uv.new()
+        uv_layer = bm.loops.layers.uv.new(UV0)
 
     # face
     for i in range(0, len(mesh.indices), 3):

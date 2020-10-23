@@ -86,7 +86,8 @@ class NodeTree:
             # normal map
             normal_texture_node = self._create_node("ShaderNodeTexImage")
             normal_texture_node.label = 'NormalTexture'
-            normal_texture_node.image = get_or_create_image(src.normal_map)
+            normal_image = get_or_create_image(src.normal_map, True)
+            normal_texture_node.image = normal_image
 
             normal_map = self._create_node("NormalMap")
             self.links.new(normal_texture_node.outputs[0],
@@ -133,7 +134,8 @@ class MaterialImporter:
         return bl_material
 
     def _get_or_create_image(self,
-                             texture: pyscene.Texture) -> bpy.types.Image:
+                             texture: pyscene.Texture,
+                             is_data=False) -> bpy.types.Image:
         bl_image = self.image_map.get(texture)
         if bl_image:
             return bl_image
@@ -145,21 +147,24 @@ class MaterialImporter:
             bl_image = bpy.data.images.new(texture.name,
                                            alpha=True,
                                            width=image.width,
-                                           height=image.height)
+                                           height=image.height,
+                                           is_data=is_data)
             # RGBA[0-255] to float[0-1]
             pixels = [e / 255 for pixel in image.getdata() for e in pixel]
             bl_image.pixels = pixels
 
         elif image.mode == 'RGB':
             image = PIL.ImageOps.flip(image)
-            image = image.convert('RGBA')
+            # image = image.convert('RGBA')
             bl_image = bpy.data.images.new(texture.name,
                                            alpha=False,
                                            width=image.width,
-                                           height=image.height)
-
+                                           height=image.height,
+                                           is_data=is_data)
             # RGBA[0-255] to float[0-1]
-            pixels = [e / 255 for pixel in image.getdata() for e in pixel]
+            pixels = [
+                e / 255 for r, g, b in image.getdata() for e in (r, g, b, 0)
+            ]
             bl_image.pixels = pixels
 
         else:
