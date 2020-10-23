@@ -3,10 +3,9 @@ logger = getLogger(__name__)
 from contextlib import contextmanager
 from typing import List, Optional, Dict, Set
 import bpy, mathutils
-from ..pyscene.node import Node, Skin
-from ..pyscene.submesh_mesh import SubmeshMesh
-from ..pyscene.material import Material
+from .. import pyscene
 from .material_importer import MaterialImporter
+from .mesh_importer import create_bmesh
 
 
 def mod_v(v):
@@ -46,13 +45,13 @@ class Importer:
             self.collection = context.scene.collection
             # view_layer.collections.link(collection)
 
-        self.obj_map: Dict[Node, bpy.types.Object] = {}
-        self.mesh_map: Dict[SubmeshMesh, bpy.types.Mesh] = {}
+        self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
+        self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
-        self.skin_map: Dict[Skin, bpy.types.Object] = {}
+        self.skin_map: Dict[pyscene.Skin, bpy.types.Object] = {}
 
-    def _setup_skinning(self, mesh_node: Node) -> None:
-        if not isinstance(mesh_node.mesh, SubmeshMesh):
+    def _setup_skinning(self, mesh_node: pyscene.Node) -> None:
+        if not isinstance(mesh_node.mesh, pyscene.SubmeshMesh):
             return
         if not mesh_node.skin:
             return
@@ -103,7 +102,8 @@ class Importer:
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map[skin]
 
-    def _create_armature(self, node: Node, skin: Skin) -> bpy.types.Object:
+    def _create_armature(self, node: pyscene.Node,
+                         skin: pyscene.Skin) -> bpy.types.Object:
         logger.debug(f'skin')
         bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
         bl_obj = bpy.data.objects.new(skin.name, bl_skin)
@@ -129,7 +129,7 @@ class Importer:
         self._create_bone(bl_skin, skin.root, None, False)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-    def _create_bone(self, armature: bpy.types.Armature, node: Node,
+    def _create_bone(self, armature: bpy.types.Armature, node: pyscene.Node,
                      parent_bone: Optional[bpy.types.Bone],
                      is_connect: bool) -> None:
 
@@ -177,7 +177,7 @@ class Importer:
                 self._create_bone(armature, child, bl_bone,
                                   i == child_is_connect)
 
-    def _get_or_create_mesh(self, mesh: SubmeshMesh) -> bpy.types.Mesh:
+    def _get_or_create_mesh(self, mesh: pyscene.SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
         if bl_mesh:
             return bl_mesh
@@ -185,68 +185,39 @@ class Importer:
         bl_mesh = bpy.data.meshes.new(mesh.name)
         self.mesh_map[mesh] = bl_mesh
 
-        material_index_map: Dict[Material, int] = {}
+        material_index_map: Dict[pyscene.Material, int] = {}
         material_index = 0
-        for submesh in mesh.submeshes:
+        for i, submesh in enumerate(mesh.submeshes):
             bl_material = self.material_importer.get_or_create_material(
                 submesh.material)
             bl_mesh.materials.append(bl_material)
             material_index_map[submesh.material] = material_index
             material_index += 1
 
-        # vertices
-        attributes = mesh.attributes
-        bl_mesh.vertices.add(attributes.get_vertex_count())
-        bl_mesh.vertices.foreach_set(
-            "co", [n for v in attributes.position for n in (v.x, -v.z, v.y)])
-        bl_mesh.vertices.foreach_set(
-            "normal", [n for v in attributes.normal for n in (v.x, -v.z, v.y)])
-
-        # indices
-        bl_mesh.loops.add(len(mesh.indices))
-        bl_mesh.loops.foreach_set("vertex_index", mesh.indices)
-
-        # face
-        triangle_count = len(mesh.indices) // 3
-        bl_mesh.polygons.add(triangle_count)
-        starts = [i * 3 for i in range(triangle_count)]
-        bl_mesh.polygons.foreach_set("loop_start", starts)
-        total = [3 for _ in range(triangle_count)]
-        bl_mesh.polygons.foreach_set("loop_total", total)
-        # uv
-        bl_texcord = bl_mesh.uv_layers.new()
-        submesh_index = 0
-        submesh_count = 0
-        tmp = []
-        for bl_poly in bl_mesh.polygons:
-            if submesh_count >= mesh.submeshes[submesh_index].vertex_count:
-                submesh_index += 1
-                submesh_count = 0
-            bl_poly.use_smooth = True  # enable vertex normal
-            bl_poly.material_index = material_index_map.get(
-                mesh.submeshes[submesh_index].material)
-            for lidx in bl_poly.loop_indices:
-                tmp.append(lidx)
-                vertex_index = mesh.indices[lidx]
-                # vertex uv to face uv
-                uv = attributes.texcoord[vertex_index]
-                bl_texcord.data[lidx].uv = (uv.x, 1.0 - uv.y)  # vertical flip uv
-            submesh_count += 3
+        bm = create_bmesh(mesh)
+        bm.to_mesh(bl_mesh)
 
         # *Very* important to not remove lnors here!
-        bl_mesh.validate(clean_customdata=False)
+        # bl_mesh.validate(clean_customdata=False)
         bl_mesh.update()
+
+        bl_mesh.create_normals_split()
+        custom_normals = [v.normal for v in bm.verts]
+        bl_mesh.normals_split_custom_set_from_vertices(custom_normals)
+        bl_mesh.use_auto_smooth = True
+
+        bm.free()  # free and prevent further access
 
         return bl_mesh
 
-    def _create_object(self, node: Node) -> None:
+    def _create_object(self, node: pyscene.Node) -> None:
         '''
         Node から bpy.types.Object を作る
         '''
         logger.debug(f'create: {node}')
 
         # create object
-        if isinstance(node.mesh, SubmeshMesh):
+        if isinstance(node.mesh, pyscene.SubmeshMesh):
             bl_mesh = self._get_or_create_mesh(node.mesh)
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
         else:
@@ -268,12 +239,14 @@ class Importer:
             bl_obj.rotation_quaternion = mod_q(node.rotation)
         bl_obj.scale = mod_s(node.scale)
 
-    def _create_tree(self, node: Node, parent: Optional[Node] = None):
+    def _create_tree(self,
+                     node: pyscene.Node,
+                     parent: Optional[pyscene.Node] = None):
         self._create_object(node)
         for child in node.children:
             self._create_tree(child, node)
 
-    def _remove_empty(self, node: Node):
+    def _remove_empty(self, node: pyscene.Node):
         '''
         深さ優先で、深いところから順に削除する
         '''
@@ -290,7 +263,7 @@ class Importer:
                 bl_parent = self.obj_map[node]
                 bl_skin = self.skin_map[skin]
                 tmp = bl_skin.matrix_world
-                bl_skin.parent = bl_parent.parent               
+                bl_skin.parent = bl_parent.parent
                 bpy.data.objects.remove(bl_parent, do_unlink=True)
                 bl_skin.matrix_world = tmp
                 return
@@ -302,7 +275,7 @@ class Importer:
         if node.parent:
             node.parent.children.remove(node)
 
-    def execute(self, roots: List[Node]):
+    def execute(self, roots: List[pyscene.Node]):
         for root in roots:
             self._create_tree(root)
 

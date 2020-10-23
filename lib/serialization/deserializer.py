@@ -190,18 +190,20 @@ class Deserializer:
         return mesh
 
 
-def import_submesh(data: formats.GltfContext) -> List[pyscene.Node]:
+def load_nodes(data: formats.GltfContext) -> List[pyscene.Node]:
     '''
     glTFを中間形式のSubmesh形式に変換する
     '''
     deserializer = Deserializer(data)
 
+    # mesh
     meshes: List[pyscene.SubmeshMesh] = []
     if data.gltf.meshes:
         for i, m in enumerate(data.gltf.meshes):
             mesh = deserializer.load_submesh(data, i)
             meshes.append(mesh)
 
+    # node
     nodes: List[pyscene.Node] = []
     if data.gltf.nodes:
         for i, n in enumerate(data.gltf.nodes):
@@ -260,8 +262,8 @@ def import_submesh(data: formats.GltfContext) -> List[pyscene.Node]:
                     skin.name = n.name
                 nodes[i].skin = skin
 
+    # scene
     scene = data.gltf.scenes[data.gltf.scene if data.gltf.scene else 0]
     if not scene.nodes:
         return []
-
     return [nodes[root] for root in scene.nodes]
