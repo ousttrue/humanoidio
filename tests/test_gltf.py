@@ -111,8 +111,8 @@ class GltfTests(unittest.TestCase):
         self.assertEqual(material.name, 'Texture')
         self.assertTrue(isinstance(material, PBRMaterial))
         self.assertEqual(material.color, Float4(1, 1, 1, 1))
-        self.assertEqual(texture.image.width, 256)
-        self.assertEqual(texture.image.width, 256)
+        self.assertEqual(texture.url_or_bytes,
+                         path.parent / 'CesiumLogoFlat.png')
 
     def test_unlit_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
