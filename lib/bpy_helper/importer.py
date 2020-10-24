@@ -133,7 +133,6 @@ class Importer:
                      parent_bone: Optional[bpy.types.Bone],
                      is_connect: bool) -> None:
 
-        logger.debug(node.name)
         bl_bone = armature.edit_bones.new(node.name)
         bl_bone.parent = parent_bone
         if is_connect:
@@ -299,7 +298,6 @@ class Importer:
                 return
 
         # remove empty
-        logger.debug(f'remove: {node}')
         bl_obj = self.obj_map[node]
         bpy.data.objects.remove(bl_obj, do_unlink=True)
         if node.parent:
