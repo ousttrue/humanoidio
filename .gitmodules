@@ -1,0 +1,3 @@
+[submodule "sukonbu"]
+	path = sukonbu
+	url = https://github.com/ousttrue/sukonbu.git

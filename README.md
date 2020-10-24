@@ -10,15 +10,6 @@ import/export for Blender-2.83
 
 * addons/io_scene_gltf2
 
-## pillow install
-
-```bat
-# run as administrator
-> cd 'C:\Program Files\Blender Foundation\Blender 2.83\2.83\python\bin\'
-> .\python -m pip install --upgrade pip
-> .\python.exe -m pip install pillow
-```
-
 ## memo
 
 ```
@@ -50,6 +41,8 @@ import/export for Blender-2.83
 
 ## TODO
 
+* [ ] sukonbu
+* [ ] MultColorTexture node
 * [x] BMesh
 * [x] emissiveTexture
 * [x] occlusionTexture
@@ -144,4 +137,3 @@ TODO
 ### SpringBone
 
 TODO
-
