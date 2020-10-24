@@ -209,6 +209,26 @@ class Importer:
         bm = create_bmesh(mesh, to_material_index)
         bm.to_mesh(bl_mesh)
 
+        # Shapekeys
+        if len(bm.verts.layers.shape) != 0:
+            # The only way I could find to create a shape key was to temporarily
+            # parent mesh to an object and use obj.shape_key_add.
+            tmp_ob = None
+            try:
+                tmp_ob = bpy.data.objects.new('##gltf-import:tmp-object##', bl_mesh)
+                tmp_ob.shape_key_add(name='Basis')
+                bl_mesh.shape_keys.name = bl_mesh.name
+                for layer_name in bm.verts.layers.shape.keys():
+                    tmp_ob.shape_key_add(name=layer_name)
+                    key_block = bl_mesh.shape_keys.key_blocks[layer_name]
+                    layer = bm.verts.layers.shape[layer_name]
+
+                    for i, v in enumerate(bm.verts):
+                        key_block.data[i].co = v[layer]
+            finally:
+                if tmp_ob:
+                    bpy.data.objects.remove(tmp_ob)        
+
         # *Very* important to not remove lnors here!
         # bl_mesh.validate(clean_customdata=False)
         bl_mesh.update()

@@ -1,3 +1,4 @@
+import enum
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, List, Callable
@@ -48,5 +49,14 @@ def create_bmesh(
             for loop in face.loops:
                 uv = attributes.texcoord[loop.vert.index]
                 loop[uv_layer].uv = (uv.x, 1 - uv.y)
+
+    # Set morph target positions (no normals/tangents)
+    for target in mesh.morphtargets:
+
+        layer = bm.verts.layers.shape.new(target.name)
+
+        for i, vert in enumerate(bm.verts):
+            p = target.attributes.position[i]
+            vert[layer] = vert.co + mathutils.Vector((p.x, -p.z, p.y))
 
     return bm

@@ -1,4 +1,3 @@
-from lib.pyscene.submesh_mesh import MorphTarget
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, Optional, List

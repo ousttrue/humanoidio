@@ -8,6 +8,8 @@ import/export for Blender-2.83
   * https://docs.blender.org/manual/en/2.83/advanced/scripting/addon_tutorial.html
 * https://docs.blender.org/api/2.83/index.html
 
+* addons/io_scene_gltf2
+
 ## pillow install
 
 ```bat
@@ -28,8 +30,9 @@ import/export for Blender-2.83
     Serialize               Export
 ```
 
+* VRMは armature がひとつ(Humanoid)しかない前提にする
 * 手前向き T-Pose で作成する
-* modifier の上から作った shapekey をそのままエクスポートできる。Apply も不要
+* modifier(Generate) の上から作った shapekey をそのままエクスポートできる。Apply も不要
 * object.location, rotation, scale を apply する
   * objectの親子あってもapplyできる
   * blenderのZ-UP右手系を、決め打ちでGLTFのY-UP右手系に変換する。ルート付近に X90度回転を残さない
@@ -56,7 +59,7 @@ import/export for Blender-2.83
 * [x] alpha cutout
 * [x] Unlit Transparent
 * [x] Standard Transparent
-* [ ] shape key
+* [x] shape key
 * [ ] texture/uv flip flip
 
 ### VRM
