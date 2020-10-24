@@ -1,4 +1,6 @@
 from logging import getLogger
+import pathlib
+import tempfile
 logger = getLogger(__name__)
 from typing import Dict, List, Callable, Tuple, Any
 import PIL.Image
@@ -68,7 +70,7 @@ class NodeTree:
         self.links.new(transparent.outputs[0],
                        mix_node.inputs[1])  # type: ignore
 
-        if src.texture and src.texture.image:
+        if src.texture:
             self._create_texture_node(
                 'ColorTexture', get_or_create_image(src.texture),
                 src.blend_mode == pyscene.BlendMode.Opaque, mix_node.inputs[2],
@@ -90,14 +92,14 @@ class NodeTree:
         self.links.new(bsdf_node.outputs[0],
                        output_node.inputs[0])  # type: ignore
 
-        if src.texture and src.texture.image:
+        if src.texture:
             # color texture
             self._create_texture_node(
                 'ColorTexture', get_or_create_image(src.texture),
                 src.blend_mode == pyscene.BlendMode.Opaque,
                 bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
 
-        if src.normal_map and src.normal_map.image:
+        if src.normal_map:
             # normal map
             normal_texture_node = self._create_node("TexImage")
             normal_texture_node.label = 'NormalTexture'
@@ -176,37 +178,28 @@ class MaterialImporter:
             return bl_image
 
         logger.debug(f'create {texture}')
-        image = texture.image
 
-        if image.mode == 'RGBA':
-            image = PIL.ImageOps.flip(image)
-            bl_image = bpy.data.images.new(
-                texture.name,
-                alpha=True,
-                width=image.width,
-                height=image.height,
-                is_data=texture.is_data)  # type: ignore
-            # RGBA[0-255] to float[0-1]
-            pixels = [e / 255 for pixel in image.getdata() for e in pixel]
-            bl_image.pixels = pixels
+        if isinstance(texture.url_or_bytes, pathlib.Path):
+            path = texture.url_or_bytes.absolute()
+            bl_image = bpy.data.images.load(str(path))
 
-        elif image.mode == 'RGB':
-            image = PIL.ImageOps.flip(image)
-            # image = image.convert('RGBA')
-            bl_image = bpy.data.images.new(
-                texture.name,
-                alpha=False,
-                width=image.width,
-                height=image.height,
-                is_data=texture.is_data)  # type: ignore
-            # RGBA[0-255] to float[0-1]
-            pixels = [
-                e / 255 for r, g, b in image.getdata() for e in (r, g, b, 255)
-            ]
-            bl_image.pixels = pixels
+        elif isinstance(texture.url_or_bytes, bytes):
+            # Image stored as data => create a tempfile, pack, and delete file
+            # img_from_file = False
+            img_data = texture.url_or_bytes
+            # img_name = img_name or 'Image_%d' % img_idx
+            tmp_dir = tempfile.TemporaryDirectory(prefix='gltfimg-')
+            # filename = _filenamify(img_name) or 'Image_%d' % img_idx
+            # filename += _img_extension(img)
+            path = pathlib.Path(tmp_dir.name) / texture.name
+            with open(path, 'wb') as f:
+                f.write(img_data)
+            bl_image = bpy.data.images.load(str(path))
+            bl_image.pack()
 
         else:
-            raise NotImplementedError()
+            raise Exception()
 
+        bl_image.name = texture.name
         self.image_map[texture] = bl_image
         return bl_image

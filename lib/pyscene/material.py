@@ -1,9 +1,8 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import Optional, List, Dict
-import io
+from typing import Optional, List, Dict, Union
+import pathlib
 from enum import Enum
-import PIL.Image
 #
 import bpy
 from ..formats import gltf
@@ -52,14 +51,14 @@ class TextureUsage(Enum):
 
 
 class Texture:
-    def __init__(self, name: str, data: bytes):
+    def __init__(self, name: str, url_or_bytes: Union[pathlib.Path, bytes]):
         self.name = name
-        self.image = PIL.Image.open(io.BytesIO(data))
+        self.url_or_bytes = url_or_bytes
         self.usage = TextureUsage.Unknown
         self.is_data = False
 
     def __str__(self) -> str:
-        return f'<[{self.usage}] {self.name} {self.image.width} x {self.image.height}>'
+        return f'<[{self.usage}] {self.name}>'
 
     def set_usage(self, usage: TextureUsage):
         if self.usage != TextureUsage.Unknown and self.usage != usage:

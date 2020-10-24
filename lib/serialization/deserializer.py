@@ -43,24 +43,22 @@ class Deserializer:
         gl_image = self.data.gltf.images[image_index]
         name = gl_image.name
 
-        texture_bytes = None
         if gl_image.uri:
-            texture_bytes = self.data.get_uri_bytes(gl_image.uri)
             if not name:
                 name = gl_image.uri
+        if not name:
+            name = f'image{image_index}'
 
         if isinstance(gl_image.bufferView, int):
             texture_bytes = self.reader.get_view_bytes(gl_image.bufferView)
-
-        if texture_bytes:
-            if not name:
-                name = f'image{image_index}'
             texture = pyscene.Texture(name, texture_bytes)
-            self._texture_map[image_index] = texture
-            return texture
-
+        elif gl_image.uri:
+            texture = pyscene.Texture(name, self.data.dir / gl_image.uri)
         else:
             raise Exception('invalid gl_image')
+
+        self._texture_map[image_index] = texture
+        return texture
 
     def _get_or_create_material(
             self, material_index: Optional[int]) -> pyscene.Material:

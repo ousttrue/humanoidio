@@ -60,7 +60,11 @@ import/export for Blender-2.83
 * [x] Unlit Transparent
 * [x] Standard Transparent
 * [x] shape key
-* [ ] texture/uv flip flip
+* [x] remove PIL. use tmpfile
+
+### Export
+
+* [ ] rewrite material
 
 ### VRM
 
