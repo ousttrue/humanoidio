@@ -16,7 +16,7 @@ from ..formats import gltf, buffermanager
 from ..struct_types import Float3, Mat4
 
 GLTF_VERSION = '2.0'
-GENERATOR_NAME = 'scene_translator'
+GENERATOR_NAME = 'pyimpex'
 
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:

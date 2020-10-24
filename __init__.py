@@ -3,13 +3,13 @@
 * https://github.com/dfelinto/blender/blob/master/release/scripts/modules/addon_utils.py
 '''
 bl_info = {
-    "name": "scene_translator",
+    "name": "pyimpex",
     "author": "ousttrue",
     "version": (0, 0, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export",
     "description": "scene import and export",
-    "doc_url": "https://github.com/ousttrue/scene_translator",
+    "doc_url": "https://github.com/ousttrue/pyimpex",
     "category": "Import-Export",
     "support": "TESTING",
     "warning": "This addon is still in development.",
@@ -36,7 +36,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
     """
     Import scene
     """
-    bl_idname = 'scene_translator.importer'
+    bl_idname = 'pyimpex.importer'
     bl_label = 'Scene Importer'
     bl_options = {'PRESET', 'UNDO'}
 
@@ -68,7 +68,7 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
     """
     Export scene
     """
-    bl_idname = 'scene_translator.exporter'
+    bl_idname = 'pyimpex.exporter'
     bl_label = 'Scene Exporter'
     bl_options = {'PRESET'}
 

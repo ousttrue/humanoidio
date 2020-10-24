@@ -1,6 +1,8 @@
-# scene_translator
+# pyimpex
 
-import/export for Blender-2.83
+python import export.
+
+for Blender-2.83
 
 ## reference
 
