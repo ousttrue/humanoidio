@@ -92,6 +92,9 @@ class Material:
         self.threshold = 0.5
         self.double_sided = False
 
+    def __str__(self):
+        return f'<Unlit {self.name}>'
+
 
 class PBRMaterial(Material):
     '''
@@ -105,6 +108,9 @@ class PBRMaterial(Material):
         self.emissive_texture: Optional[Texture] = None
         self.metallic_roughness_texture: Optional[Texture] = None
         self.occlusion_texture: Optional[Texture] = None
+
+    def __str__(self):
+        return f'<PBR {self.name}>'
 
 
 class MaterialStore:

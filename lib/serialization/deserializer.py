@@ -189,11 +189,19 @@ class Deserializer:
 
         if shared:
             # share vertex buffer
-            vertex_count = position_count(m.primitives[0])
+            shared_prim = m.primitives[0]
+            vertex_count = position_count(shared_prim)
             mesh = pyscene.SubmeshMesh(name, vertex_count, has_skin)
             self.reader.read_attributes(mesh.attributes, 0, data,
-                                        m.primitives[0])
-
+                                        shared_prim.attributes)
+            # morph target
+            if shared_prim.targets:
+                # TODO: each target has same vertex buffer
+                for j, t in enumerate(shared_prim.targets):
+                    morphtarget = mesh.get_or_create_morphtarget(j)
+                    self.reader.read_attributes(morphtarget.attributes, 0,
+                                                data, t)
+                    # TODO: morph target name
             index_offset = 0
             for i, prim in enumerate(m.primitives):
                 # indices
@@ -210,19 +218,19 @@ class Deserializer:
             for i, prim in enumerate(m.primitives):
                 # vertex
                 self.reader.read_attributes(mesh.attributes, offset, data,
-                                            prim)
+                                            prim.attributes)
                 offset += position_count(prim)
                 # indices
                 index_offset += add_indices(mesh, prim, index_offset)
 
-        # morph target
-        for prim in m.primitives:
-            if prim.targets:
-                for j, t in enumerate(prim.targets):
-                    morphtarget = mesh.get_or_create_morphtarget(j)
-                    for k, v in t.items():
-                        # self.reader.read_attributes(v)
-                        pass
+                # morph target
+                for prim in m.primitives:
+                    if prim.targets:
+                        for j, t in enumerate(prim.targets):
+                            morphtarget = mesh.get_or_create_morphtarget(j)
+                            self.reader.read_attributes(
+                                morphtarget.attributes, offset, data, t)
+                            # TODO: morph target name
 
         return mesh
 

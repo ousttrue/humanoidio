@@ -17,6 +17,8 @@ class MorphTarget:
         self.name = name
         self.attributes = PlanarBuffer.create(vertex_count, False)
 
+    def __str__(self):
+        return f'<PlanarBuffer {self.attributes.get_vertex_count()}>'
 
 class SubmeshMesh:
     def __init__(self, name: str, vertex_count: int, has_bone_weight: bool):

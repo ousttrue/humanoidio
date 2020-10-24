@@ -147,7 +147,6 @@ class GltfTests(unittest.TestCase):
         data = parse_gltf(path)
         roots = deserializer.load_nodes(data)
         self.assertEqual(len(roots), 1)
-        root = roots[0]
 
         mesh_node = roots[0][0][1]
         mesh = mesh_node.mesh
@@ -170,6 +169,17 @@ class GltfTests(unittest.TestCase):
         self.assertIsNone(data.gltf.bufferViews[0].byteOffset)
 
         roots = deserializer.load_nodes(data)
+        mesh_node = roots[0]
+        mesh = mesh_node.mesh
+        if not isinstance(mesh, SubmeshMesh):
+            raise Exception()
+
+        self.assertEqual(len(mesh.morphtargets), 2)
+        thin = mesh.morphtargets[0]
+        position = [(p.x, p.y, p.z) for p in thin.attributes.position]
+        self.assertTrue(
+            check_seq(position[0:3], [(0, 0, 0), (0, 0, 0),
+                                      (0, 0.0189325, 0)]))
 
     def test_vivi(self):
         path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'

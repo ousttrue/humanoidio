@@ -133,7 +133,7 @@ class BytesReader:
         raise NotImplementedError()
 
     def read_attributes(self, buffer: PlanarBuffer, offset: int,
-                        data: formats.GltfContext, prim: gltf.MeshPrimitive):
+                        data: formats.GltfContext, attributes: Dict[str, int]):
         self.submesh_index_count: List[int] = []
 
         pos_index = offset
@@ -144,29 +144,29 @@ class BytesReader:
         #
         # attributes
         #
-        pos = self.get_bytes(prim.attributes['POSITION'])
+        pos = self.get_bytes(attributes['POSITION'])
 
         nom = None
-        if 'NORMAL' in prim.attributes:
-            nom = self.get_bytes(prim.attributes['NORMAL'])
+        if 'NORMAL' in attributes:
+            nom = self.get_bytes(attributes['NORMAL'])
             if len(nom) != len(pos):
                 raise Exception("len(nom) different from len(pos)")
 
         uv = None
-        if 'TEXCOORD_0' in prim.attributes:
-            uv = self.get_bytes(prim.attributes['TEXCOORD_0'])
+        if 'TEXCOORD_0' in attributes:
+            uv = self.get_bytes(attributes['TEXCOORD_0'])
             if len(uv) != len(pos):
                 raise Exception("len(uv) different from len(pos)")
 
         joints = None
-        if 'JOINTS_0' in prim.attributes:
-            joints = self.get_bytes(prim.attributes['JOINTS_0'])
+        if 'JOINTS_0' in attributes:
+            joints = self.get_bytes(attributes['JOINTS_0'])
             if len(joints) != len(pos):
                 raise Exception("len(joints) different from len(pos)")
 
         weights = None
-        if 'WEIGHTS_0' in prim.attributes:
-            weights = self.get_bytes(prim.attributes['WEIGHTS_0'])
+        if 'WEIGHTS_0' in attributes:
+            weights = self.get_bytes(attributes['WEIGHTS_0'])
             if len(weights) != len(pos):
                 raise Exception("len(weights) different from len(pos)")
 
