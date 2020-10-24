@@ -16,7 +16,8 @@ class AccessorComponentType(Enum):
 
     @staticmethod
     def from_dict(src) -> 'AccessorComponentType':
-        return AccessorComponentType(src)
+        dst = {}
+        return AccessorComponentType(dst)
 
 
 class AccessorType(Enum):
@@ -33,7 +34,8 @@ class AccessorType(Enum):
 
     @staticmethod
     def from_dict(src) -> 'AccessorType':
-        return AccessorType(src)
+        dst = {}
+        return AccessorType(dst)
 
 
 class AccessorSparseIndicesComponentType(Enum):
@@ -46,18 +48,19 @@ class AccessorSparseIndicesComponentType(Enum):
 
     @staticmethod
     def from_dict(src) -> 'AccessorSparseIndicesComponentType':
-        return AccessorSparseIndicesComponentType(src)
+        dst = {}
+        return AccessorSparseIndicesComponentType(dst)
 
 
 class AccessorSparseIndices(NamedTuple):
-    # The index of the bufferView.
+    # The index of the bufferView with sparse indices. Referenced bufferView can't have ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER target.
     bufferView: int
     # The indices data type.
     componentType: AccessorSparseIndicesComponentType
     # The offset relative to the start of the bufferView in bytes. Must be aligned.
     byteOffset: Optional[int] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -72,21 +75,22 @@ class AccessorSparseIndices(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'AccessorSparseIndices':
-        # bufferView do nothing
-        # byteOffset do nothing
-        if "componentType" in src: src["componentType"] = AccessorSparseIndicesComponentType(src["componentType"]) # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return AccessorSparseIndices(**src)
+        dst = {}
+        if "bufferView" in src: dst["bufferView"] = src["bufferView"] # noqa copy
+        if "byteOffset" in src: dst["byteOffset"] = src["byteOffset"] # noqa copy
+        if "componentType" in src: dst["componentType"] = AccessorSparseIndicesComponentType(src["componentType"]) # noqa
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return AccessorSparseIndices(**dst)
 
 
 class AccessorSparseValues(NamedTuple):
-    # The index of the bufferView.
+    # The index of the bufferView with sparse values. Referenced bufferView can't have ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER target.
     bufferView: int
     # The offset relative to the start of the bufferView in bytes. Must be aligned.
     byteOffset: Optional[int] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -100,11 +104,12 @@ class AccessorSparseValues(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'AccessorSparseValues':
-        # bufferView do nothing
-        # byteOffset do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return AccessorSparseValues(**src)
+        dst = {}
+        if "bufferView" in src: dst["bufferView"] = src["bufferView"] # noqa copy
+        if "byteOffset" in src: dst["byteOffset"] = src["byteOffset"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return AccessorSparseValues(**dst)
 
 
 class AccessorSparse(NamedTuple):
@@ -115,7 +120,7 @@ class AccessorSparse(NamedTuple):
     # Array of size `accessor.sparse.count` times number of components storing the displaced accessor attributes pointed by `accessor.sparse.indices`.
     values: AccessorSparseValues
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -130,12 +135,13 @@ class AccessorSparse(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'AccessorSparse':
-        # count do nothing
-        if "indices" in src: src["indices"] = AccessorSparseIndices.from_dict(src["indices"]) # noqa
-        if "values" in src: src["values"] = AccessorSparseValues.from_dict(src["values"]) # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return AccessorSparse(**src)
+        dst = {}
+        if "count" in src: dst["count"] = src["count"] # noqa copy
+        if "indices" in src: dst["indices"] = AccessorSparseIndices.from_dict(src["indices"]) # noqa
+        if "values" in src: dst["values"] = AccessorSparseValues.from_dict(src["values"]) # noqa
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return AccessorSparse(**dst)
 
 
 class Accessor(NamedTuple):
@@ -160,7 +166,7 @@ class Accessor(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -182,19 +188,20 @@ class Accessor(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Accessor':
-        # bufferView do nothing
-        # byteOffset do nothing
-        if "componentType" in src: src["componentType"] = AccessorComponentType(src["componentType"]) # noqa
-        # normalized do nothing
-        # count do nothing
-        if "type" in src: src["type"] = AccessorType(src["type"]) # noqa
-        if ("max" not in src): src["max"] = [] # noqa
-        if ("min" not in src): src["min"] = [] # noqa
-        if "sparse" in src: src["sparse"] = AccessorSparse.from_dict(src["sparse"]) # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Accessor(**src)
+        dst = {}
+        if "bufferView" in src: dst["bufferView"] = src["bufferView"] # noqa copy
+        if "byteOffset" in src: dst["byteOffset"] = src["byteOffset"] # noqa copy
+        if "componentType" in src: dst["componentType"] = AccessorComponentType(src["componentType"]) # noqa
+        if "normalized" in src: dst["normalized"] = src["normalized"] # noqa copy
+        if "count" in src: dst["count"] = src["count"] # noqa copy
+        if "type" in src: dst["type"] = AccessorType(src["type"]) # noqa
+        dst["max"] = src.get("max", [])
+        dst["min"] = src.get("min", [])
+        if "sparse" in src: dst["sparse"] = AccessorSparse.from_dict(src["sparse"]) # noqa
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Accessor(**dst)
 
 
 class AnimationChannelTargetPath(Enum):
@@ -208,16 +215,17 @@ class AnimationChannelTargetPath(Enum):
 
     @staticmethod
     def from_dict(src) -> 'AnimationChannelTargetPath':
-        return AnimationChannelTargetPath(src)
+        dst = {}
+        return AnimationChannelTargetPath(dst)
 
 
 class AnimationChannelTarget(NamedTuple):
     # The name of the node's TRS property to modify, or the "weights" of the Morph Targets it instantiates. For the "translation" property, the values that are provided by the sampler are the translation along the x, y, and z axes. For the "rotation" property, the values are a quaternion in the order (x, y, z, w), where w is the scalar. For the "scale" property, the values are the scaling factors along the x, y, and z axes.
     path: AnimationChannelTargetPath
-    # The index of the bufferView.
+    # The index of the node to target.
     node: Optional[int] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -231,20 +239,21 @@ class AnimationChannelTarget(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'AnimationChannelTarget':
-        # node do nothing
-        if "path" in src: src["path"] = AnimationChannelTargetPath(src["path"]) # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return AnimationChannelTarget(**src)
+        dst = {}
+        if "node" in src: dst["node"] = src["node"] # noqa copy
+        if "path" in src: dst["path"] = AnimationChannelTargetPath(src["path"]) # noqa
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return AnimationChannelTarget(**dst)
 
 
 class AnimationChannel(NamedTuple):
-    # The index of the bufferView.
+    # The index of a sampler in this animation used to compute the value for the target.
     sampler: int
     # The index of the node and TRS property that an animation channel targets.
     target: AnimationChannelTarget
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -258,11 +267,12 @@ class AnimationChannel(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'AnimationChannel':
-        # sampler do nothing
-        if "target" in src: src["target"] = AnimationChannelTarget.from_dict(src["target"]) # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return AnimationChannel(**src)
+        dst = {}
+        if "sampler" in src: dst["sampler"] = src["sampler"] # noqa copy
+        if "target" in src: dst["target"] = AnimationChannelTarget.from_dict(src["target"]) # noqa
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return AnimationChannel(**dst)
 
 
 class AnimationSamplerInterpolation(Enum):
@@ -275,18 +285,19 @@ class AnimationSamplerInterpolation(Enum):
 
     @staticmethod
     def from_dict(src) -> 'AnimationSamplerInterpolation':
-        return AnimationSamplerInterpolation(src)
+        dst = {}
+        return AnimationSamplerInterpolation(dst)
 
 
 class AnimationSampler(NamedTuple):
-    # The index of the bufferView.
+    # The index of an accessor containing keyframe input values, e.g., time.
     input: int
-    # The index of the bufferView.
+    # The index of an accessor, containing keyframe output values.
     output: int
     # Interpolation algorithm.
     interpolation: Optional[AnimationSamplerInterpolation] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -301,12 +312,13 @@ class AnimationSampler(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'AnimationSampler':
-        # input do nothing
-        if "interpolation" in src: src["interpolation"] = AnimationSamplerInterpolation(src["interpolation"]) # noqa
-        # output do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return AnimationSampler(**src)
+        dst = {}
+        if "input" in src: dst["input"] = src["input"] # noqa copy
+        if "interpolation" in src: dst["interpolation"] = AnimationSamplerInterpolation(src["interpolation"]) # noqa
+        if "output" in src: dst["output"] = src["output"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return AnimationSampler(**dst)
 
 
 class Animation(NamedTuple):
@@ -317,7 +329,7 @@ class Animation(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -332,12 +344,13 @@ class Animation(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Animation':
-        src["channels"] = [AnimationChannel.from_dict(item) for item in src["channels"]] if "channels" in src else [] # noqa
-        src["samplers"] = [AnimationSampler.from_dict(item) for item in src["samplers"]] if "samplers" in src else [] # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Animation(**src)
+        dst = {}
+        dst["channels"] = [AnimationChannel.from_dict(item) for item in src["channels"]] if "channels" in src else [] # noqa
+        dst["samplers"] = [AnimationSampler.from_dict(item) for item in src["samplers"]] if "samplers" in src else [] # noqa
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Animation(**dst)
 
 
 class Asset(NamedTuple):
@@ -350,7 +363,7 @@ class Asset(NamedTuple):
     # The minimum glTF version that this asset targets.
     minVersion: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -366,13 +379,14 @@ class Asset(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Asset':
-        # copyright do nothing
-        # generator do nothing
-        # version do nothing
-        # minVersion do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Asset(**src)
+        dst = {}
+        if "copyright" in src: dst["copyright"] = src["copyright"] # noqa copy
+        if "generator" in src: dst["generator"] = src["generator"] # noqa copy
+        if "version" in src: dst["version"] = src["version"] # noqa copy
+        if "minVersion" in src: dst["minVersion"] = src["minVersion"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Asset(**dst)
 
 
 class Buffer(NamedTuple):
@@ -383,7 +397,7 @@ class Buffer(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -398,12 +412,13 @@ class Buffer(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Buffer':
-        # uri do nothing
-        # byteLength do nothing
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Buffer(**src)
+        dst = {}
+        if "uri" in src: dst["uri"] = src["uri"] # noqa copy
+        if "byteLength" in src: dst["byteLength"] = src["byteLength"] # noqa copy
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Buffer(**dst)
 
 
 class BufferViewTarget(Enum):
@@ -415,11 +430,12 @@ class BufferViewTarget(Enum):
 
     @staticmethod
     def from_dict(src) -> 'BufferViewTarget':
-        return BufferViewTarget(src)
+        dst = {}
+        return BufferViewTarget(dst)
 
 
 class BufferView(NamedTuple):
-    # The index of the bufferView.
+    # The index of the buffer.
     buffer: int
     # The total byte length of the buffer view.
     byteLength: int
@@ -432,7 +448,7 @@ class BufferView(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -450,15 +466,16 @@ class BufferView(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'BufferView':
-        # buffer do nothing
-        # byteOffset do nothing
-        # byteLength do nothing
-        # byteStride do nothing
-        if "target" in src: src["target"] = BufferViewTarget(src["target"]) # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return BufferView(**src)
+        dst = {}
+        if "buffer" in src: dst["buffer"] = src["buffer"] # noqa copy
+        if "byteOffset" in src: dst["byteOffset"] = src["byteOffset"] # noqa copy
+        if "byteLength" in src: dst["byteLength"] = src["byteLength"] # noqa copy
+        if "byteStride" in src: dst["byteStride"] = src["byteStride"] # noqa copy
+        if "target" in src: dst["target"] = BufferViewTarget(src["target"]) # noqa
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return BufferView(**dst)
 
 
 class CameraOrthographic(NamedTuple):
@@ -471,7 +488,7 @@ class CameraOrthographic(NamedTuple):
     # The floating-point distance to the near clipping plane.
     znear: float
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -487,13 +504,14 @@ class CameraOrthographic(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'CameraOrthographic':
-        # xmag do nothing
-        # ymag do nothing
-        # zfar do nothing
-        # znear do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return CameraOrthographic(**src)
+        dst = {}
+        if "xmag" in src: dst["xmag"] = src["xmag"] # noqa copy
+        if "ymag" in src: dst["ymag"] = src["ymag"] # noqa copy
+        if "zfar" in src: dst["zfar"] = src["zfar"] # noqa copy
+        if "znear" in src: dst["znear"] = src["znear"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return CameraOrthographic(**dst)
 
 
 class CameraPerspective(NamedTuple):
@@ -506,7 +524,7 @@ class CameraPerspective(NamedTuple):
     # The floating-point distance to the far clipping plane.
     zfar: Optional[float] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -522,13 +540,14 @@ class CameraPerspective(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'CameraPerspective':
-        # aspectRatio do nothing
-        # yfov do nothing
-        # zfar do nothing
-        # znear do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return CameraPerspective(**src)
+        dst = {}
+        if "aspectRatio" in src: dst["aspectRatio"] = src["aspectRatio"] # noqa copy
+        if "yfov" in src: dst["yfov"] = src["yfov"] # noqa copy
+        if "zfar" in src: dst["zfar"] = src["zfar"] # noqa copy
+        if "znear" in src: dst["znear"] = src["znear"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return CameraPerspective(**dst)
 
 
 class CameraType(Enum):
@@ -540,7 +559,8 @@ class CameraType(Enum):
 
     @staticmethod
     def from_dict(src) -> 'CameraType':
-        return CameraType(src)
+        dst = {}
+        return CameraType(dst)
 
 
 class Camera(NamedTuple):
@@ -553,7 +573,7 @@ class Camera(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -569,13 +589,14 @@ class Camera(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Camera':
-        if "orthographic" in src: src["orthographic"] = CameraOrthographic.from_dict(src["orthographic"]) # noqa
-        if "perspective" in src: src["perspective"] = CameraPerspective.from_dict(src["perspective"]) # noqa
-        if "type" in src: src["type"] = CameraType(src["type"]) # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Camera(**src)
+        dst = {}
+        if "orthographic" in src: dst["orthographic"] = CameraOrthographic.from_dict(src["orthographic"]) # noqa
+        if "perspective" in src: dst["perspective"] = CameraPerspective.from_dict(src["perspective"]) # noqa
+        if "type" in src: dst["type"] = CameraType(src["type"]) # noqa
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Camera(**dst)
 
 
 class ImageMimeType(Enum):
@@ -587,7 +608,8 @@ class ImageMimeType(Enum):
 
     @staticmethod
     def from_dict(src) -> 'ImageMimeType':
-        return ImageMimeType(src)
+        dst = {}
+        return ImageMimeType(dst)
 
 
 class Image(NamedTuple):
@@ -595,12 +617,12 @@ class Image(NamedTuple):
     uri: Optional[str] = None
     # The image's MIME type. Required if `bufferView` is defined.
     mimeType: Optional[ImageMimeType] = None
-    # The index of the bufferView.
+    # The index of the bufferView that contains the image. Use this instead of the image's uri property.
     bufferView: Optional[int] = None
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -616,22 +638,59 @@ class Image(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Image':
-        # uri do nothing
-        if "mimeType" in src: src["mimeType"] = ImageMimeType(src["mimeType"]) # noqa
-        # bufferView do nothing
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Image(**src)
+        dst = {}
+        if "uri" in src: dst["uri"] = src["uri"] # noqa copy
+        if "mimeType" in src: dst["mimeType"] = ImageMimeType(src["mimeType"]) # noqa
+        if "bufferView" in src: dst["bufferView"] = src["bufferView"] # noqa copy
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Image(**dst)
+
+
+class KHR_materials_unlitglTFextension(NamedTuple):
+    # Dictionary object with extension-specific objects.
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
+    # Application-specific data.
+    extras: Optional[Dict[str, Any]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.extensions is not None: d["extensions"] = self.extensions # noqa
+        if self.extras is not None: d["extras"] = self.extras # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'KHR_materials_unlitglTFextension':
+        dst = {}
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return KHR_materials_unlitglTFextension(**dst)
+
+
+class Materials_ExtensionsExtension(NamedTuple):
+    # glTF extension that defines the unlit material model.
+    KHR_materials_unlit: Optional[KHR_materials_unlitglTFextension] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.KHR_materials_unlit is not None: d["KHR_materials_unlit"] = self.KHR_materials_unlit.to_dict() # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'Materials_ExtensionsExtension':
+        dst = {}
+        if "KHR_materials_unlit" in src: dst["KHR_materials_unlit"] = KHR_materials_unlitglTFextension.from_dict(src["KHR_materials_unlit"]) # noqa
+        return Materials_ExtensionsExtension(**dst)
 
 
 class TextureInfo(NamedTuple):
-    # The index of the bufferView.
+    # The index of the texture.
     index: int
     # The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
     texCoord: Optional[int] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -645,11 +704,12 @@ class TextureInfo(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'TextureInfo':
-        # index do nothing
-        # texCoord do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return TextureInfo(**src)
+        dst = {}
+        if "index" in src: dst["index"] = src["index"] # noqa copy
+        if "texCoord" in src: dst["texCoord"] = src["texCoord"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return TextureInfo(**dst)
 
 
 class MaterialPBRMetallicRoughness(NamedTuple):
@@ -664,7 +724,7 @@ class MaterialPBRMetallicRoughness(NamedTuple):
     # Reference to a texture.
     metallicRoughnessTexture: Optional[TextureInfo] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -681,25 +741,26 @@ class MaterialPBRMetallicRoughness(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'MaterialPBRMetallicRoughness':
-        if ("baseColorFactor" not in src): src["baseColorFactor"] = [] # noqa
-        if "baseColorTexture" in src: src["baseColorTexture"] = TextureInfo.from_dict(src["baseColorTexture"]) # noqa
-        # metallicFactor do nothing
-        # roughnessFactor do nothing
-        if "metallicRoughnessTexture" in src: src["metallicRoughnessTexture"] = TextureInfo.from_dict(src["metallicRoughnessTexture"]) # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return MaterialPBRMetallicRoughness(**src)
+        dst = {}
+        dst["baseColorFactor"] = src.get("baseColorFactor", [])
+        if "baseColorTexture" in src: dst["baseColorTexture"] = TextureInfo.from_dict(src["baseColorTexture"]) # noqa
+        if "metallicFactor" in src: dst["metallicFactor"] = src["metallicFactor"] # noqa copy
+        if "roughnessFactor" in src: dst["roughnessFactor"] = src["roughnessFactor"] # noqa copy
+        if "metallicRoughnessTexture" in src: dst["metallicRoughnessTexture"] = TextureInfo.from_dict(src["metallicRoughnessTexture"]) # noqa
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return MaterialPBRMetallicRoughness(**dst)
 
 
 class MaterialNormalTextureInfo(NamedTuple):
-    # The index of the bufferView.
+    # The index of the texture.
     index: int
     # The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
     texCoord: Optional[int] = None
     # The scalar multiplier applied to each normal vector of the normal texture.
     scale: Optional[float] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -714,23 +775,24 @@ class MaterialNormalTextureInfo(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'MaterialNormalTextureInfo':
-        # index do nothing
-        # texCoord do nothing
-        # scale do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return MaterialNormalTextureInfo(**src)
+        dst = {}
+        if "index" in src: dst["index"] = src["index"] # noqa copy
+        if "texCoord" in src: dst["texCoord"] = src["texCoord"] # noqa copy
+        if "scale" in src: dst["scale"] = src["scale"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return MaterialNormalTextureInfo(**dst)
 
 
 class MaterialOcclusionTextureInfo(NamedTuple):
-    # The index of the bufferView.
+    # The index of the texture.
     index: int
     # The set index of texture's TEXCOORD attribute used for texture coordinate mapping.
     texCoord: Optional[int] = None
     # A scalar multiplier controlling the amount of occlusion applied.
     strength: Optional[float] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -745,12 +807,13 @@ class MaterialOcclusionTextureInfo(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'MaterialOcclusionTextureInfo':
-        # index do nothing
-        # texCoord do nothing
-        # strength do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return MaterialOcclusionTextureInfo(**src)
+        dst = {}
+        if "index" in src: dst["index"] = src["index"] # noqa copy
+        if "texCoord" in src: dst["texCoord"] = src["texCoord"] # noqa copy
+        if "strength" in src: dst["strength"] = src["strength"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return MaterialOcclusionTextureInfo(**dst)
 
 
 class MaterialAlphaMode(Enum):
@@ -763,14 +826,15 @@ class MaterialAlphaMode(Enum):
 
     @staticmethod
     def from_dict(src) -> 'MaterialAlphaMode':
-        return MaterialAlphaMode(src)
+        dst = {}
+        return MaterialAlphaMode(dst)
 
 
 class Material(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Materials_ExtensionsExtension] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
     # A set of parameter values that are used to define the metallic-roughness material model from Physically-Based Rendering (PBR) methodology.
@@ -793,7 +857,7 @@ class Material(NamedTuple):
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {}
         if self.name is not None: d["name"] = self.name # noqa
-        if self.extensions is not None: d["extensions"] = self.extensions # noqa
+        if self.extensions is not None: d["extensions"] = self.extensions.to_dict() # noqa
         if self.extras is not None: d["extras"] = self.extras # noqa
         if self.pbrMetallicRoughness is not None: d["pbrMetallicRoughness"] = self.pbrMetallicRoughness.to_dict() # noqa
         if self.normalTexture is not None: d["normalTexture"] = self.normalTexture.to_dict() # noqa
@@ -807,18 +871,19 @@ class Material(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Material':
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        if "pbrMetallicRoughness" in src: src["pbrMetallicRoughness"] = MaterialPBRMetallicRoughness.from_dict(src["pbrMetallicRoughness"]) # noqa
-        if "normalTexture" in src: src["normalTexture"] = MaterialNormalTextureInfo.from_dict(src["normalTexture"]) # noqa
-        if "occlusionTexture" in src: src["occlusionTexture"] = MaterialOcclusionTextureInfo.from_dict(src["occlusionTexture"]) # noqa
-        if "emissiveTexture" in src: src["emissiveTexture"] = TextureInfo.from_dict(src["emissiveTexture"]) # noqa
-        if ("emissiveFactor" not in src): src["emissiveFactor"] = [] # noqa
-        if "alphaMode" in src: src["alphaMode"] = MaterialAlphaMode(src["alphaMode"]) # noqa
-        # alphaCutoff do nothing
-        # doubleSided do nothing
-        return Material(**src)
+        dst = {}
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        if "extensions" in src: dst["extensions"] = Materials_ExtensionsExtension.from_dict(src["extensions"]) # noqa
+        dst["extras"] = src.get("extras", {})
+        if "pbrMetallicRoughness" in src: dst["pbrMetallicRoughness"] = MaterialPBRMetallicRoughness.from_dict(src["pbrMetallicRoughness"]) # noqa
+        if "normalTexture" in src: dst["normalTexture"] = MaterialNormalTextureInfo.from_dict(src["normalTexture"]) # noqa
+        if "occlusionTexture" in src: dst["occlusionTexture"] = MaterialOcclusionTextureInfo.from_dict(src["occlusionTexture"]) # noqa
+        if "emissiveTexture" in src: dst["emissiveTexture"] = TextureInfo.from_dict(src["emissiveTexture"]) # noqa
+        dst["emissiveFactor"] = src.get("emissiveFactor", [])
+        if "alphaMode" in src: dst["alphaMode"] = MaterialAlphaMode(src["alphaMode"]) # noqa
+        if "alphaCutoff" in src: dst["alphaCutoff"] = src["alphaCutoff"] # noqa copy
+        if "doubleSided" in src: dst["doubleSided"] = src["doubleSided"] # noqa copy
+        return Material(**dst)
 
 
 class MeshPrimitiveMode(Enum):
@@ -835,24 +900,41 @@ class MeshPrimitiveMode(Enum):
 
     @staticmethod
     def from_dict(src) -> 'MeshPrimitiveMode':
-        return MeshPrimitiveMode(src)
+        dst = {}
+        return MeshPrimitiveMode(dst)
+
+
+class Meshes_Primitives_Extras(NamedTuple):
+    # 
+    targetNames: Optional[List[Dict[str, Any]]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.targetNames: d["targetNames"] = self.targetNames # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'Meshes_Primitives_Extras':
+        dst = {}
+        dst["targetNames"] = src.get("targetNames", [])
+        return Meshes_Primitives_Extras(**dst)
 
 
 class MeshPrimitive(NamedTuple):
     # A dictionary object, where each key corresponds to mesh attribute semantic and each value is the index of the accessor containing attribute's data.
     attributes: Dict[str, int]
-    # The index of the bufferView.
+    # The index of the accessor that contains the indices.
     indices: Optional[int] = None
-    # The index of the bufferView.
+    # The index of the material to apply to this primitive when rendering.
     material: Optional[int] = None
     # The type of primitives to render.
     mode: Optional[MeshPrimitiveMode] = None
     # An array of Morph Targets, each  Morph Target is a dictionary mapping attributes (only `POSITION`, `NORMAL`, and `TANGENT` supported) to their deviations in the Morph Target.
     targets: Optional[List[Dict[str, int]]] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
-    extras: Optional[Dict[str, Any]] = None
+    extras: Optional[Meshes_Primitives_Extras] = None
 
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {}
@@ -862,19 +944,36 @@ class MeshPrimitive(NamedTuple):
         if self.mode is not None: d["mode"] = self.mode.to_dict() # noqa
         if self.targets: d["targets"] = self.targets # noqa
         if self.extensions is not None: d["extensions"] = self.extensions # noqa
-        if self.extras is not None: d["extras"] = self.extras # noqa
+        if self.extras is not None: d["extras"] = self.extras.to_dict() # noqa
         return d
 
     @staticmethod
     def from_dict(src: dict) -> 'MeshPrimitive':
-        if ("attributes" not in src): src["attributes"] = {} # noqa
-        # indices do nothing
-        # material do nothing
-        if "mode" in src: src["mode"] = MeshPrimitiveMode(src["mode"]) # noqa
-        if ("targets" not in src): src["targets"] = [] # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return MeshPrimitive(**src)
+        dst = {}
+        dst["attributes"] = src.get("attributes", {})
+        if "indices" in src: dst["indices"] = src["indices"] # noqa copy
+        if "material" in src: dst["material"] = src["material"] # noqa copy
+        if "mode" in src: dst["mode"] = MeshPrimitiveMode(src["mode"]) # noqa
+        dst["targets"] = src.get("targets", [])
+        dst["extensions"] = src.get("extensions", {})
+        if "extras" in src: dst["extras"] = Meshes_Primitives_Extras.from_dict(src["extras"]) # noqa
+        return MeshPrimitive(**dst)
+
+
+class Meshes_Extras(NamedTuple):
+    # 
+    targetNames: Optional[List[Dict[str, Any]]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.targetNames: d["targetNames"] = self.targetNames # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'Meshes_Extras':
+        dst = {}
+        dst["targetNames"] = src.get("targetNames", [])
+        return Meshes_Extras(**dst)
 
 
 class Mesh(NamedTuple):
@@ -885,9 +984,9 @@ class Mesh(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
-    extras: Optional[Dict[str, Any]] = None
+    extras: Optional[Meshes_Extras] = None
 
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {}
@@ -895,29 +994,30 @@ class Mesh(NamedTuple):
         if self.weights: d["weights"] = self.weights # noqa
         if self.name is not None: d["name"] = self.name # noqa
         if self.extensions is not None: d["extensions"] = self.extensions # noqa
-        if self.extras is not None: d["extras"] = self.extras # noqa
+        if self.extras is not None: d["extras"] = self.extras.to_dict() # noqa
         return d
 
     @staticmethod
     def from_dict(src: dict) -> 'Mesh':
-        src["primitives"] = [MeshPrimitive.from_dict(item) for item in src["primitives"]] if "primitives" in src else [] # noqa
-        if ("weights" not in src): src["weights"] = [] # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Mesh(**src)
+        dst = {}
+        dst["primitives"] = [MeshPrimitive.from_dict(item) for item in src["primitives"]] if "primitives" in src else [] # noqa
+        dst["weights"] = src.get("weights", [])
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        if "extras" in src: dst["extras"] = Meshes_Extras.from_dict(src["extras"]) # noqa
+        return Mesh(**dst)
 
 
 class Node(NamedTuple):
-    # The index of the bufferView.
+    # The index of the camera referenced by this node.
     camera: Optional[int] = None
     # The indices of this node's children.
     children: Optional[List[int]] = None
-    # The index of the bufferView.
+    # The index of the skin referenced by this node.
     skin: Optional[int] = None
     # A floating-point 4x4 transformation matrix stored in column-major order.
     matrix: Optional[List[float]] = None
-    # The index of the bufferView.
+    # The index of the mesh in this node.
     mesh: Optional[int] = None
     # The node's unit quaternion rotation in the order (x, y, z, w), where w is the scalar.
     rotation: Optional[List[float]] = None
@@ -930,7 +1030,7 @@ class Node(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -952,19 +1052,20 @@ class Node(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Node':
-        # camera do nothing
-        if ("children" not in src): src["children"] = [] # noqa
-        # skin do nothing
-        if ("matrix" not in src): src["matrix"] = [] # noqa
-        # mesh do nothing
-        if ("rotation" not in src): src["rotation"] = [] # noqa
-        if ("scale" not in src): src["scale"] = [] # noqa
-        if ("translation" not in src): src["translation"] = [] # noqa
-        if ("weights" not in src): src["weights"] = [] # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Node(**src)
+        dst = {}
+        if "camera" in src: dst["camera"] = src["camera"] # noqa copy
+        dst["children"] = src.get("children", [])
+        if "skin" in src: dst["skin"] = src["skin"] # noqa copy
+        dst["matrix"] = src.get("matrix", [])
+        if "mesh" in src: dst["mesh"] = src["mesh"] # noqa copy
+        dst["rotation"] = src.get("rotation", [])
+        dst["scale"] = src.get("scale", [])
+        dst["translation"] = src.get("translation", [])
+        dst["weights"] = src.get("weights", [])
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Node(**dst)
 
 
 class SamplerMagFilter(Enum):
@@ -976,7 +1077,8 @@ class SamplerMagFilter(Enum):
 
     @staticmethod
     def from_dict(src) -> 'SamplerMagFilter':
-        return SamplerMagFilter(src)
+        dst = {}
+        return SamplerMagFilter(dst)
 
 
 class SamplerMinFilter(Enum):
@@ -992,7 +1094,8 @@ class SamplerMinFilter(Enum):
 
     @staticmethod
     def from_dict(src) -> 'SamplerMinFilter':
-        return SamplerMinFilter(src)
+        dst = {}
+        return SamplerMinFilter(dst)
 
 
 class SamplerWrapS(Enum):
@@ -1005,7 +1108,8 @@ class SamplerWrapS(Enum):
 
     @staticmethod
     def from_dict(src) -> 'SamplerWrapS':
-        return SamplerWrapS(src)
+        dst = {}
+        return SamplerWrapS(dst)
 
 
 class SamplerWrapT(Enum):
@@ -1018,7 +1122,8 @@ class SamplerWrapT(Enum):
 
     @staticmethod
     def from_dict(src) -> 'SamplerWrapT':
-        return SamplerWrapT(src)
+        dst = {}
+        return SamplerWrapT(dst)
 
 
 class Sampler(NamedTuple):
@@ -1033,7 +1138,7 @@ class Sampler(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -1050,14 +1155,15 @@ class Sampler(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Sampler':
-        if "magFilter" in src: src["magFilter"] = SamplerMagFilter(src["magFilter"]) # noqa
-        if "minFilter" in src: src["minFilter"] = SamplerMinFilter(src["minFilter"]) # noqa
-        if "wrapS" in src: src["wrapS"] = SamplerWrapS(src["wrapS"]) # noqa
-        if "wrapT" in src: src["wrapT"] = SamplerWrapT(src["wrapT"]) # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Sampler(**src)
+        dst = {}
+        if "magFilter" in src: dst["magFilter"] = SamplerMagFilter(src["magFilter"]) # noqa
+        if "minFilter" in src: dst["minFilter"] = SamplerMinFilter(src["minFilter"]) # noqa
+        if "wrapS" in src: dst["wrapS"] = SamplerWrapS(src["wrapS"]) # noqa
+        if "wrapT" in src: dst["wrapT"] = SamplerWrapT(src["wrapT"]) # noqa
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Sampler(**dst)
 
 
 class Scene(NamedTuple):
@@ -1066,7 +1172,7 @@ class Scene(NamedTuple):
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -1080,24 +1186,25 @@ class Scene(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Scene':
-        if ("nodes" not in src): src["nodes"] = [] # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Scene(**src)
+        dst = {}
+        dst["nodes"] = src.get("nodes", [])
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Scene(**dst)
 
 
 class Skin(NamedTuple):
     # Indices of skeleton nodes, used as joints in this skin.
     joints: List[int]
-    # The index of the bufferView.
+    # The index of the accessor containing the floating-point 4x4 inverse-bind matrices.  The default is that each matrix is a 4x4 identity matrix, which implies that inverse-bind matrices were pre-applied.
     inverseBindMatrices: Optional[int] = None
-    # The index of the bufferView.
+    # The index of the node used as a skeleton root.
     skeleton: Optional[int] = None
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -1113,24 +1220,25 @@ class Skin(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Skin':
-        # inverseBindMatrices do nothing
-        # skeleton do nothing
-        if ("joints" not in src): src["joints"] = [] # noqa
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Skin(**src)
+        dst = {}
+        if "inverseBindMatrices" in src: dst["inverseBindMatrices"] = src["inverseBindMatrices"] # noqa copy
+        if "skeleton" in src: dst["skeleton"] = src["skeleton"] # noqa copy
+        dst["joints"] = src.get("joints", [])
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Skin(**dst)
 
 
 class Texture(NamedTuple):
-    # The index of the bufferView.
+    # The index of the sampler used by this texture. When undefined, a sampler with repeat wrapping and auto filtering should be used.
     sampler: Optional[int] = None
-    # The index of the bufferView.
+    # The index of the image used by this texture. When undefined, it is expected that an extension or other mechanism will supply an alternate texture source, otherwise behavior is undefined.
     source: Optional[int] = None
     # The user-defined name of this object.
     name: Optional[str] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[Dict[str, Dict[str, Any]]] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -1145,12 +1253,705 @@ class Texture(NamedTuple):
 
     @staticmethod
     def from_dict(src: dict) -> 'Texture':
-        # sampler do nothing
-        # source do nothing
-        # name do nothing
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return Texture(**src)
+        dst = {}
+        if "sampler" in src: dst["sampler"] = src["sampler"] # noqa copy
+        if "source" in src: dst["source"] = src["source"] # noqa copy
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        dst["extensions"] = src.get("extensions", {})
+        dst["extras"] = src.get("extras", {})
+        return Texture(**dst)
+
+
+class VrmMeta(NamedTuple):
+    # Title of VRM model
+    title: Optional[str] = None
+    # Version of VRM model
+    version: Optional[str] = None
+    # Author of VRM model
+    author: Optional[str] = None
+    # Contact Information of VRM model author
+    contactInformation: Optional[str] = None
+    # Reference of VRM model
+    reference: Optional[str] = None
+    # Thumbnail of VRM model
+    texture: Optional[int] = None
+    # A person who can perform with this avatar
+    allowedUserName: Optional[str] = None
+    # Permission to perform violent acts with this avatar
+    violentUssageName: Optional[str] = None
+    # Permission to perform sexual acts with this avatar
+    sexualUssageName: Optional[str] = None
+    # For commercial use
+    commercialUssageName: Optional[str] = None
+    # If there are any conditions not mentioned above, put the URL link of the license document here.
+    otherPermissionUrl: Optional[str] = None
+    # License type
+    licenseName: Optional[str] = None
+    # If “Other” is selected, put the URL link of the license document here.
+    otherLicenseUrl: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.title is not None: d["title"] = self.title # noqa
+        if self.version is not None: d["version"] = self.version # noqa
+        if self.author is not None: d["author"] = self.author # noqa
+        if self.contactInformation is not None: d["contactInformation"] = self.contactInformation # noqa
+        if self.reference is not None: d["reference"] = self.reference # noqa
+        if self.texture is not None: d["texture"] = self.texture # noqa
+        if self.allowedUserName is not None: d["allowedUserName"] = self.allowedUserName # noqa
+        if self.violentUssageName is not None: d["violentUssageName"] = self.violentUssageName # noqa
+        if self.sexualUssageName is not None: d["sexualUssageName"] = self.sexualUssageName # noqa
+        if self.commercialUssageName is not None: d["commercialUssageName"] = self.commercialUssageName # noqa
+        if self.otherPermissionUrl is not None: d["otherPermissionUrl"] = self.otherPermissionUrl # noqa
+        if self.licenseName is not None: d["licenseName"] = self.licenseName # noqa
+        if self.otherLicenseUrl is not None: d["otherLicenseUrl"] = self.otherLicenseUrl # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmMeta':
+        dst = {}
+        if "title" in src: dst["title"] = src["title"] # noqa copy
+        if "version" in src: dst["version"] = src["version"] # noqa copy
+        if "author" in src: dst["author"] = src["author"] # noqa copy
+        if "contactInformation" in src: dst["contactInformation"] = src["contactInformation"] # noqa copy
+        if "reference" in src: dst["reference"] = src["reference"] # noqa copy
+        if "texture" in src: dst["texture"] = src["texture"] # noqa copy
+        if "allowedUserName" in src: dst["allowedUserName"] = src["allowedUserName"] # noqa copy
+        if "violentUssageName" in src: dst["violentUssageName"] = src["violentUssageName"] # noqa copy
+        if "sexualUssageName" in src: dst["sexualUssageName"] = src["sexualUssageName"] # noqa copy
+        if "commercialUssageName" in src: dst["commercialUssageName"] = src["commercialUssageName"] # noqa copy
+        if "otherPermissionUrl" in src: dst["otherPermissionUrl"] = src["otherPermissionUrl"] # noqa copy
+        if "licenseName" in src: dst["licenseName"] = src["licenseName"] # noqa copy
+        if "otherLicenseUrl" in src: dst["otherLicenseUrl"] = src["otherLicenseUrl"] # noqa copy
+        return VrmMeta(**dst)
+
+
+class HumanoidHumanBones_Min(NamedTuple):
+    # 
+    x: Optional[float] = None
+    # 
+    y: Optional[float] = None
+    # 
+    z: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.x is not None: d["x"] = self.x # noqa
+        if self.y is not None: d["y"] = self.y # noqa
+        if self.z is not None: d["z"] = self.z # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'HumanoidHumanBones_Min':
+        dst = {}
+        if "x" in src: dst["x"] = src["x"] # noqa copy
+        if "y" in src: dst["y"] = src["y"] # noqa copy
+        if "z" in src: dst["z"] = src["z"] # noqa copy
+        return HumanoidHumanBones_Min(**dst)
+
+
+class HumanoidHumanBones_Max(NamedTuple):
+    # 
+    x: Optional[float] = None
+    # 
+    y: Optional[float] = None
+    # 
+    z: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.x is not None: d["x"] = self.x # noqa
+        if self.y is not None: d["y"] = self.y # noqa
+        if self.z is not None: d["z"] = self.z # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'HumanoidHumanBones_Max':
+        dst = {}
+        if "x" in src: dst["x"] = src["x"] # noqa copy
+        if "y" in src: dst["y"] = src["y"] # noqa copy
+        if "z" in src: dst["z"] = src["z"] # noqa copy
+        return HumanoidHumanBones_Max(**dst)
+
+
+class HumanoidHumanBones_Center(NamedTuple):
+    # 
+    x: Optional[float] = None
+    # 
+    y: Optional[float] = None
+    # 
+    z: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.x is not None: d["x"] = self.x # noqa
+        if self.y is not None: d["y"] = self.y # noqa
+        if self.z is not None: d["z"] = self.z # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'HumanoidHumanBones_Center':
+        dst = {}
+        if "x" in src: dst["x"] = src["x"] # noqa copy
+        if "y" in src: dst["y"] = src["y"] # noqa copy
+        if "z" in src: dst["z"] = src["z"] # noqa copy
+        return HumanoidHumanBones_Center(**dst)
+
+
+class VrmHumanoidBone(NamedTuple):
+    # Human bone name.
+    bone: Optional[str] = None
+    # Reference node index
+    node: Optional[int] = None
+    # Unity's HumanLimit.useDefaultValues
+    useDefaultValues: Optional[bool] = None
+    # Unity's HumanLimit.min
+    min: Optional[HumanoidHumanBones_Min] = None
+    # Unity's HumanLimit.max
+    max: Optional[HumanoidHumanBones_Max] = None
+    # Unity's HumanLimit.center
+    center: Optional[HumanoidHumanBones_Center] = None
+    # Unity's HumanLimit.axisLength
+    axisLength: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.bone is not None: d["bone"] = self.bone # noqa
+        if self.node is not None: d["node"] = self.node # noqa
+        if self.useDefaultValues is not None: d["useDefaultValues"] = self.useDefaultValues # noqa
+        if self.min is not None: d["min"] = self.min.to_dict() # noqa
+        if self.max is not None: d["max"] = self.max.to_dict() # noqa
+        if self.center is not None: d["center"] = self.center.to_dict() # noqa
+        if self.axisLength is not None: d["axisLength"] = self.axisLength # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmHumanoidBone':
+        dst = {}
+        if "bone" in src: dst["bone"] = src["bone"] # noqa copy
+        if "node" in src: dst["node"] = src["node"] # noqa copy
+        if "useDefaultValues" in src: dst["useDefaultValues"] = src["useDefaultValues"] # noqa copy
+        if "min" in src: dst["min"] = HumanoidHumanBones_Min.from_dict(src["min"]) # noqa
+        if "max" in src: dst["max"] = HumanoidHumanBones_Max.from_dict(src["max"]) # noqa
+        if "center" in src: dst["center"] = HumanoidHumanBones_Center.from_dict(src["center"]) # noqa
+        if "axisLength" in src: dst["axisLength"] = src["axisLength"] # noqa copy
+        return VrmHumanoidBone(**dst)
+
+
+class VrmHumanoid(NamedTuple):
+    # 
+    humanBones: Optional[List[VrmHumanoidBone]] = None
+    # Unity's HumanDescription.armStretch
+    armStretch: Optional[float] = None
+    # Unity's HumanDescription.legStretch
+    legStretch: Optional[float] = None
+    # Unity's HumanDescription.upperArmTwist
+    upperArmTwist: Optional[float] = None
+    # Unity's HumanDescription.lowerArmTwist
+    lowerArmTwist: Optional[float] = None
+    # Unity's HumanDescription.upperLegTwist
+    upperLegTwist: Optional[float] = None
+    # Unity's HumanDescription.lowerLegTwist
+    lowerLegTwist: Optional[float] = None
+    # Unity's HumanDescription.feetSpacing
+    feetSpacing: Optional[float] = None
+    # Unity's HumanDescription.hasTranslationDoF
+    hasTranslationDoF: Optional[bool] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.humanBones: d["humanBones"] = [item.to_dict() for item in self.humanBones] # noqa
+        if self.armStretch is not None: d["armStretch"] = self.armStretch # noqa
+        if self.legStretch is not None: d["legStretch"] = self.legStretch # noqa
+        if self.upperArmTwist is not None: d["upperArmTwist"] = self.upperArmTwist # noqa
+        if self.lowerArmTwist is not None: d["lowerArmTwist"] = self.lowerArmTwist # noqa
+        if self.upperLegTwist is not None: d["upperLegTwist"] = self.upperLegTwist # noqa
+        if self.lowerLegTwist is not None: d["lowerLegTwist"] = self.lowerLegTwist # noqa
+        if self.feetSpacing is not None: d["feetSpacing"] = self.feetSpacing # noqa
+        if self.hasTranslationDoF is not None: d["hasTranslationDoF"] = self.hasTranslationDoF # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmHumanoid':
+        dst = {}
+        dst["humanBones"] = [VrmHumanoidBone.from_dict(item) for item in src["humanBones"]] if "humanBones" in src else [] # noqa
+        if "armStretch" in src: dst["armStretch"] = src["armStretch"] # noqa copy
+        if "legStretch" in src: dst["legStretch"] = src["legStretch"] # noqa copy
+        if "upperArmTwist" in src: dst["upperArmTwist"] = src["upperArmTwist"] # noqa copy
+        if "lowerArmTwist" in src: dst["lowerArmTwist"] = src["lowerArmTwist"] # noqa copy
+        if "upperLegTwist" in src: dst["upperLegTwist"] = src["upperLegTwist"] # noqa copy
+        if "lowerLegTwist" in src: dst["lowerLegTwist"] = src["lowerLegTwist"] # noqa copy
+        if "feetSpacing" in src: dst["feetSpacing"] = src["feetSpacing"] # noqa copy
+        if "hasTranslationDoF" in src: dst["hasTranslationDoF"] = src["hasTranslationDoF"] # noqa copy
+        return VrmHumanoid(**dst)
+
+
+class FirstPersonFirstPersonBoneOffset(NamedTuple):
+    # 
+    x: Optional[float] = None
+    # 
+    y: Optional[float] = None
+    # 
+    z: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.x is not None: d["x"] = self.x # noqa
+        if self.y is not None: d["y"] = self.y # noqa
+        if self.z is not None: d["z"] = self.z # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'FirstPersonFirstPersonBoneOffset':
+        dst = {}
+        if "x" in src: dst["x"] = src["x"] # noqa copy
+        if "y" in src: dst["y"] = src["y"] # noqa copy
+        if "z" in src: dst["z"] = src["z"] # noqa copy
+        return FirstPersonFirstPersonBoneOffset(**dst)
+
+
+class VrmFirstpersonMeshannotation(NamedTuple):
+    # 
+    mesh: Optional[int] = None
+    # 
+    firstPersonFlag: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.mesh is not None: d["mesh"] = self.mesh # noqa
+        if self.firstPersonFlag is not None: d["firstPersonFlag"] = self.firstPersonFlag # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmFirstpersonMeshannotation':
+        dst = {}
+        if "mesh" in src: dst["mesh"] = src["mesh"] # noqa copy
+        if "firstPersonFlag" in src: dst["firstPersonFlag"] = src["firstPersonFlag"] # noqa copy
+        return VrmFirstpersonMeshannotation(**dst)
+
+
+class VrmFirstpersonDegreemap(NamedTuple):
+    # None linear mapping params. time, value, inTangent, outTangent
+    curve: Optional[List[float]] = None
+    # Look at input clamp range degree.
+    xRange: Optional[float] = None
+    # Look at map range degree from xRange.
+    yRange: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.curve: d["curve"] = self.curve # noqa
+        if self.xRange is not None: d["xRange"] = self.xRange # noqa
+        if self.yRange is not None: d["yRange"] = self.yRange # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmFirstpersonDegreemap':
+        dst = {}
+        dst["curve"] = src.get("curve", [])
+        if "xRange" in src: dst["xRange"] = src["xRange"] # noqa copy
+        if "yRange" in src: dst["yRange"] = src["yRange"] # noqa copy
+        return VrmFirstpersonDegreemap(**dst)
+
+
+class VrmFirstperson(NamedTuple):
+    # The bone whose rendering should be turned off in first-person view. Usually Head is specified.
+    firstPersonBone: Optional[int] = None
+    # The target position of the VR headset in first-person view. It is assumed that an offset from the head bone to the VR headset is added.
+    firstPersonBoneOffset: Optional[FirstPersonFirstPersonBoneOffset] = None
+    # Switch display / undisplay for each mesh in first-person view or the others.
+    meshAnnotations: Optional[List[VrmFirstpersonMeshannotation]] = None
+    # Eye controller mode.
+    lookAtTypeName: Optional[str] = None
+    # Eye controller setting.
+    lookAtHorizontalInner: Optional[VrmFirstpersonDegreemap] = None
+    # Eye controller setting.
+    lookAtHorizontalOuter: Optional[VrmFirstpersonDegreemap] = None
+    # Eye controller setting.
+    lookAtVerticalDown: Optional[VrmFirstpersonDegreemap] = None
+    # Eye controller setting.
+    lookAtVerticalUp: Optional[VrmFirstpersonDegreemap] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.firstPersonBone is not None: d["firstPersonBone"] = self.firstPersonBone # noqa
+        if self.firstPersonBoneOffset is not None: d["firstPersonBoneOffset"] = self.firstPersonBoneOffset.to_dict() # noqa
+        if self.meshAnnotations: d["meshAnnotations"] = [item.to_dict() for item in self.meshAnnotations] # noqa
+        if self.lookAtTypeName is not None: d["lookAtTypeName"] = self.lookAtTypeName # noqa
+        if self.lookAtHorizontalInner is not None: d["lookAtHorizontalInner"] = self.lookAtHorizontalInner.to_dict() # noqa
+        if self.lookAtHorizontalOuter is not None: d["lookAtHorizontalOuter"] = self.lookAtHorizontalOuter.to_dict() # noqa
+        if self.lookAtVerticalDown is not None: d["lookAtVerticalDown"] = self.lookAtVerticalDown.to_dict() # noqa
+        if self.lookAtVerticalUp is not None: d["lookAtVerticalUp"] = self.lookAtVerticalUp.to_dict() # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmFirstperson':
+        dst = {}
+        if "firstPersonBone" in src: dst["firstPersonBone"] = src["firstPersonBone"] # noqa copy
+        if "firstPersonBoneOffset" in src: dst["firstPersonBoneOffset"] = FirstPersonFirstPersonBoneOffset.from_dict(src["firstPersonBoneOffset"]) # noqa
+        dst["meshAnnotations"] = [VrmFirstpersonMeshannotation.from_dict(item) for item in src["meshAnnotations"]] if "meshAnnotations" in src else [] # noqa
+        if "lookAtTypeName" in src: dst["lookAtTypeName"] = src["lookAtTypeName"] # noqa copy
+        if "lookAtHorizontalInner" in src: dst["lookAtHorizontalInner"] = VrmFirstpersonDegreemap.from_dict(src["lookAtHorizontalInner"]) # noqa
+        if "lookAtHorizontalOuter" in src: dst["lookAtHorizontalOuter"] = VrmFirstpersonDegreemap.from_dict(src["lookAtHorizontalOuter"]) # noqa
+        if "lookAtVerticalDown" in src: dst["lookAtVerticalDown"] = VrmFirstpersonDegreemap.from_dict(src["lookAtVerticalDown"]) # noqa
+        if "lookAtVerticalUp" in src: dst["lookAtVerticalUp"] = VrmFirstpersonDegreemap.from_dict(src["lookAtVerticalUp"]) # noqa
+        return VrmFirstperson(**dst)
+
+
+class VrmBlendshapeBind(NamedTuple):
+    # 
+    mesh: Optional[int] = None
+    # 
+    index: Optional[int] = None
+    # SkinnedMeshRenderer.SetBlendShapeWeight
+    weight: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.mesh is not None: d["mesh"] = self.mesh # noqa
+        if self.index is not None: d["index"] = self.index # noqa
+        if self.weight is not None: d["weight"] = self.weight # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmBlendshapeBind':
+        dst = {}
+        if "mesh" in src: dst["mesh"] = src["mesh"] # noqa copy
+        if "index" in src: dst["index"] = src["index"] # noqa copy
+        if "weight" in src: dst["weight"] = src["weight"] # noqa copy
+        return VrmBlendshapeBind(**dst)
+
+
+class VrmBlendshapeMaterialbind(NamedTuple):
+    # 
+    materialName: Optional[str] = None
+    # 
+    propertyName: Optional[str] = None
+    # 
+    targetValue: Optional[List[float]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.materialName is not None: d["materialName"] = self.materialName # noqa
+        if self.propertyName is not None: d["propertyName"] = self.propertyName # noqa
+        if self.targetValue: d["targetValue"] = self.targetValue # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmBlendshapeMaterialbind':
+        dst = {}
+        if "materialName" in src: dst["materialName"] = src["materialName"] # noqa copy
+        if "propertyName" in src: dst["propertyName"] = src["propertyName"] # noqa copy
+        dst["targetValue"] = src.get("targetValue", [])
+        return VrmBlendshapeMaterialbind(**dst)
+
+
+class VrmBlendshapeGroup(NamedTuple):
+    # Expression name
+    name: Optional[str] = None
+    # Predefined Expression name
+    presetName: Optional[str] = None
+    # Low level blendshape references.
+    binds: Optional[List[VrmBlendshapeBind]] = None
+    # Material animation references.
+    materialValues: Optional[List[VrmBlendshapeMaterialbind]] = None
+    # 0 or 1. Do not allow an intermediate value. Value should rounded
+    isBinary: Optional[bool] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.name is not None: d["name"] = self.name # noqa
+        if self.presetName is not None: d["presetName"] = self.presetName # noqa
+        if self.binds: d["binds"] = [item.to_dict() for item in self.binds] # noqa
+        if self.materialValues: d["materialValues"] = [item.to_dict() for item in self.materialValues] # noqa
+        if self.isBinary is not None: d["isBinary"] = self.isBinary # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmBlendshapeGroup':
+        dst = {}
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        if "presetName" in src: dst["presetName"] = src["presetName"] # noqa copy
+        dst["binds"] = [VrmBlendshapeBind.from_dict(item) for item in src["binds"]] if "binds" in src else [] # noqa
+        dst["materialValues"] = [VrmBlendshapeMaterialbind.from_dict(item) for item in src["materialValues"]] if "materialValues" in src else [] # noqa
+        if "isBinary" in src: dst["isBinary"] = src["isBinary"] # noqa copy
+        return VrmBlendshapeGroup(**dst)
+
+
+class VrmBlendshape(NamedTuple):
+    # 
+    blendShapeGroups: Optional[List[VrmBlendshapeGroup]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.blendShapeGroups: d["blendShapeGroups"] = [item.to_dict() for item in self.blendShapeGroups] # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmBlendshape':
+        dst = {}
+        dst["blendShapeGroups"] = [VrmBlendshapeGroup.from_dict(item) for item in src["blendShapeGroups"]] if "blendShapeGroups" in src else [] # noqa
+        return VrmBlendshape(**dst)
+
+
+class SecondaryAnimationBoneGroups_GravityDir(NamedTuple):
+    # 
+    x: Optional[float] = None
+    # 
+    y: Optional[float] = None
+    # 
+    z: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.x is not None: d["x"] = self.x # noqa
+        if self.y is not None: d["y"] = self.y # noqa
+        if self.z is not None: d["z"] = self.z # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'SecondaryAnimationBoneGroups_GravityDir':
+        dst = {}
+        if "x" in src: dst["x"] = src["x"] # noqa copy
+        if "y" in src: dst["y"] = src["y"] # noqa copy
+        if "z" in src: dst["z"] = src["z"] # noqa copy
+        return SecondaryAnimationBoneGroups_GravityDir(**dst)
+
+
+class VrmSecondaryanimationSpring(NamedTuple):
+    # Annotation comment
+    comment: Optional[str] = None
+    # The resilience of the swaying object (the power of returning to the initial pose).
+    stiffiness: Optional[float] = None
+    # The strength of gravity.
+    gravityPower: Optional[float] = None
+    # The direction of gravity. Set (0, -1, 0) for simulating the gravity. Set (1, 0, 0) for simulating the wind.
+    gravityDir: Optional[SecondaryAnimationBoneGroups_GravityDir] = None
+    # The resistance (deceleration) of automatic animation.
+    dragForce: Optional[float] = None
+    # The reference point of a swaying object can be set at any location except the origin. When implementing UI moving with warp, the parent node to move with warp can be specified if you don't want to make the object swaying with warp movement.
+    center: Optional[int] = None
+    # The radius of the sphere used for the collision detection with colliders.
+    hitRadius: Optional[float] = None
+    # Specify the node index of the root bone of the swaying object.
+    bones: Optional[List[int]] = None
+    # Specify the index of the collider group for collisions with swaying objects.
+    colliderGroups: Optional[List[int]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.comment is not None: d["comment"] = self.comment # noqa
+        if self.stiffiness is not None: d["stiffiness"] = self.stiffiness # noqa
+        if self.gravityPower is not None: d["gravityPower"] = self.gravityPower # noqa
+        if self.gravityDir is not None: d["gravityDir"] = self.gravityDir.to_dict() # noqa
+        if self.dragForce is not None: d["dragForce"] = self.dragForce # noqa
+        if self.center is not None: d["center"] = self.center # noqa
+        if self.hitRadius is not None: d["hitRadius"] = self.hitRadius # noqa
+        if self.bones: d["bones"] = self.bones # noqa
+        if self.colliderGroups: d["colliderGroups"] = self.colliderGroups # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmSecondaryanimationSpring':
+        dst = {}
+        if "comment" in src: dst["comment"] = src["comment"] # noqa copy
+        if "stiffiness" in src: dst["stiffiness"] = src["stiffiness"] # noqa copy
+        if "gravityPower" in src: dst["gravityPower"] = src["gravityPower"] # noqa copy
+        if "gravityDir" in src: dst["gravityDir"] = SecondaryAnimationBoneGroups_GravityDir.from_dict(src["gravityDir"]) # noqa
+        if "dragForce" in src: dst["dragForce"] = src["dragForce"] # noqa copy
+        if "center" in src: dst["center"] = src["center"] # noqa copy
+        if "hitRadius" in src: dst["hitRadius"] = src["hitRadius"] # noqa copy
+        dst["bones"] = src.get("bones", [])
+        dst["colliderGroups"] = src.get("colliderGroups", [])
+        return VrmSecondaryanimationSpring(**dst)
+
+
+class SecondaryAnimationColliderGroups_Colliders_Offset(NamedTuple):
+    # 
+    x: Optional[float] = None
+    # 
+    y: Optional[float] = None
+    # 
+    z: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.x is not None: d["x"] = self.x # noqa
+        if self.y is not None: d["y"] = self.y # noqa
+        if self.z is not None: d["z"] = self.z # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'SecondaryAnimationColliderGroups_Colliders_Offset':
+        dst = {}
+        if "x" in src: dst["x"] = src["x"] # noqa copy
+        if "y" in src: dst["y"] = src["y"] # noqa copy
+        if "z" in src: dst["z"] = src["z"] # noqa copy
+        return SecondaryAnimationColliderGroups_Colliders_Offset(**dst)
+
+
+class SecondaryAnimationColliderGroups_Colliders_(NamedTuple):
+    # The local coordinate from the node of the collider group in *left-handed* Y-up coordinate.
+    offset: Optional[SecondaryAnimationColliderGroups_Colliders_Offset] = None
+    # The radius of the collider.
+    radius: Optional[float] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.offset is not None: d["offset"] = self.offset.to_dict() # noqa
+        if self.radius is not None: d["radius"] = self.radius # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'SecondaryAnimationColliderGroups_Colliders_':
+        dst = {}
+        if "offset" in src: dst["offset"] = SecondaryAnimationColliderGroups_Colliders_Offset.from_dict(src["offset"]) # noqa
+        if "radius" in src: dst["radius"] = src["radius"] # noqa copy
+        return SecondaryAnimationColliderGroups_Colliders_(**dst)
+
+
+class VrmSecondaryanimationCollidergroup(NamedTuple):
+    # The node of the collider group for setting up collision detections.
+    node: Optional[int] = None
+    # 
+    colliders: Optional[List[SecondaryAnimationColliderGroups_Colliders_]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.node is not None: d["node"] = self.node # noqa
+        if self.colliders: d["colliders"] = [item.to_dict() for item in self.colliders] # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmSecondaryanimationCollidergroup':
+        dst = {}
+        if "node" in src: dst["node"] = src["node"] # noqa copy
+        dst["colliders"] = [SecondaryAnimationColliderGroups_Colliders_.from_dict(item) for item in src["colliders"]] if "colliders" in src else [] # noqa
+        return VrmSecondaryanimationCollidergroup(**dst)
+
+
+class VrmSecondaryanimation(NamedTuple):
+    # 
+    boneGroups: Optional[List[VrmSecondaryanimationSpring]] = None
+    # 
+    colliderGroups: Optional[List[VrmSecondaryanimationCollidergroup]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.boneGroups: d["boneGroups"] = [item.to_dict() for item in self.boneGroups] # noqa
+        if self.colliderGroups: d["colliderGroups"] = [item.to_dict() for item in self.colliderGroups] # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmSecondaryanimation':
+        dst = {}
+        dst["boneGroups"] = [VrmSecondaryanimationSpring.from_dict(item) for item in src["boneGroups"]] if "boneGroups" in src else [] # noqa
+        dst["colliderGroups"] = [VrmSecondaryanimationCollidergroup.from_dict(item) for item in src["colliderGroups"]] if "colliderGroups" in src else [] # noqa
+        return VrmSecondaryanimation(**dst)
+
+
+class VrmMaterial(NamedTuple):
+    # 
+    name: Optional[str] = None
+    # This contains shader name.  VRM/MToon, VRM/UnlitTransparentZWrite, and VRM_USE_GLTFSHADER (and legacy materials as Standard, UniGLTF/UniUnlit, VRM/UnlitTexture, VRM/UnlitCutout, VRM/UnlitTransparent) . If VRM_USE_GLTFSHADER is specified, use same index of gltf's material settings
+    shader: Optional[str] = None
+    # 
+    renderQueue: Optional[int] = None
+    # 
+    floatProperties: Optional[Dict[str, float]] = None
+    # 
+    vectorProperties: Optional[Dict[str, List[float]]] = None
+    # 
+    textureProperties: Optional[Dict[str, int]] = None
+    # 
+    keywordMap: Optional[Dict[str, bool]] = None
+    # 
+    tagMap: Optional[Dict[str, str]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.name is not None: d["name"] = self.name # noqa
+        if self.shader is not None: d["shader"] = self.shader # noqa
+        if self.renderQueue is not None: d["renderQueue"] = self.renderQueue # noqa
+        if self.floatProperties is not None: d["floatProperties"] = self.floatProperties # noqa
+        if self.vectorProperties is not None: d["vectorProperties"] = self.vectorProperties # noqa
+        if self.textureProperties is not None: d["textureProperties"] = self.textureProperties # noqa
+        if self.keywordMap is not None: d["keywordMap"] = self.keywordMap # noqa
+        if self.tagMap is not None: d["tagMap"] = self.tagMap # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'VrmMaterial':
+        dst = {}
+        if "name" in src: dst["name"] = src["name"] # noqa copy
+        if "shader" in src: dst["shader"] = src["shader"] # noqa copy
+        if "renderQueue" in src: dst["renderQueue"] = src["renderQueue"] # noqa copy
+        dst["floatProperties"] = src.get("floatProperties", {})
+        dst["vectorProperties"] = src.get("vectorProperties", {})
+        dst["textureProperties"] = src.get("textureProperties", {})
+        dst["keywordMap"] = src.get("keywordMap", {})
+        dst["tagMap"] = src.get("tagMap", {})
+        return VrmMaterial(**dst)
+
+
+class vrm(NamedTuple):
+    # Version of exporter that vrm created. UniVRM-0.46
+    exporterVersion: Optional[str] = None
+    # Version of VRM specification. 0.0
+    specVersion: Optional[str] = None
+    # 
+    meta: Optional[VrmMeta] = None
+    # 
+    humanoid: Optional[VrmHumanoid] = None
+    # 
+    firstPerson: Optional[VrmFirstperson] = None
+    # BlendShapeAvatar of UniVRM
+    blendShapeMaster: Optional[VrmBlendshape] = None
+    # The setting of automatic animation of string-like objects such as tails and hairs.
+    secondaryAnimation: Optional[VrmSecondaryanimation] = None
+    # 
+    materialProperties: Optional[List[VrmMaterial]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.exporterVersion is not None: d["exporterVersion"] = self.exporterVersion # noqa
+        if self.specVersion is not None: d["specVersion"] = self.specVersion # noqa
+        if self.meta is not None: d["meta"] = self.meta.to_dict() # noqa
+        if self.humanoid is not None: d["humanoid"] = self.humanoid.to_dict() # noqa
+        if self.firstPerson is not None: d["firstPerson"] = self.firstPerson.to_dict() # noqa
+        if self.blendShapeMaster is not None: d["blendShapeMaster"] = self.blendShapeMaster.to_dict() # noqa
+        if self.secondaryAnimation is not None: d["secondaryAnimation"] = self.secondaryAnimation.to_dict() # noqa
+        if self.materialProperties: d["materialProperties"] = [item.to_dict() for item in self.materialProperties] # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'vrm':
+        dst = {}
+        if "exporterVersion" in src: dst["exporterVersion"] = src["exporterVersion"] # noqa copy
+        if "specVersion" in src: dst["specVersion"] = src["specVersion"] # noqa copy
+        if "meta" in src: dst["meta"] = VrmMeta.from_dict(src["meta"]) # noqa
+        if "humanoid" in src: dst["humanoid"] = VrmHumanoid.from_dict(src["humanoid"]) # noqa
+        if "firstPerson" in src: dst["firstPerson"] = VrmFirstperson.from_dict(src["firstPerson"]) # noqa
+        if "blendShapeMaster" in src: dst["blendShapeMaster"] = VrmBlendshape.from_dict(src["blendShapeMaster"]) # noqa
+        if "secondaryAnimation" in src: dst["secondaryAnimation"] = VrmSecondaryanimation.from_dict(src["secondaryAnimation"]) # noqa
+        dst["materialProperties"] = [VrmMaterial.from_dict(item) for item in src["materialProperties"]] if "materialProperties" in src else [] # noqa
+        return vrm(**dst)
+
+
+class ExtensionsExtension(NamedTuple):
+    # VRM extension is for 3d humanoid avatars (and models) in VR applications.
+    VRM: Optional[vrm] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {}
+        if self.VRM is not None: d["VRM"] = self.VRM.to_dict() # noqa
+        return d
+
+    @staticmethod
+    def from_dict(src: dict) -> 'ExtensionsExtension':
+        dst = {}
+        if "VRM" in src: dst["VRM"] = vrm.from_dict(src["VRM"]) # noqa
+        return ExtensionsExtension(**dst)
 
 
 class glTF(NamedTuple):
@@ -1180,7 +1981,7 @@ class glTF(NamedTuple):
     nodes: Optional[List[Node]] = None
     # An array of samplers.
     samplers: Optional[List[Sampler]] = None
-    # The index of the bufferView.
+    # The index of the default scene.
     scene: Optional[int] = None
     # An array of scenes.
     scenes: Optional[List[Scene]] = None
@@ -1189,7 +1990,7 @@ class glTF(NamedTuple):
     # An array of textures.
     textures: Optional[List[Texture]] = None
     # Dictionary object with extension-specific objects.
-    extensions: Optional[Dict[str, Any]] = None
+    extensions: Optional[ExtensionsExtension] = None
     # Application-specific data.
     extras: Optional[Dict[str, Any]] = None
 
@@ -1212,34 +2013,34 @@ class glTF(NamedTuple):
         if self.scenes: d["scenes"] = [item.to_dict() for item in self.scenes] # noqa
         if self.skins: d["skins"] = [item.to_dict() for item in self.skins] # noqa
         if self.textures: d["textures"] = [item.to_dict() for item in self.textures] # noqa
-        if self.extensions is not None: d["extensions"] = self.extensions # noqa
+        if self.extensions is not None: d["extensions"] = self.extensions.to_dict() # noqa
         if self.extras is not None: d["extras"] = self.extras # noqa
         return d
 
     @staticmethod
     def from_dict(src: dict) -> 'glTF':
-        if ("extensionsUsed" not in src): src["extensionsUsed"] = [] # noqa
-        if ("extensionsRequired" not in src): src["extensionsRequired"] = [] # noqa
-        src["accessors"] = [Accessor.from_dict(item) for item in src["accessors"]] if "accessors" in src else [] # noqa
-        src["animations"] = [Animation.from_dict(item) for item in src["animations"]] if "animations" in src else [] # noqa
-        if "asset" in src: src["asset"] = Asset.from_dict(src["asset"]) # noqa
-        src["buffers"] = [Buffer.from_dict(item) for item in src["buffers"]] if "buffers" in src else [] # noqa
-        src["bufferViews"] = [BufferView.from_dict(item) for item in src["bufferViews"]] if "bufferViews" in src else [] # noqa
-        src["cameras"] = [Camera.from_dict(item) for item in src["cameras"]] if "cameras" in src else [] # noqa
-        src["images"] = [Image.from_dict(item) for item in src["images"]] if "images" in src else [] # noqa
-        src["materials"] = [Material.from_dict(item) for item in src["materials"]] if "materials" in src else [] # noqa
-        src["meshes"] = [Mesh.from_dict(item) for item in src["meshes"]] if "meshes" in src else [] # noqa
-        src["nodes"] = [Node.from_dict(item) for item in src["nodes"]] if "nodes" in src else [] # noqa
-        src["samplers"] = [Sampler.from_dict(item) for item in src["samplers"]] if "samplers" in src else [] # noqa
-        # scene do nothing
-        src["scenes"] = [Scene.from_dict(item) for item in src["scenes"]] if "scenes" in src else [] # noqa
-        src["skins"] = [Skin.from_dict(item) for item in src["skins"]] if "skins" in src else [] # noqa
-        src["textures"] = [Texture.from_dict(item) for item in src["textures"]] if "textures" in src else [] # noqa
-        if ("extensions" not in src): src["extensions"] = {} # noqa
-        if ("extras" not in src): src["extras"] = {} # noqa
-        return glTF(**src)
+        dst = {}
+        dst["extensionsUsed"] = src.get("extensionsUsed", [])
+        dst["extensionsRequired"] = src.get("extensionsRequired", [])
+        dst["accessors"] = [Accessor.from_dict(item) for item in src["accessors"]] if "accessors" in src else [] # noqa
+        dst["animations"] = [Animation.from_dict(item) for item in src["animations"]] if "animations" in src else [] # noqa
+        if "asset" in src: dst["asset"] = Asset.from_dict(src["asset"]) # noqa
+        dst["buffers"] = [Buffer.from_dict(item) for item in src["buffers"]] if "buffers" in src else [] # noqa
+        dst["bufferViews"] = [BufferView.from_dict(item) for item in src["bufferViews"]] if "bufferViews" in src else [] # noqa
+        dst["cameras"] = [Camera.from_dict(item) for item in src["cameras"]] if "cameras" in src else [] # noqa
+        dst["images"] = [Image.from_dict(item) for item in src["images"]] if "images" in src else [] # noqa
+        dst["materials"] = [Material.from_dict(item) for item in src["materials"]] if "materials" in src else [] # noqa
+        dst["meshes"] = [Mesh.from_dict(item) for item in src["meshes"]] if "meshes" in src else [] # noqa
+        dst["nodes"] = [Node.from_dict(item) for item in src["nodes"]] if "nodes" in src else [] # noqa
+        dst["samplers"] = [Sampler.from_dict(item) for item in src["samplers"]] if "samplers" in src else [] # noqa
+        if "scene" in src: dst["scene"] = src["scene"] # noqa copy
+        dst["scenes"] = [Scene.from_dict(item) for item in src["scenes"]] if "scenes" in src else [] # noqa
+        dst["skins"] = [Skin.from_dict(item) for item in src["skins"]] if "skins" in src else [] # noqa
+        dst["textures"] = [Texture.from_dict(item) for item in src["textures"]] if "textures" in src else [] # noqa
+        if "extensions" in src: dst["extensions"] = ExtensionsExtension.from_dict(src["extensions"]) # noqa
+        dst["extras"] = src.get("extras", {})
+        return glTF(**dst)
 
 
 if __name__ == '__main__':
-    gltf = glTF()
-    print(gltf)
+    pass
