@@ -41,7 +41,10 @@ import/export for Blender-2.83
 
 ## TODO
 
-* [ ] sukonbu
+* [ ] generate: VRM
+* [ ] generate: mesh.extras.targetNames
+* [ ] generate: mesh.primitives[*].extras.targetNames
+
 * [ ] MultColorTexture node
 * [x] BMesh
 * [x] emissiveTexture

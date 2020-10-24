@@ -200,6 +200,8 @@ class MaterialImporter:
         else:
             raise Exception()
 
+        bl_image.colorspace_settings.is_data = texture.is_data
         bl_image.name = texture.name
+        
         self.image_map[texture] = bl_image
         return bl_image
