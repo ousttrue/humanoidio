@@ -23,6 +23,18 @@
             ],
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
+        },
+        {
+            "name": "generate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sukonbu_vrm.py",
+            "args": [
+                "${workspaceFolder}/sukonbu/glTF/specification/2.0/schema/glTF.schema.json",
+                "--dst",
+                "${workspaceFolder}/lib/formats/gltf.py"
+            ],
+            "console": "integratedTerminal"
         }
     ]
 }
