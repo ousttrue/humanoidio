@@ -47,18 +47,8 @@ class Node:
         self.parent: Optional[Node] = None
         self.children: List[Node] = []
         self.mesh: Union[SubmeshMesh, FaceMesh, None] = None
-        self.skin: Optional[Skin] = None
+        self.skin: Union[Node, Skin, None] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
-
-        # self.gltf_node = gltf_node
-        # self.blender_object: bpy.types.Object = None
-        # self.blender_armature: bpy.types.Object = None
-        # self.blender_bone: bpy.types.Bone = None
-        # self.bone_name: str = ''
-
-        # self.name = self.gltf_node.name
-        # if not self.name:
-        #     self.name = '_%03d' % self.index
 
     def __getitem__(self, i: int) -> 'Node':
         return self.children[i]

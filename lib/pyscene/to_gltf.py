@@ -13,7 +13,6 @@ from .facemesh import FaceMesh
 from .to_submesh import facemesh_to_submesh
 from .node import Node, Skin
 
-
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
 
@@ -102,12 +101,9 @@ class GltfExporter:
             primitive = formats.gltf.MeshPrimitive(
                 attributes=attributes,
                 indices=indices_accessor_index,
-                material=self.material_store.get_material_index(
-                    submesh.material, self.buffer),
+                material=0,
                 mode=formats.gltf.MeshPrimitiveMode.TRIANGLES,
                 targets=targets,
-                extensions={},
-                extras={}
                 # gltf.MeshPrimitiveExtra(target_names)
             )
             primitives.append(primitive)
@@ -213,7 +209,7 @@ class GltfExporter:
             if skin:
                 bone_names = [joint.name for joint in skin.traverse()][1:]
             submesh_mesh = facemesh_to_submesh(mesh, bone_names)
-            
+
             logger.debug(submesh_mesh)
             self.meshes.append(self.to_gltf_mesh(submesh_mesh))
 
@@ -247,10 +243,10 @@ class GltfExporter:
             ],
             bufferViews=self.buffer.views,
             accessors=self.buffer.accessors,
-            images=self.material_store.images,
-            samplers=self.material_store.samplers,
-            textures=self.material_store.textures,
-            materials=self.material_store.materials,
+            # images=self.material_store.images,
+            # samplers=self.material_store.samplers,
+            # textures=self.material_store.textures,
+            # materials=self.material_store.materials,
             nodes=self.nodes,
             meshes=self.meshes,
             skins=self.skins,

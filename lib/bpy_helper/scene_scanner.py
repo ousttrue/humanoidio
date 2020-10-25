@@ -1,8 +1,7 @@
 from typing import List, Optional, Iterator, Dict, Any
 import bpy, mathutils
 from .. import bpy_helper
-from ..pyscene.facemesh import FaceMesh
-from ..pyscene.node import Node
+from .. import pyscene
 from ..formats.vrm0x import HumanoidBones
 
 
@@ -15,23 +14,23 @@ class Vrm:
 
 class Scanner:
     def __init__(self) -> None:
-        self.nodes: List[Node] = []
-        self._node_map: Dict[bpy.types.Object, Node] = {}
-        self.meshes: List[FaceMesh] = []
+        self.nodes: List[pyscene.Node] = []
+        self._node_map: Dict[bpy.types.Object, pyscene.Node] = {}
+        self.meshes: List[pyscene.FaceMesh] = []
         self.materials: List[bpy.types.Material] = []
-        self.skin_map: Dict[bpy.types.Object, Node] = {}
+        self.skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
         self.vrm = Vrm()
 
-    def _add_node(self, obj: Any, node: Node):
+    def _add_node(self, obj: Any, node: pyscene.Node):
         self.nodes.append(node)
         self._node_map[obj] = node
 
-    def _get_root_nodes(self) -> Iterator[Node]:
+    def _get_root_nodes(self) -> Iterator[pyscene.Node]:
         for node in self.nodes:
             if not node.parent:
                 yield node
 
-    def remove_node(self, node: Node):
+    def remove_node(self, node: pyscene.Node):
         # _node_map
         keys = []
         for k, v in self._node_map.items():
@@ -47,14 +46,22 @@ class Scanner:
         if node.parent:
             node.parent.remove_child(node)
 
+    def _get_node_for_skin(self, skin: pyscene.Skin) -> Optional[pyscene.Node]:
+        for node in self.nodes:
+            if node.skin == skin:
+                return node
+
     def remove_empty_leaf_nodes(self) -> bool:
-        bones: List[Node] = []
+        bones: List[pyscene.Node] = []
         for skin in self.skin_map.values():
-            for bone in skin.traverse():
+            skin_node = self._get_node_for_skin(skin)
+            if not skin_node:
+                raise Exception()
+            for bone in skin_node.traverse():
                 if bone not in bones:
                     bones.append(bone)
 
-        def is_empty_leaf(node: Node) -> bool:
+        def is_empty_leaf(node: pyscene.Node) -> bool:
             if node.humanoid_bone:
                 return False
             if node.children:
@@ -79,17 +86,18 @@ class Scanner:
 
         return True
 
-    def add_mesh_node(self):
-        mesh_node = Node('Mesh')
+    def _mesh_node_under_empty(self):
+        mesh_node = pyscene.Node('Mesh')
         for node in self.nodes:
             if node.mesh:
                 mesh_node.add_child(node)
         self.nodes.append(mesh_node)
 
-    def _export_bone(self, parent: Node, matrix_world: mathutils.Matrix,
-                     bone: bpy.types.Bone) -> Node:
+    def _export_bone(self, parent: pyscene.Node,
+                     matrix_world: mathutils.Matrix,
+                     bone: bpy.types.Bone) -> pyscene.Node:
         armature_local_head_position = bone.head_local
-        node = Node(bone.name, armature_local_head_position)
+        node = pyscene.Node(bone.name, armature_local_head_position)
         if hasattr(bone, 'humanoid_bone'):
             humanoid_bone = bone.humanoid_bone
             if humanoid_bone:
@@ -109,7 +117,8 @@ class Scanner:
 
         return node
 
-    def _get_or_create_skin(self, armature_object: bpy.types.Object) -> Node:
+    def _get_or_create_skin(self,
+                            armature_object: bpy.types.Object) -> pyscene.Skin:
         if armature_object in self.skin_map:
             return self.skin_map[armature_object]
 
@@ -136,7 +145,7 @@ class Scanner:
         return armature_node
 
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
-                     node: Node) -> FaceMesh:
+                     node: pyscene.Node) -> pyscene.FaceMesh:
         # copy
         new_obj = bpy_helper.clone_and_apply_transform(o)
         with bpy_helper.disposable(new_obj):
@@ -172,13 +181,13 @@ class Scanner:
             uv_texture_layer = get_texture_layer(new_mesh.uv_layers)
 
             # vertices
-            bone_names = [b.name
-                          for b in node.skin.traverse()] if node.skin else []
-            store = FaceMesh(o.name, new_mesh.vertices, new_mesh.materials,
-                             o.vertex_groups, bone_names)
+            # bone_names = [b.name
+            #               for b in node.skin.traverse()] if node.skin else []
+            facemesh = pyscene.FaceMesh(o.name, new_mesh.vertices,
+                                     new_mesh.materials, o.vertex_groups, [])
             # triangles
             for i, triangle in enumerate(triangles):
-                store.add_triangle(triangle, uv_texture_layer)
+                facemesh.add_triangle(triangle, uv_texture_layer)
 
             # shapekey
             if o.data.shape_keys:
@@ -192,7 +201,7 @@ class Scanner:
                     vertices = self._export_shapekey(o, i, shape)
                     # store.add_morph(shape.name, vertices)
 
-            return store
+            return facemesh
 
     def _export_shapekey(self, o: bpy.types.Object, i: int,
                          shape: bpy.types.ShapeKey):
@@ -218,20 +227,20 @@ class Scanner:
             # POSITIONSを得る
             return [v for v in new_mesh.vertices]
 
-    def _get_or_create_node(self, o: bpy.types.Object) -> Node:
+    def _get_or_create_node(self, o: bpy.types.Object) -> pyscene.Node:
         if o in self._node_map:
             return self._node_map[o]
 
         # location = o.location
         # if o.parent:
         #     location -= o.parent.location
-        node = Node(o.name, mathutils.Vector((0, 0, 0)))
+        node = pyscene.Node(o.name, mathutils.Vector((0, 0, 0)))
         self._add_node(o, node)
         return node
 
     def _export_object(self,
                        o: bpy.types.Object,
-                       parent: Optional[Node] = None) -> Node:
+                       parent: Optional[pyscene.Node] = None) -> pyscene.Node:
         '''
         scan Node recursive
         '''
@@ -258,12 +267,12 @@ class Scanner:
         for root in roots:
             self._export_object(root)
 
-        self.add_mesh_node()
+        self._mesh_node_under_empty()
         while True:
             if not self.remove_empty_leaf_nodes():
                 break
 
-    def get_skin_for_store(self, store: FaceMesh) -> Optional[Node]:
+    def get_skin_for_store(self, store: pyscene.FaceMesh) -> Optional[pyscene.Node]:
         for node in self.nodes:
             if node.mesh == store:
                 return node.skin
