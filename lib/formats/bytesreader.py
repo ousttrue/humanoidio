@@ -68,8 +68,8 @@ class BytesReader:
                     return data[view.byteOffset:view.byteOffset +
                                 view.byteLength]
         else:
-            return self.data.bin[view.byteOffset:view.byteOffset +
-                                 view.byteLength]
+            offset = view.byteOffset if view.byteOffset else 0
+            return self.data.bin[offset:offset + view.byteLength]
 
     def get_bytes(self, accessor_index: int):
         accessor = self.data.gltf.accessors[

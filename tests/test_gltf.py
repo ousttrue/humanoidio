@@ -1,3 +1,5 @@
+from lib.formats.gltf_context import GltfContext
+from lib.formats.bytesreader import BytesReader
 from lib.bpy_helper import scan
 from os import supports_bytes_environ
 import unittest
@@ -29,10 +31,55 @@ def check_seq(_l, _r):
     return True
 
 
-def check_gltf(l: formats.gltf.glTF, lb, r: formats.gltf.glTF, rb):
+def check_mesh(l: GltfContext, lm: formats.gltf.Mesh, r: GltfContext,
+               rm: formats.gltf.Mesh):
+    if len(lm.primitives) != len(rm.primitives):
+        return False
+
+    lb = BytesReader(l)
+    rb = BytesReader(r)
+
+    for lp, rp in zip(lm.primitives, rm.primitives):
+        # pos
+        lpos = [p for p in lb.get_bytes(lp.attributes['POSITION'])]
+        rpos = [p for p in rb.get_bytes(rp.attributes['POSITION'])]
+        if len(lpos) != len(rpos):
+            return False
+
+        # normal
+
+        # texcoord_0
+
+        # weights_0
+
+        # joints_0
+
+        # indices
+        if not isinstance(lp.indices, int):
+            return False
+        if not isinstance(rp.indices, int):
+            return False
+        li = [i for i in lb.get_bytes(lp.indices)]
+        ri = [i for i in rb.get_bytes(rp.indices)]
+        if len(li) != len(ri):
+            return False
+        # if not check_vec(li, ri):
+        #     return False
+        # a = 0
+
+    return True
+
+
+def check_gltf(l: GltfContext, r: GltfContext):
     '''
     import して再 export した結果が位置するか、緩く比較する
     '''
+    if l.gltf.meshes and r.gltf.meshes:
+        if len(l.gltf.meshes) != len(r.gltf.meshes):
+            return False
+        for ll, rr in zip(l.gltf.meshes, r.gltf.meshes):
+            if not check_mesh(l, ll, r, rr):
+                return False
     return True
 
 
@@ -62,10 +109,9 @@ class GltfTests(unittest.TestCase):
 
         # export
         scanner = bpy_helper.scan()
-        exported, bins = pyscene.to_gltf(
-            scanner.meshes, scanner._nodes,
-            [s for s in scanner.skin_map.values()])
-        self.assertTrue(check_gltf(exported, bins[0], data.gltf, data.bin))
+        exported = pyscene.to_gltf(scanner.meshes, scanner._nodes,
+                                   [s for s in scanner.skin_map.values()])
+        self.assertTrue(check_gltf(exported, data))
 
     def test_box_glb(self):
         path = GLTF_SAMPLE_DIR / '2.0/Box/glTF-Binary/Box.glb'

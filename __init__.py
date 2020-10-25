@@ -51,14 +51,14 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
 
         path = pathlib.Path(self.filepath).absolute()  # type: ignore
 
-        from .lib.formats.gltf_context import parse_gltf
-        data = parse_gltf(path)
+        from .lib import formats
+        data = formats.parse_gltf(path)
 
-        from .lib.serialization import deserializer
-        roots = deserializer.load_nodes(data)
+        from .lib import pyscene
+        roots = pyscene.nodes_from_gltf(data)
 
-        from .lib.bpy_helper.importer import Importer
-        importer = Importer(context)
+        from .lib import bpy_helper
+        importer = bpy_helper.Importer(context)
         importer.execute(roots)
 
         return {'FINISHED'}
@@ -108,12 +108,12 @@ CLASSES = [SceneTranslatorImporter, SceneTranslatorExporter]
 
 def menu_func_import(self, context):
     self.layout.operator(SceneTranslatorImporter.bl_idname,
-                         text=f"Scene Translator (.gltf;.glb;.vrm)")
+                         text=f"pyimpex (.gltf;.glb;.vrm)")
 
 
 def menu_func_export(self, context):
     self.layout.operator(SceneTranslatorExporter.bl_idname,
-                         text=f"Scene Translator (.glb)")
+                         text=f"pyimpex (.glb)")
 
 
 def register():

@@ -2,15 +2,16 @@
 * serialize: pyscene => GLTF
 * deserialize: GLTF => pyscene
 '''
+import pathlib
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Tuple, Any, Iterator
 from .. import formats
+from ..struct_types import Float3, Mat4
 from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
 from .to_submesh import facemesh_to_submesh
 from .node import Node, Skin
-from ..struct_types import Float3, Mat4
 from .material import MaterialStore
 
 GLTF_VERSION = '2.0'
@@ -40,8 +41,7 @@ def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
 
 class GltfExporter:
     def __init__(self):
-        from ..formats import buffermanager
-        self.buffer = buffermanager.BufferManager()
+        self.buffer = formats.BufferManager()
         self.buffers = [self.buffer]
         self.material_store = MaterialStore()
         self.meshes: List[formats.gltf.Mesh] = []
@@ -114,9 +114,9 @@ class GltfExporter:
             primitives.append(primitive)
 
         return formats.gltf.Mesh(name=mesh.name,
-                         primitives=primitives,
-                         extensions={},
-                         extras={})
+                                 primitives=primitives,
+                                 extensions={},
+                                 extras={})
 
     def to_gltf_node(self, node: Node, nodes: List[Node], skins: List[Node],
                      meshes: List[FaceMesh]) -> formats.gltf.Node:
@@ -142,10 +142,11 @@ class GltfExporter:
             f'{skin.name}.inverseBindMatrices',
             memoryview(matrices))  # type: ignore
 
-        return formats.gltf.Skin(name=skin.name,
-                         inverseBindMatrices=matrix_index,
-                         skeleton=nodes.index(skin),
-                         joints=[nodes.index(joint) for joint in joints])
+        return formats.gltf.Skin(
+            name=skin.name,
+            inverseBindMatrices=matrix_index,
+            skeleton=nodes.index(skin),
+            joints=[nodes.index(joint) for joint in joints])
 
     def export_vrm(self, nodes: List[Node], version: str, title: str,
                    author: str):
@@ -196,8 +197,9 @@ class GltfExporter:
             }
             return VRM
 
-    def export(self, meshes: List[FaceMesh], nodes: List[Node],
-               skins: List[Node]) -> Tuple[formats.gltf.glTF, List[Any]]:
+    def export(
+        self, meshes: List[FaceMesh], nodes: List[Node], skins: List[Node]
+    ) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
         def get_skin_for_store(store: FaceMesh) -> Optional[Node]:
             for node in nodes:
                 if node.mesh == store:
@@ -237,8 +239,11 @@ class GltfExporter:
         #     extensionsUsed.append('VRM')
 
         data = formats.gltf.glTF(
-            asset=formats.gltf.Asset(generator=GENERATOR_NAME, version=GLTF_VERSION),
-            buffers=[formats.gltf.Buffer(byteLength=len(self.buffer.buffer.data))],
+            asset=formats.gltf.Asset(generator=GENERATOR_NAME,
+                                     version=GLTF_VERSION),
+            buffers=[
+                formats.gltf.Buffer(byteLength=len(self.buffer.buffer.data))
+            ],
             bufferViews=self.buffer.views,
             accessors=self.buffer.accessors,
             images=self.material_store.images,
@@ -257,6 +262,8 @@ class GltfExporter:
 
 
 def to_gltf(meshes: List[FaceMesh], nodes: List[Node],
-            skins: List[Node]) -> Tuple[formats.gltf.glTF, List[Any]]:
+            skins: List[Node]) -> formats.GltfContext:
     exporter = GltfExporter()
-    return exporter.export(meshes, nodes, skins)
+    exported, bins = exporter.export(meshes, nodes, skins)
+    return formats.GltfContext(exported, bytes(bins[0].buffer.data),
+                               pathlib.Path())

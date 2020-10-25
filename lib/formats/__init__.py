@@ -4,7 +4,7 @@ from . import gltf_generated as gltf
 from .glb import Glb
 from .gltf_context import GltfContext
 from .bytesreader import BytesReader
-
+from .buffermanager import BufferManager
 
 def parse_gltf(path: pathlib.Path) -> GltfContext:
     '''

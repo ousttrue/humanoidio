@@ -2,7 +2,7 @@ from typing import List
 from contextlib import contextmanager
 import bpy, mathutils
 from .scene_scanner import Scanner
-
+from .importer import Importer
 
 def objects_selected_or_roots(
         selected_only: bool = False) -> List[bpy.types.Object]:
