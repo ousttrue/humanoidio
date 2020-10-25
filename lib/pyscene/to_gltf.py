@@ -12,7 +12,7 @@ from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
 from .to_submesh import facemesh_to_submesh
 from .node import Node, Skin
-from .material import MaterialStore
+
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
@@ -43,7 +43,6 @@ class GltfExporter:
     def __init__(self):
         self.buffer = formats.BufferManager()
         self.buffers = [self.buffer]
-        self.material_store = MaterialStore()
         self.meshes: List[formats.gltf.Mesh] = []
         self.skins: List[formats.gltf.Skin] = []
         self.nodes: List[formats.gltf.Node] = []
@@ -209,10 +208,12 @@ class GltfExporter:
         for mesh in meshes:
             logger.debug(mesh)
             skin = get_skin_for_store(mesh)
+
             bone_names: List[str] = []
             if skin:
                 bone_names = [joint.name for joint in skin.traverse()][1:]
             submesh_mesh = facemesh_to_submesh(mesh, bone_names)
+            
             logger.debug(submesh_mesh)
             self.meshes.append(self.to_gltf_mesh(submesh_mesh))
 

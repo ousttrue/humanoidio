@@ -43,11 +43,11 @@ for Blender-2.83
 
 ## TODO
 
-* [ ] generate: VRM
-* [ ] generate: mesh.extras.targetNames
-* [ ] generate: mesh.primitives[*].extras.targetNames
+* [x] generate: VRM formats
+* [x] generate: meshes[].extras.targetNames
+* [x] generate: meshes[].primitives[].extras.targetNames
 
-* [ ] MultColorTexture node
+* [ ] MultiplyColorTexture node
 * [x] BMesh
 * [x] emissiveTexture
 * [x] occlusionTexture
