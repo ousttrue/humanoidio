@@ -6,8 +6,8 @@ from .. import formats
 from .. import pyscene
 
 
-def get_skin_root(data: formats.GltfContext, skin_index: int,
-                  nodes: List[pyscene.Node]) -> pyscene.Skin:
+def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
+                    nodes: List[pyscene.Node]) -> pyscene.Skin:
     gl_skin = data.gltf.skins[skin_index]
     joints = [nodes[j] for j in gl_skin.joints]
 
@@ -17,7 +17,7 @@ def get_skin_root(data: formats.GltfContext, skin_index: int,
     return pyscene.Skin(gl_skin.name, root, joints)
 
 
-def check_has_skin(prim: formats.gltf.MeshPrimitive) -> bool:
+def _check_has_skin(prim: formats.gltf.MeshPrimitive) -> bool:
     if not prim.attributes.get('JOINTS_0'):
         return False
     if not prim.attributes.get('WEIGHTS_0'):
@@ -180,7 +180,7 @@ class Reader:
             mesh.submeshes.append(submesh)
             return index_count
 
-        has_skin = check_has_skin(m.primitives[0])
+        has_skin = _check_has_skin(m.primitives[0])
 
         if shared:
             # share vertex buffer
@@ -297,7 +297,7 @@ def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
         # create skin
         for i, n in enumerate(data.gltf.nodes):
             if isinstance(n.skin, int):
-                skin = get_skin_root(data, n.skin, nodes)
+                skin = _skin_from_gltf(data, n.skin, nodes)
                 if not skin.name:
                     skin.name = n.name
                 nodes[i].skin = skin

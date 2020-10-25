@@ -1,4 +1,4 @@
-from typing import List, Optional, Iterator, Iterable, Union
+from typing import List, Optional, Iterator, Union
 import bpy, mathutils
 from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
@@ -47,7 +47,7 @@ class Node:
         self.parent: Optional[Node] = None
         self.children: List[Node] = []
         self.mesh: Union[SubmeshMesh, FaceMesh, None] = None
-        self.skin: Union[Node, Skin, None] = None
+        self.skin: Optional[Skin] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
 
     def __getitem__(self, i: int) -> 'Node':
