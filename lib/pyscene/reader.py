@@ -2,9 +2,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, Optional, List
 import bpy, mathutils
-from .bytesreader import BytesReader
 from .. import formats
-from ..formats import gltf
 from .. import pyscene
 
 
@@ -19,7 +17,7 @@ def get_skin_root(data: formats.GltfContext, skin_index: int,
     return pyscene.Skin(gl_skin.name, root, joints)
 
 
-def check_has_skin(prim: gltf.MeshPrimitive) -> bool:
+def check_has_skin(prim: formats.gltf.MeshPrimitive) -> bool:
     if not prim.attributes.get('JOINTS_0'):
         return False
     if not prim.attributes.get('WEIGHTS_0'):
@@ -27,10 +25,10 @@ def check_has_skin(prim: gltf.MeshPrimitive) -> bool:
     return True
 
 
-class Deserializer:
+class Reader:
     def __init__(self, data: formats.GltfContext):
         self.data = data
-        self.reader = BytesReader(data)
+        self.reader = formats.BytesReader(data)
         # gltf の url 参照の外部ファイルバッファをキャッシュする
         self._material_map: Dict[int, pyscene.Material] = {}
         self._texture_map: Dict[int, pyscene.Texture] = {}
@@ -126,12 +124,12 @@ class Deserializer:
             material.texture = texture
 
         # alpha blending
-        if isinstance(gl_material.alphaMode, gltf.MaterialAlphaMode):
-            if gl_material.alphaMode == gltf.MaterialAlphaMode.OPAQUE:
+        if isinstance(gl_material.alphaMode, formats.gltf.MaterialAlphaMode):
+            if gl_material.alphaMode == formats.gltf.MaterialAlphaMode.OPAQUE:
                 material.blend_mode = pyscene.BlendMode.Opaque
-            elif gl_material.alphaMode == gltf.MaterialAlphaMode.BLEND:
+            elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.BLEND:
                 material.blend_mode = pyscene.BlendMode.AlphaBlend
-            elif gl_material.alphaMode == gltf.MaterialAlphaMode.MASK:
+            elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.MASK:
                 material.blend_mode = pyscene.BlendMode.Mask
                 if isinstance(gl_material.alphaCutoff, float):
                     material.threshold = gl_material.alphaCutoff
@@ -163,13 +161,13 @@ class Deserializer:
             accessor_index = prim.attributes['POSITION']
             return data.gltf.accessors[accessor_index].count
 
-        def prim_index_count(prim: gltf.MeshPrimitive) -> int:
+        def prim_index_count(prim: formats.gltf.MeshPrimitive) -> int:
             if not isinstance(prim.indices, int):
                 return 0
             return data.gltf.accessors[prim.indices].count
 
-        def add_indices(sm: pyscene.SubmeshMesh, prim: gltf.MeshPrimitive,
-                        index_offset: int):
+        def add_indices(sm: pyscene.SubmeshMesh,
+                        prim: formats.gltf.MeshPrimitive, index_offset: int):
             # indices
             if not isinstance(prim.indices, int):
                 raise Exception()
@@ -236,7 +234,7 @@ def load_nodes(data: formats.GltfContext) -> List[pyscene.Node]:
     '''
     glTFを中間形式のSubmesh形式に変換する
     '''
-    deserializer = Deserializer(data)
+    deserializer = Reader(data)
 
     # mesh
     meshes: List[pyscene.SubmeshMesh] = []

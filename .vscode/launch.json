@@ -32,7 +32,7 @@
             "args": [
                 "${workspaceFolder}/sukonbu/glTF/specification/2.0/schema/glTF.schema.json",
                 "--dst",
-                "${workspaceFolder}/lib/formats/gltf.py"
+                "${workspaceFolder}/lib/formats/gltf_generated.py"
             ],
             "console": "integratedTerminal"
         }

@@ -5,11 +5,9 @@ import pathlib
 HERE = pathlib.Path(__file__).absolute().parent
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
 VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
-from lib.serialization import deserializer
 from lib.struct_types import Float4
-from lib.formats.gltf_context import parse_gltf
-from lib.pyscene.submesh_mesh import SubmeshMesh
-from lib.pyscene.material import Material, PBRMaterial
+from lib import formats
+from lib import pyscene
 
 EPSILON = 5e-3
 
@@ -30,18 +28,22 @@ def check_seq(_l, _r):
 
 
 class GltfTests(unittest.TestCase):
+    '''
+    gltf(glb, vrm) -> pyscene -> gltf
+    '''
     def test_box_gltf(self):
+        # import
         path = GLTF_SAMPLE_DIR / '2.0/Box/glTF/Box.gltf'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
-        roots = deserializer.load_nodes(data)
+        data = formats.parse_gltf(path)
+        roots = pyscene.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
         mesh_node = root.children[0]
         mesh = mesh_node.mesh
-        if not isinstance(mesh, SubmeshMesh):
+        if not isinstance(mesh, pyscene.SubmeshMesh):
             raise Exception()
         vertices = mesh.attributes
         self.assertEqual(len(vertices.position), 24)
@@ -49,18 +51,20 @@ class GltfTests(unittest.TestCase):
         self.assertEqual(len(mesh.indices), 36)
         self.assertEqual(len(mesh.submeshes), 1)
 
+        # export
+
     def test_box_glb(self):
         path = GLTF_SAMPLE_DIR / '2.0/Box/glTF-Binary/Box.glb'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
-        roots = deserializer.load_nodes(data)
+        data = formats.parse_gltf(path)
+        roots = pyscene.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
         mesh_node = root.children[0]
         mesh = mesh_node.mesh
-        if not isinstance(mesh, SubmeshMesh):
+        if not isinstance(mesh, pyscene.SubmeshMesh):
             raise Exception()
         vertices = mesh.attributes
         self.assertEqual(len(vertices.position), 24)
@@ -72,14 +76,14 @@ class GltfTests(unittest.TestCase):
         path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF/BoxTextured.gltf'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
-        roots = deserializer.load_nodes(data)
+        data = formats.parse_gltf(path)
+        roots = pyscene.load_nodes(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
         mesh_node = root.children[0]
         mesh = mesh_node.mesh
-        if not isinstance(mesh, SubmeshMesh):
+        if not isinstance(mesh, pyscene.SubmeshMesh):
             raise Exception()
         vertices = mesh.attributes
         self.assertEqual(len(vertices.position), 24)
@@ -109,7 +113,7 @@ class GltfTests(unittest.TestCase):
 
         # material
         self.assertEqual(material.name, 'Texture')
-        self.assertTrue(isinstance(material, PBRMaterial))
+        self.assertTrue(isinstance(material, pyscene.PBRMaterial))
         self.assertEqual(material.color, Float4(1, 1, 1, 1))
         self.assertEqual(texture.url_or_bytes,
                          path.parent / 'CesiumLogoFlat.png')
@@ -118,39 +122,39 @@ class GltfTests(unittest.TestCase):
         path = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
-        roots = deserializer.load_nodes(data)
+        data = formats.parse_gltf(path)
+        roots = pyscene.load_nodes(data)
         self.assertEqual(len(roots), 2)
 
         # Orange
         mesh0 = roots[0].mesh
-        if not isinstance(mesh0, SubmeshMesh):
+        if not isinstance(mesh0, pyscene.SubmeshMesh):
             raise Exception()
         material0 = mesh0.submeshes[0].material
         self.assertEqual(material0.name, 'Orange')
-        self.assertIsInstance(material0, Material)
+        self.assertIsInstance(material0, pyscene.Material)
         self.assertTrue(check_vec(material0.color, (1, 0.21763764, 0, 1)))
 
         # Blue
         mesh1 = roots[1].mesh
-        if not isinstance(mesh1, SubmeshMesh):
+        if not isinstance(mesh1, pyscene.SubmeshMesh):
             raise Exception()
         material1 = mesh1.submeshes[0].material
         self.assertEqual(material1.name, 'Blue')
-        self.assertIsInstance(material1, Material)
+        self.assertIsInstance(material1, pyscene.Material)
         self.assertTrue(check_vec(material1.color, (0, 0.21763764, 1, 1)))
 
     def test_rig_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
-        roots = deserializer.load_nodes(data)
+        data = formats.parse_gltf(path)
+        roots = pyscene.load_nodes(data)
         self.assertEqual(len(roots), 1)
 
         mesh_node = roots[0][0][1]
         mesh = mesh_node.mesh
-        if not isinstance(mesh, SubmeshMesh):
+        if not isinstance(mesh, pyscene.SubmeshMesh):
             raise Exception()
         vertices = mesh.attributes
 
@@ -164,14 +168,14 @@ class GltfTests(unittest.TestCase):
         path = GLTF_SAMPLE_DIR / '2.0/AnimatedMorphCube/glTF/AnimatedMorphCube.gltf'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
+        data = formats.parse_gltf(path)
 
         self.assertIsNone(data.gltf.bufferViews[0].byteOffset)
 
-        roots = deserializer.load_nodes(data)
+        roots = pyscene.load_nodes(data)
         mesh_node = roots[0]
         mesh = mesh_node.mesh
-        if not isinstance(mesh, SubmeshMesh):
+        if not isinstance(mesh, pyscene.SubmeshMesh):
             raise Exception()
 
         self.assertEqual(len(mesh.morphtargets), 2)
@@ -185,14 +189,14 @@ class GltfTests(unittest.TestCase):
         path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
         self.assertTrue(path.exists())
 
-        data = parse_gltf(path)
-        roots = deserializer.load_nodes(data)
+        data = formats.parse_gltf(path)
+        roots = pyscene.load_nodes(data)
         self.assertEqual(len(roots), 5)
         root = roots[0]
 
         # mesh_node = roots[0][0][1]
         # mesh = mesh_node.mesh
-        # if not isinstance(mesh, SubmeshMesh):
+        # if not isinstance(mesh, pyscene.SubmeshMesh):
         #     raise Exception()
         # vertices = mesh.attributes
 
