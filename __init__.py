@@ -15,6 +15,7 @@ bl_info = {
     "warning": "This addon is still in development.",
 }
 
+from lib.bpy_helper import scan
 from logging import getLogger
 logger = getLogger(__name__)
 import os
@@ -84,21 +85,18 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         logger.debug('#### start ####')
 
         from .lib import bpy_helper
-        targets = bpy_helper.objects_selected_or_roots()
+        scanner = bpy_helper.scan()
 
-        from .lib.bpy_helper.scene_scanner import Scanner
-        scanner = Scanner()
-        scanner.scan(targets)
-
-        from .lib.serialization.serializer import export
-        data, buffers = export(scanner)
-        d = data.to_dict()
+        from .lib import pyscene
+        data = pyscene.to_gltf(scanner.meshes, scanner.nodes,
+                               [s for s in scanner.skin_map.values()])
+        d = data.gltf.to_dict()
 
         from .lib.formats.glb import Glb
         text = json.dumps(d)
         json_bytes = text.encode('utf-8')
         with open(self.filepath, 'wb') as w:  # type: ignore
-            Glb(json_bytes, buffers[0].buffer.data).write_to(w)
+            Glb(json_bytes, data.bin).write_to(w)
 
         return {'FINISHED'}
 

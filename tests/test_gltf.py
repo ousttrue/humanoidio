@@ -109,7 +109,7 @@ class GltfTests(unittest.TestCase):
 
         # export
         scanner = bpy_helper.scan()
-        exported = pyscene.to_gltf(scanner.meshes, scanner._nodes,
+        exported = pyscene.to_gltf(scanner.meshes, scanner.nodes,
                                    [s for s in scanner.skin_map.values()])
         self.assertTrue(check_gltf(exported, data))
 

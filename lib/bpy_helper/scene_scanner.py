@@ -15,7 +15,7 @@ class Vrm:
 
 class Scanner:
     def __init__(self) -> None:
-        self._nodes: List[Node] = []
+        self.nodes: List[Node] = []
         self._node_map: Dict[bpy.types.Object, Node] = {}
         self.meshes: List[FaceMesh] = []
         self.materials: List[bpy.types.Material] = []
@@ -23,11 +23,11 @@ class Scanner:
         self.vrm = Vrm()
 
     def _add_node(self, obj: Any, node: Node):
-        self._nodes.append(node)
+        self.nodes.append(node)
         self._node_map[obj] = node
 
-    def get_root_nodes(self) -> Iterator[Node]:
-        for node in self._nodes:
+    def _get_root_nodes(self) -> Iterator[Node]:
+        for node in self.nodes:
             if not node.parent:
                 yield node
 
@@ -41,7 +41,7 @@ class Scanner:
             del self._node_map[k]
 
         # _nodes
-        self._nodes.remove(node)
+        self.nodes.remove(node)
 
         # children
         if node.parent:
@@ -66,7 +66,7 @@ class Scanner:
             return True
 
         remove_list = []
-        for root in self.get_root_nodes():
+        for root in self._get_root_nodes():
             for node in root.traverse():
                 if is_empty_leaf(node):
                     remove_list.append(node)
@@ -81,10 +81,10 @@ class Scanner:
 
     def add_mesh_node(self):
         mesh_node = Node('Mesh')
-        for node in self._nodes:
+        for node in self.nodes:
             if node.mesh:
                 mesh_node.add_child(node)
-        self._nodes.append(mesh_node)
+        self.nodes.append(mesh_node)
 
     def _export_bone(self, parent: Node, matrix_world: mathutils.Matrix,
                      bone: bpy.types.Bone) -> Node:
@@ -264,7 +264,7 @@ class Scanner:
                 break
 
     def get_skin_for_store(self, store: FaceMesh) -> Optional[Node]:
-        for node in self._nodes:
+        for node in self.nodes:
             if node.mesh == store:
                 return node.skin
         return None
