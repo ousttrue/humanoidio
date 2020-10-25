@@ -8,6 +8,7 @@ VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
 from lib.struct_types import Float4
 from lib import formats
 from lib import pyscene
+from lib import bpy_helper
 
 EPSILON = 5e-3
 
@@ -37,7 +38,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -52,13 +53,19 @@ class GltfTests(unittest.TestCase):
         self.assertEqual(len(mesh.submeshes), 1)
 
         # export
+        scanner = bpy_helper.scan()
+        exporter = pyscene.GltfExporter()
+        exported, bins = exporter.export(
+            scanner.meshes, scanner._nodes,
+            [s for s in scanner.skin_map.values()])
+        self.assertEqual(exported, data.gltf)
 
     def test_box_glb(self):
         path = GLTF_SAMPLE_DIR / '2.0/Box/glTF-Binary/Box.glb'
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -77,7 +84,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         self.assertEqual(len(roots), 1)
         root = roots[0]
 
@@ -123,7 +130,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         self.assertEqual(len(roots), 2)
 
         # Orange
@@ -149,7 +156,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         self.assertEqual(len(roots), 1)
 
         mesh_node = roots[0][0][1]
@@ -172,7 +179,7 @@ class GltfTests(unittest.TestCase):
 
         self.assertIsNone(data.gltf.bufferViews[0].byteOffset)
 
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         mesh_node = roots[0]
         mesh = mesh_node.mesh
         if not isinstance(mesh, pyscene.SubmeshMesh):
@@ -190,7 +197,7 @@ class GltfTests(unittest.TestCase):
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.load_nodes(data)
+        roots = pyscene.nodes_from_gltf(data)
         self.assertEqual(len(roots), 5)
         root = roots[0]
 

@@ -4,16 +4,16 @@
 '''
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import List, Optional, Tuple, Any
+from typing import List, Optional, Tuple, Any, Iterator
 from ..formats.gltf_context import GltfContext
 from ..bpy_helper.scene_scanner import Scanner
-from ..pyscene import material
 from ..pyscene.submesh_mesh import SubmeshMesh
 from ..pyscene.facemesh import FaceMesh
 from ..pyscene.to_submesh import facemesh_to_submesh
 from ..pyscene.node import Node, Skin
 from ..formats import gltf, buffermanager
 from ..struct_types import Float3, Mat4
+from .material import MaterialStore
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
@@ -44,7 +44,7 @@ class GltfExporter:
     def __init__(self):
         self.buffer = buffermanager.BufferManager()
         self.buffers = [self.buffer]
-        self.material_store = material.MaterialStore()
+        self.material_store = MaterialStore()
         self.meshes: List[gltf.Mesh] = []
         self.skins: List[gltf.Skin] = []
         self.nodes: List[gltf.Node] = []
@@ -197,11 +197,18 @@ class GltfExporter:
             }
             return VRM
 
-    def export(self, scanner: Scanner,
-               separate_images: bool) -> Tuple[gltf.glTF, List[Any]]:
-        for mesh in scanner.meshes:
+    def export(self, meshes: List[FaceMesh],
+               nodes: List[Node],
+               skins: List[Node]) -> Tuple[gltf.glTF, List[Any]]:
+        def get_skin_for_store(store: FaceMesh) -> Optional[Node]:
+            for node in nodes:
+                if node.mesh == store:
+                    return node.skin
+            return None
+
+        for mesh in meshes:
             logger.debug(mesh)
-            skin = scanner.get_skin_for_store(mesh)
+            skin = get_skin_for_store(mesh)
             bone_names: List[str] = []
             if skin:
                 bone_names = [joint.name for joint in skin.traverse()][1:]
@@ -210,23 +217,24 @@ class GltfExporter:
             self.meshes.append(self.to_gltf_mesh(submesh_mesh))
 
         # node
-        skins = [skin for skin in scanner.skin_map.values()]
-        for node in scanner._nodes:
-            gltf_node = self.to_gltf_node(node, scanner._nodes, skins,
-                                          scanner.meshes)
+        for node in nodes:
+            gltf_node = self.to_gltf_node(node, nodes, skins, meshes)
             self.nodes.append(gltf_node)
 
-        roots = [
-            scanner._nodes.index(root) for root in scanner.get_root_nodes()
-        ]
+        def get_root_nodes() -> Iterator[Node]:
+            for node in nodes:
+                if not node.parent:
+                    yield node
 
-        for skin in scanner.skin_map.values():
-            gltf_skin = self.to_gltf_skin(skin, scanner._nodes)
+        roots = [nodes.index(root) for root in get_root_nodes()]
+        for skin in skins:
+            gltf_skin = self.to_gltf_skin(skin, nodes)
             self.skins.append(gltf_skin)
 
         extensionsUsed = ['KHR_materials_unlit']
-        vrm = self.export_vrm(scanner._nodes, scanner.vrm.version,
-                              scanner.vrm.title, scanner.vrm.author)
+
+        # vrm = self.export_vrm(nodes, scanner.vrm.version,
+        #                       scanner.vrm.title, scanner.vrm.author)
         # if vrm:
         #     extensionsUsed.append('VRM')
 
@@ -248,9 +256,3 @@ class GltfExporter:
         )
 
         return data, self.buffers
-
-
-def export(scanner: Scanner,
-           separate_images: bool = False) -> Tuple[gltf.glTF, List[Any]]:
-    exporter = GltfExporter()
-    return exporter.export(scanner, separate_images)

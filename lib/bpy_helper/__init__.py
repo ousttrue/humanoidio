@@ -1,6 +1,7 @@
 from typing import List
 from contextlib import contextmanager
-import bpy
+import bpy, mathutils
+from .scene_scanner import Scanner
 
 
 def objects_selected_or_roots(
@@ -117,3 +118,10 @@ def apply_modifiers(obj: bpy.types.Object):
 
     for m in modifiers:
         bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m)
+
+
+def scan() -> Scanner:
+    targets = objects_selected_or_roots()
+    scanner = Scanner()
+    scanner.scan(targets)
+    return scanner

@@ -230,7 +230,7 @@ class Reader:
         return mesh
 
 
-def load_nodes(data: formats.GltfContext) -> List[pyscene.Node]:
+def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
     '''
     glTFを中間形式のSubmesh形式に変換する
     '''

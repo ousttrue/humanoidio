@@ -258,6 +258,11 @@ class Scanner:
         for root in roots:
             self._export_object(root)
 
+        self.add_mesh_node()
+        while True:
+            if not self.remove_empty_leaf_nodes():
+                break
+
     def get_skin_for_store(self, store: FaceMesh) -> Optional[Node]:
         for node in self._nodes:
             if node.mesh == store:

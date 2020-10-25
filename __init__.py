@@ -89,10 +89,6 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         from .lib.bpy_helper.scene_scanner import Scanner
         scanner = Scanner()
         scanner.scan(targets)
-        scanner.add_mesh_node()
-        while True:
-            if not scanner.remove_empty_leaf_nodes():
-                break
 
         from .lib.serialization.serializer import export
         data, buffers = export(scanner)
