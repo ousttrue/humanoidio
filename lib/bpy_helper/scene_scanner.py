@@ -190,7 +190,7 @@ class Scanner:
                     # copy and apply shapekey
                     #
                     vertices = self._export_shapekey(o, i, shape)
-                    store.add_morph(shape.name, vertices)
+                    # store.add_morph(shape.name, vertices)
 
             return store
 
