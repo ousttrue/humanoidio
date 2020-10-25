@@ -235,11 +235,11 @@ class MaterialStore:
             normalTexture=normal_texture,
             occlusionTexture=None,
             emissiveTexture=None,
-            emissiveFactor=(0, 0, 0),
+            emissiveFactor=None,
             alphaMode=alpha_mode,
             alphaCutoff=None,
             doubleSided=False,
-            extensions={},
-            extras={})
-        dst.extensions['KHR_materials_unlit'] = {}
+            extensions=gltf.materialsItemExtension(
+                KHR_materials_unlit=gltf.KHR_materials_unlitGlTFExtension()),
+            extras=None)
         self.materials.append(dst)
