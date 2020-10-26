@@ -1,6 +1,10 @@
+from lib.pyscene.material import Texture, TextureUsage
 from typing import List, Dict
+import pathlib
 import bpy
+from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 from .. import pyscene
+from ..struct_types import Float4
 
 # material
 # texture = None
@@ -97,10 +101,10 @@ class MaterialExporter:
         nodes = m.node_tree.nodes
         links = m.node_tree.links
 
-        has_principled_bsdf = False
+        has_principled_bsdf = None
         for n in nodes:
             if isinstance(n, bpy.types.ShaderNodeBsdfPrincipled):
-                has_principled_bsdf = True
+                has_principled_bsdf = n
                 break
 
         if has_principled_bsdf:
@@ -108,6 +112,24 @@ class MaterialExporter:
             # color
             # colorTexture
 
+            # Export
+            principled = PrincipledBSDFWrapper(m, is_readonly=True)
+            material.color = Float4(principled.base_color.r,
+                                    principled.base_color.g,
+                                    principled.base_color.b, 1.0)
+            if principled.base_color_texture:
+                texture: bpy.types.Texture = principled.base_color_texture
+                image: bpy.types.Image = texture.image
+                if image.packed_file:
+                    material.texture = Texture(image.name,
+                                               image.packed_file.data)
+                    material.texture.usage = TextureUsage.Color
+                elif image.filepath:
+                    material.texture = Texture(image.name,
+                                               pathlib.Path(image.filepath))
+                    material.texture.usage = TextureUsage.Color
+                else:
+                    raise NotImplementedError()
         else:
             material = pyscene.Material(m.name)
             # color

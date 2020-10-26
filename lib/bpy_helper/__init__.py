@@ -144,3 +144,14 @@ def clear():
     # clear scene
     bpy.ops.object.select_all(action='SELECT')  # type: ignore
     bpy.ops.object.delete()
+
+    # only worry about data in the startup scene
+    for bpy_data_iter in (
+            bpy.data.objects,
+            bpy.data.meshes,
+            bpy.data.lights,
+            bpy.data.cameras,
+            bpy.data.materials,
+    ):
+        for id_data in bpy_data_iter:
+            bpy_data_iter.remove(id_data)

@@ -6,8 +6,6 @@ import pathlib
 from enum import Enum
 #
 import bpy
-from ..formats import gltf
-from ..formats.buffermanager import BufferManager
 from ..struct_types import Float4
 
 
@@ -34,7 +32,7 @@ class Texture:
         if self.name != other.name:
             raise Exception(f'{self.name} != {other.name}')
         if self.url_or_bytes != other.url_or_bytes:
-            raise Exception(f'{self.url_or_bytes} != {other.url_or_bytes}')
+            raise Exception(f'self.url_or_bytes != other.url_or_bytes')
         if self.usage != other.usage:
             raise Exception(f'{self.usage} != {other.usage}')
         return True
