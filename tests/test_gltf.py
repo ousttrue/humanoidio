@@ -68,29 +68,29 @@ def check_mesh(l: formats.GltfContext, lm: formats.gltf.Mesh,
 
 def check_gltf(l: formats.GltfContext, r: formats.GltfContext):
     '''
-    import して再 export した結果が位置するか、緩く比較する
+    import して再 export した結果が一致するか、緩く比較する
     '''
-    if l.gltf.meshes and r.gltf.meshes:
+
+    if l.gltf.materials and not r.gltf.materials:
+        return False
+    elif not l.gltf.materials and r.gltf.materials:
+        return False
+    elif l.gltf.materials and r.gltf.materials:
+        if len(l.gltf.materials) != len(r.gltf.materials):
+            return False
+
+    if l.gltf.meshes and not r.gltf.meshes:
+        return False
+    elif not l.gltf.meshes and r.gltf.meshes:
+        return False
+    elif l.gltf.meshes and r.gltf.meshes:
         if len(l.gltf.meshes) != len(r.gltf.meshes):
             return False
         for ll, rr in zip(l.gltf.meshes, r.gltf.meshes):
             if not check_mesh(l, ll, r, rr):
                 return False
+
     return True
-
-
-def scan(roots: List[pyscene.Node]):
-    nodes = [node for root in roots for node in root.traverse()]
-
-    meshes = []
-    skins = []
-    for node in nodes:
-        if node.mesh:
-            if node.mesh not in meshes:
-                meshes.append(node.mesh)
-        if node.skin:
-            skins.append(node)
-    return nodes, meshes, skins
 
 
 class GltfTests(unittest.TestCase):
@@ -118,9 +118,9 @@ class GltfTests(unittest.TestCase):
         self.assertEqual(len(mesh.submeshes), 1)
 
         # export
-        # nodes, meshes, skins = scan(roots)
-        # exported = pyscene.to_gltf(meshes, nodes, skins)
-        # self.assertTrue(check_gltf(exported, data))
+        nodes = [node for root in roots for node in root.traverse()]
+        exported = pyscene.to_gltf(nodes)
+        self.assertTrue(check_gltf(exported, data))
 
     def test_box_glb(self):
         path = GLTF_SAMPLE_DIR / '2.0/Box/glTF-Binary/Box.glb'

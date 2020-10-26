@@ -1,6 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import Optional, List, Callable, Tuple
+from typing import Optional, List, Callable, Sequence, Tuple
 import ctypes
 from . import gltf
 from .binarybuffer import BinaryBuffer
@@ -9,7 +9,7 @@ from ..struct_types import PlanarBuffer, Float2, Float3, Float4, UShort4
 # from ..pyscene.submesh_mesh import SubmeshMesh, Submesh
 # from ..pyscene.material import Material
 
-MINMAX = Callable[[memoryview], List[float]]
+MINMAX = Callable[[memoryview], Tuple[List[float], List[float]]]
 
 
 def create_sparse_buffer(buffer: memoryview) -> Tuple[memoryview, memoryview]:

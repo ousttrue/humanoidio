@@ -43,6 +43,10 @@ for Blender-2.83
 
 ## TODO
 
+* [ ] export: material
+* [ ] export: morphTarget
+* [ ] export: skin
+
 * [x] generate: VRM formats
 * [x] generate: meshes[].extras.targetNames
 * [x] generate: meshes[].primitives[].extras.targetNames

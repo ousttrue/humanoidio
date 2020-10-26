@@ -27,7 +27,7 @@ def image_to_png(image: bpy.types.Image) -> bytes:
 
     width = image.size[0]
     height = image.size[1]
-    buf = bytearray([int(p * 255) for p in image.pixels])
+    buf = bytes([int(p * 255) for p in image.pixels])  # type: ignore
 
     # reverse the vertical line order and add null bytes at the start
     width_byte_4 = width * 4
@@ -77,20 +77,21 @@ class MaterialExporter:
 
         self.images.append(
             formats.gltf.Image(name=src.name,
-                       uri=None,
-                       mimeType=formats.gltf.MimeType.Png,
-                       bufferView=view_index))
+                               uri=None,
+                               mimeType=formats.gltf.ImageMimeType.ImagePng,
+                               bufferView=view_index))
 
         sampler_index = len(self.samplers)
         self.samplers.append(
-            formats.gltf.Sampler(magFilter=formats.gltf.MagFilterType.NEAREST,
-                         minFilter=formats.gltf.MinFilterType.NEAREST,
-                         wrapS=formats.gltf.WrapMode.REPEAT,
-                         wrapT=formats.gltf.WrapMode.REPEAT))
+            formats.gltf.Sampler(
+                magFilter=formats.gltf.SamplerMagFilter.NEAREST,
+                minFilter=formats.gltf.SamplerMinFilter.NEAREST,
+                wrapS=formats.gltf.SamplerWrapS.REPEAT,
+                wrapT=formats.gltf.SamplerWrapT.REPEAT))
 
         dst = formats.gltf.Texture(name=src.name,
-                           source=image_index,
-                           sampler=sampler_index)
+                                   source=image_index,
+                                   sampler=sampler_index)
         self.textures.append(dst)
 
     def get_material_index(self, material: bpy.types.Material,
@@ -103,7 +104,7 @@ class MaterialExporter:
         if material:
             self.add_material(material, bufferManager)
         else:
-            self.materials.append(formats.gltf.create_default_material())
+            self.materials.append(formats.gltf.Material())
         return gltf_material_index
 
     def add_material(self, src: bpy.types.Material,
@@ -177,7 +178,8 @@ class MaterialExporter:
             alphaCutoff=None,
             doubleSided=False,
             extensions=formats.gltf.materialsItemExtension(
-                KHR_materials_unlit=formats.gltf.KHR_materials_unlitGlTFExtension()),
+                KHR_materials_unlit=formats.gltf.
+                KHR_materials_unlitGlTFExtension()),
             extras=None)
         self.materials.append(dst)
 
@@ -204,38 +206,76 @@ def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
 
 
 class GltfExporter:
-    def __init__(self):
+    def __init__(self, nodes: List[Node]):
+        self.nodes = nodes
         self.buffer = formats.BufferManager()
         self.buffers = [self.buffer]
-        self.meshes: List[formats.gltf.Mesh] = []
-        self.skins: List[formats.gltf.Skin] = []
-        self.nodes: List[formats.gltf.Node] = []
-        self.roots: List[int] = []
         self.material_exporter = MaterialExporter()
 
-    def _to_gltf_mesh(self, mesh: SubmeshMesh) -> formats.gltf.Mesh:
+        self.gltf_nodes: List[formats.gltf.Node] = []
+        self.gltf_meshes: List[formats.gltf.Mesh] = []
+        self.gltf_skins: List[formats.gltf.Skin] = []
+        self.gltf_roots: List[int] = []
+        self._mesh_index_map: Dict[FaceMesh, int] = {}
+        self._skin_index_map: Dict[Skin, int] = {}
+
+    def _get_or_create_node(self, node: Node):
+
+        p = node.get_local_position()
+        name = node.name
+        if node.mesh:
+            name = 'mesh.' + name
+
+        mesh_index = self._get_or_create_mesh(node)
+        skin_index = self._get_or_create_skin(node)
+
+        gltf_node = formats.gltf.Node(
+            name=name,
+            children=[self.nodes.index(child) for child in node.children],
+            translation=[p.x, p.y, p.z],
+            mesh=mesh_index,
+            skin=skin_index)
+
+        self.gltf_nodes.append(gltf_node)
+
+    def _get_or_create_mesh(self, node: Node) -> Optional[int]:
         '''
         UniVRM compatible shared attributes and targets
         '''
+        if not isinstance(node.mesh, FaceMesh):
+            return None
+
+        mesh_index = self._mesh_index_map.get(node.mesh)
+        if isinstance(mesh_index, int):
+            return mesh_index
+
+        # store node
+        mesh = facemesh_to_submesh(node)
+        logger.debug(mesh)
+
         # attributes
         attributes = {
             'POSITION':
-            self.buffer.push_bytes(f'{mesh.name}.POSITION',
-                                   memoryview(mesh.attributes.position),
-                                   get_min_max3),
+            self.buffer.push_bytes(
+                f'{mesh.name}.POSITION',
+                memoryview(mesh.attributes.position),  # type: ignore
+                get_min_max3),
             'NORMAL':
-            self.buffer.push_bytes(f'{mesh.name}.NORMAL',
-                                   memoryview(mesh.attributes.normal)),
+            self.buffer.push_bytes(
+                f'{mesh.name}.NORMAL',
+                memoryview(mesh.attributes.normal)),  # type: ignore
         }
         if mesh.attributes.texcoord:
             attributes['TEXCOORD_0'] = self.buffer.push_bytes(
                 f'{mesh.name}.TEXCOORD_0',
-                memoryview(mesh.attributes.texcoord))
+                memoryview(mesh.attributes.texcoord))  # type: ignore
         if mesh.attributes.joints and mesh.attributes.weights:
             attributes['JOINTS_0'] = self.buffer.push_bytes(
-                f'{mesh.name}.JOINTS_0', memoryview(mesh.attributes.joints))
+                f'{mesh.name}.JOINTS_0',
+                memoryview(mesh.attributes.joints))  # type: ignore
             attributes['WEIGHTS_0'] = self.buffer.push_bytes(
-                f'{mesh.name}.WEIGHTS_0', memoryview(mesh.attributes.weights))
+                f'{mesh.name}.WEIGHTS_0',
+                memoryview(mesh.attributes.weights))  # type: ignore
 
         # morph targets
         targets = []
@@ -249,9 +289,10 @@ class GltfExporter:
                                        get_min_max3,
                                        use_sparse=True),
                 'NORMAL':
-                self.buffer.push_bytes(f'{mesh.name}.targets[{k}].NORMAL',
-                                       memoryview(zero),
-                                       use_sparse=True)
+                self.buffer.push_bytes(
+                    f'{mesh.name}.targets[{k}].NORMAL',
+                    memoryview(zero),  # type: ignore
+                    use_sparse=True)
             }
             targets.append(target)
             target_names.append(k)
@@ -275,46 +316,40 @@ class GltfExporter:
             )
             primitives.append(primitive)
 
-        return formats.gltf.Mesh(name=mesh.name,
-                                 primitives=primitives,
-                                 extensions={},
-                                 extras={})
+        gltf_mesh = formats.gltf.Mesh(name=mesh.name,
+                                      primitives=primitives,
+                                      extensions={},
+                                      extras=formats.gltf.meshesItemExtras())
+        mesh_index = len(self.gltf_meshes)
+        self.gltf_meshes.append(gltf_mesh)
+        self._mesh_index_map[node.mesh] = mesh_index
+        return mesh_index
 
-    def _to_gltf_node(self, node: Node) -> formats.gltf.Node:
-        # store node
-        # if isinstance(node.mesh, pyscene.FaceMesh):
-        #     submesh_mesh = facemesh_to_submesh(node)
-        #     logger.debug(submesh_mesh)
-        #     self.meshes.append(self._to_gltf_mesh(submesh_mesh))
+    def _get_or_create_skin(self, node: Node) -> Optional[int]:
+        if not node.skin:
+            return None
 
-        p = node.get_local_position()
-        name = node.name
-        if node.mesh:
-            name = 'mesh.' + name
-        return formats.gltf.Node(
-            name=name,
-            children=[nodes.index(child) for child in node.children],
-            translation=(p.x, p.y, p.z),
-            mesh=meshes.index(node.mesh) if node.mesh else None
-            # skin=skins.index(node.skin) if node.skin else None
-        )
+        skin_index = self._skin_index_map.get(node.skin)
+        if isinstance(skin_index, int):
+            return skin_index
 
-    def _to_gltf_skin(self, skin: Node, nodes: List[Node]):
-        joints = [joint for joint in skin.traverse()][1:]
+        # joints = [joint for joint in skin.traverse()][1:]
 
-        matrices = (Mat4 * len(joints))()
-        for i, _ in enumerate(joints):
-            p = joints[i].position
-            matrices[i] = Mat4.translation(-p.x, -p.y, -p.z)
-        matrix_index = self.buffer.push_bytes(
-            f'{skin.name}.inverseBindMatrices',
-            memoryview(matrices))  # type: ignore
+        # matrices = (Mat4 * len(joints))()
+        # for i, _ in enumerate(joints):
+        #     p = joints[i].position
+        #     matrices[i] = Mat4.translation(-p.x, -p.y, -p.z)
+        # matrix_index = self.buffer.push_bytes(
+        #     f'{skin.name}.inverseBindMatrices',
+        #     memoryview(matrices))  # type: ignore
 
-        return formats.gltf.Skin(
-            name=skin.name,
-            inverseBindMatrices=matrix_index,
-            skeleton=nodes.index(skin),
-            joints=[nodes.index(joint) for joint in joints])
+        # return formats.gltf.Skin(
+        #     name=skin.name,
+        #     inverseBindMatrices=matrix_index,
+        #     skeleton=nodes.index(skin),
+        #     joints=[nodes.index(joint) for joint in joints])
+
+        return None
 
     def _export_vrm(self, nodes: List[Node], version: str, title: str,
                     author: str):
@@ -366,23 +401,18 @@ class GltfExporter:
             return VRM
 
     def _push_node_recursive(self, node: Node):
-        gltf_node = self._to_gltf_node(node)
-        self.nodes.append(gltf_node)
-
+        self._get_or_create_node(node)
         for child in node.children:
             self._push_node_recursive(child)
 
-    def push_tree(self, root: Node):
-        '''
-        情報を蓄える
-        '''
-        self._push_node_recursive(root)
-
     def export(self) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
-        '''
-        出力する
-        '''
+        # 情報を蓄える
+        for node in self.nodes:
+            if not node.parent:
+                self._push_node_recursive(node)
+                self.gltf_roots.append(self.nodes.index(node))
 
+        # 出力する
         extensionsUsed = ['KHR_materials_unlit']
 
         # vrm = self.export_vrm(nodes, scanner.vrm.version,
@@ -402,10 +432,10 @@ class GltfExporter:
             samplers=self.material_exporter.samplers,
             textures=self.material_exporter.textures,
             materials=self.material_exporter.materials,
-            nodes=self.nodes,
-            meshes=self.meshes,
-            skins=self.skins,
-            scenes=[formats.gltf.Scene(name='main', nodes=self.roots)],
+            nodes=self.gltf_nodes,
+            meshes=self.gltf_meshes,
+            skins=self.gltf_skins,
+            scenes=[formats.gltf.Scene(name='main', nodes=self.gltf_roots)],
             extensionsUsed=extensionsUsed,
             # extensions={'VRM': vrm}
         )
@@ -414,11 +444,7 @@ class GltfExporter:
 
 
 def to_gltf(nodes: List[Node]) -> formats.GltfContext:
-    exporter = GltfExporter()
-    for node in nodes:
-        if not node.parent:
-            exporter.push_tree(node)
-
+    exporter = GltfExporter(nodes)
     exported, bins = exporter.export()
     return formats.GltfContext(exported, bytes(bins[0].buffer.data),
                                pathlib.Path())
