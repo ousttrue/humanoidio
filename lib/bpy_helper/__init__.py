@@ -4,6 +4,7 @@ import bpy, mathutils
 from .scene_scanner import Scanner
 from .importer import Importer
 
+
 def objects_selected_or_roots(
         selected_only: bool = False) -> List[bpy.types.Object]:
     if selected_only:
@@ -93,6 +94,12 @@ def clone_and_apply_transform(obj: bpy.types.Object) -> bpy.types.Object:
     # TODO: 近接頂点の統合
 
     return new_obj
+
+
+def apply_shape_key(obj: bpy.types.Object, i: int):
+    bl_mesh: bpy.types.Mesh = obj.data
+    for shape in bl_mesh.shape_keys.key_blocks:
+        print(shape)
 
 
 def remove_shapekey_except(obj: bpy.types.Object, i: int):

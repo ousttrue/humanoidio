@@ -1,7 +1,10 @@
-from typing import List, Optional, Iterator, Dict, Any
+from logging import getLogger
+logger = getLogger(__name__)
+from typing import List, Optional, Iterator, Dict, Any, Sequence
 import bpy, mathutils
 from .. import bpy_helper
 from .. import pyscene
+from ..struct_types import Float3
 from ..formats.vrm0x import HumanoidBones
 
 
@@ -98,16 +101,16 @@ class Scanner:
                      bone: bpy.types.Bone) -> pyscene.Node:
         armature_local_head_position = bone.head_local
         node = pyscene.Node(bone.name, armature_local_head_position)
-        if hasattr(bone, 'humanoid_bone'):
-            humanoid_bone = bone.humanoid_bone
-            if humanoid_bone:
-                try:
-                    parsed = HumanoidBones[humanoid_bone]
-                    if parsed != HumanoidBones.unknown:
-                        node.humanoid_bone = parsed
-                except Exception:
-                    # unknown
-                    pass
+        # if hasattr(bone, 'humanoid_bone'):
+        #     humanoid_bone = bone.humanoid_bone
+        #     if humanoid_bone:
+        #         try:
+        #             parsed = HumanoidBones[humanoid_bone]
+        #             if parsed != HumanoidBones.unknown:
+        #                 node.humanoid_bone = parsed
+        #         except Exception:
+        #             # unknown
+        #             pass
 
         parent.add_child(node)
         self._add_node(bone, node)
@@ -134,13 +137,6 @@ class Scanner:
                     # root bone
                     self._export_bone(armature_node,
                                       armature_object.matrix_world, b)
-
-        # get vrm meta
-        self.vrm.version = armature_object.get('vrm_version')
-        self.vrm.title = armature_object.get('vrm_title')
-        self.vrm.author = armature_object.get('vrm_author')
-        # self.vrm.contactInformation = armature_object['vrm_contactInformation']
-        # self.vrm.reference = armature_object['vrm_reference']
 
         return armature_node
 
@@ -184,7 +180,8 @@ class Scanner:
             # bone_names = [b.name
             #               for b in node.skin.traverse()] if node.skin else []
             facemesh = pyscene.FaceMesh(o.name, new_mesh.vertices,
-                                     new_mesh.materials, o.vertex_groups, [])
+                                        new_mesh.materials, o.vertex_groups,
+                                        [])
             # triangles
             for i, triangle in enumerate(triangles):
                 facemesh.add_triangle(triangle, uv_texture_layer)
@@ -198,34 +195,40 @@ class Scanner:
                     #
                     # copy and apply shapekey
                     #
-                    vertices = self._export_shapekey(o, i, shape)
-                    # store.add_morph(shape.name, vertices)
+                    vertices = self._export_shapekey(o, i, shape)                    
+                    facemesh.add_morph(shape.name, vertices)
 
             return facemesh
 
     def _export_shapekey(self, o: bpy.types.Object, i: int,
-                         shape: bpy.types.ShapeKey):
-        # copy
-        new_obj = bpy_helper.clone_and_apply_transform(o)
-        with bpy_helper.disposable(new_obj):
-            new_mesh: bpy.types.Mesh = new_obj.data
+                         shape: bpy.types.ShapeKey) -> Sequence[bpy.types.MeshVertex]:
+        logger.debug(f'{i}: {shape}')
 
-            # apply shape key
-            bpy_helper.remove_shapekey_except(new_obj, i)
-            new_obj.shape_key_clear()
+        # TODO: modifier
 
-            # apply modifiers
-            bpy_helper.apply_modifiers(new_obj)
+        # # copy
+        # new_obj = bpy_helper.clone_and_apply_transform(o)
+        # with bpy_helper.disposable(new_obj):
+        #     new_mesh: bpy.types.Mesh = new_obj.data
 
-            # メッシュの三角形化
-            if bpy.app.version[1] > 80:
-                new_mesh.calc_loop_triangles()
-                new_mesh.update()
-            else:
-                new_mesh.update(calc_loop_triangles=True)
+        #     # apply shape key
+        #     bpy_helper.remove_shapekey_except(new_obj, i)
+        #     new_obj.shape_key_clear()
 
-            # POSITIONSを得る
-            return [v for v in new_mesh.vertices]
+        #     # apply modifiers
+        #     bpy_helper.apply_modifiers(new_obj)
+
+        #     # メッシュの三角形化
+        #     if bpy.app.version[1] > 80:
+        #         new_mesh.calc_loop_triangles()
+        #         new_mesh.update()
+        #     else:
+        #         new_mesh.update(calc_loop_triangles=True)
+
+        #     # POSITIONSを得る
+        #     return [v for v in new_mesh.vertices]
+
+        return shape.data
 
     def _get_or_create_node(self, o: bpy.types.Object) -> pyscene.Node:
         if o in self._node_map:
@@ -272,8 +275,9 @@ class Scanner:
             if not self.remove_empty_leaf_nodes():
                 break
 
-    def get_skin_for_store(self, store: pyscene.FaceMesh) -> Optional[pyscene.Node]:
-        for node in self.nodes:
-            if node.mesh == store:
-                return node.skin
-        return None
+        # # get vrm meta
+        # self.vrm.version = armature_object.get('vrm_version')
+        # self.vrm.title = armature_object.get('vrm_title')
+        # self.vrm.author = armature_object.get('vrm_author')
+        # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
+        # # self.vrm.reference = armature_object['vrm_reference']

@@ -1,6 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import (Any, List, Dict, Optional, NamedTuple)
+from typing import (Any, List, Dict, Optional, NamedTuple, Sequence)
 import bpy, mathutils
 from ..struct_types import Float2, Float3, BoneWeight
 
@@ -114,7 +114,7 @@ class FaceMesh:
         self.face_vertex_index_map[face] = index
         return index
 
-    def add_morph(self, name: str, vertices: List[bpy.types.MeshVertex]):
+    def add_morph(self, name: str, vertices: Sequence[bpy.types.MeshVertex]):
         logger.debug(f'add_morph: {name}')
         assert (len(vertices) == len(self.positions))
         positions = (Float3 * len(vertices))()
