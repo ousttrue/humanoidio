@@ -5,7 +5,8 @@
 import pathlib
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import List, Optional, Tuple, Any, Iterator
+from typing import List, Optional, Tuple, Any, Iterator, Dict
+import bpy, mathutils
 from .. import formats
 from ..struct_types import Float3, Mat4
 from .submesh_mesh import SubmeshMesh
@@ -15,6 +16,170 @@ from .node import Node, Skin
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
+
+
+def image_to_png(image: bpy.types.Image) -> bytes:
+    '''
+    https://blender.stackexchange.com/questions/62072/does-blender-have-a-method-to-a-get-png-formatted-bytearray-for-an-image-via-pyt
+    '''
+    import struct
+    import zlib
+
+    width = image.size[0]
+    height = image.size[1]
+    buf = bytearray([int(p * 255) for p in image.pixels])
+
+    # reverse the vertical line order and add null bytes at the start
+    width_byte_4 = width * 4
+    raw_data = b''.join(b'\x00' + buf[span:span + width_byte_4]
+                        for span in range((height - 1) *
+                                          width_byte_4, -1, -width_byte_4))
+
+    def png_pack(png_tag, data):
+        chunk_head = png_tag + data
+        return (struct.pack("!I", len(data)) + chunk_head +
+                struct.pack("!I", 0xFFFFFFFF & zlib.crc32(chunk_head)))
+
+    png_bytes = b''.join([
+        b'\x89PNG\r\n\x1a\n',
+        png_pack(b'IHDR', struct.pack("!2I5B", width, height, 8, 6, 0, 0, 0)),
+        png_pack(b'IDAT', zlib.compress(raw_data, 9)),
+        png_pack(b'IEND', b'')
+    ])
+    return png_bytes
+
+
+class MaterialExporter:
+    def __init__(self):
+        self.images: List[formats.gltf.Image] = []
+        self.samplers: List[formats.gltf.Sampler] = []
+        self.textures: List[formats.gltf.Texture] = []
+        self.materials: List[formats.gltf.Material] = []
+        self.texture_map: Dict[bpy.types.Image, int] = {}
+        self.material_map: Dict[bpy.types.Material, int] = {}
+
+    def get_texture_index(self, texture: bpy.types.Image,
+                          buffer: formats.BufferManager) -> int:
+        if texture in self.texture_map:
+            return self.texture_map[texture]
+
+        gltf_texture_index = len(self.textures)
+        self.texture_map[texture] = gltf_texture_index
+        self.add_texture(texture, buffer)
+        return gltf_texture_index
+
+    def add_texture(self, src: bpy.types.Image, buffer: formats.BufferManager):
+        image_index = len(self.images)
+
+        logger.debug(f'add_texture: {src.name}')
+        png = image_to_png(src)
+        view_index = buffer.add_view(src.name, png)
+
+        self.images.append(
+            formats.gltf.Image(name=src.name,
+                       uri=None,
+                       mimeType=formats.gltf.MimeType.Png,
+                       bufferView=view_index))
+
+        sampler_index = len(self.samplers)
+        self.samplers.append(
+            formats.gltf.Sampler(magFilter=formats.gltf.MagFilterType.NEAREST,
+                         minFilter=formats.gltf.MinFilterType.NEAREST,
+                         wrapS=formats.gltf.WrapMode.REPEAT,
+                         wrapT=formats.gltf.WrapMode.REPEAT))
+
+        dst = formats.gltf.Texture(name=src.name,
+                           source=image_index,
+                           sampler=sampler_index)
+        self.textures.append(dst)
+
+    def get_material_index(self, material: bpy.types.Material,
+                           bufferManager: formats.BufferManager) -> int:
+        if material in self.material_map:
+            return self.material_map[material]
+
+        gltf_material_index = len(self.materials)
+        self.material_map[material] = gltf_material_index
+        if material:
+            self.add_material(material, bufferManager)
+        else:
+            self.materials.append(formats.gltf.create_default_material())
+        return gltf_material_index
+
+    def add_material(self, src: bpy.types.Material,
+                     bufferManager: formats.BufferManager):
+        # texture
+        color_texture = None
+        normal_texture = None
+        alpha_mode = formats.gltf.MaterialAlphaMode.OPAQUE
+
+        # if slot.use_map_color_diffuse and slot.texture and slot.texture.image:
+        #     color_texture_index = self.get_texture_index(
+        #         slot.texture.image, bufferManager)
+        #     color_texture = gltf.TextureInfo(
+        #         index=color_texture_index,
+        #         texCoord=0
+        #     )
+        #     if slot.use_map_alpha:
+        #         if slot.use_stencil:
+        #             alpha_mode = gltf.AlphaMode.MASK
+        #         else:
+        #             alpha_mode = gltf.AlphaMode.BLEND
+        # elif slot.use_map_normal and slot.texture and slot.texture.image:
+        #     normal_texture_index = self.get_texture_index(
+        #         slot.texture.image, bufferManager)
+        #     normal_texture = gltf.MaterialNormalTextureInfo(
+        #         index=normal_texture_index,
+        #         texCoord=0,
+        #         scale=slot.normal_factor,
+        #     )
+
+        # material
+        color = [0.5, 0.5, 0.5, 1.0]
+        texture = None
+        # if src.use_nodes:
+        #     principled_bsdf = src.node_tree.nodes['Principled BSDF']
+        #     if principled_bsdf:
+
+        #         base_color = principled_bsdf.inputs["Base Color"]
+
+        #         if base_color.is_linked:
+        #             from_node = base_color.links[0].from_node
+        #             if from_node.bl_idname == 'ShaderNodeTexImage':
+        #                 image = from_node.image
+        #                 if image:
+        #                     color_texture_index = self.get_texture_index(
+        #                         image, bufferManager)
+        #                     color_texture = gltf.TextureInfo(
+        #                         index=color_texture_index, texCoord=0)
+
+        #         else:
+        #             color = [x for x in base_color.default_value]
+
+        # else:
+        #     color = [x for x in src.diffuse_color]
+
+        dst = formats.gltf.Material(
+            name=src.name,
+            pbrMetallicRoughness=formats.gltf.MaterialPBRMetallicRoughness(
+                baseColorFactor=color,
+                baseColorTexture=color_texture,
+                metallicFactor=0,
+                roughnessFactor=0.9,
+                metallicRoughnessTexture=None,
+                extensions={},
+                extras={}),
+            normalTexture=normal_texture,
+            occlusionTexture=None,
+            emissiveTexture=None,
+            emissiveFactor=None,
+            alphaMode=alpha_mode,
+            alphaCutoff=None,
+            doubleSided=False,
+            extensions=formats.gltf.materialsItemExtension(
+                KHR_materials_unlit=formats.gltf.KHR_materials_unlitGlTFExtension()),
+            extras=None)
+        self.materials.append(dst)
 
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
@@ -45,8 +210,10 @@ class GltfExporter:
         self.meshes: List[formats.gltf.Mesh] = []
         self.skins: List[formats.gltf.Skin] = []
         self.nodes: List[formats.gltf.Node] = []
+        self.roots: List[int] = []
+        self.material_exporter = MaterialExporter()
 
-    def to_gltf_mesh(self, mesh: SubmeshMesh) -> formats.gltf.Mesh:
+    def _to_gltf_mesh(self, mesh: SubmeshMesh) -> formats.gltf.Mesh:
         '''
         UniVRM compatible shared attributes and targets
         '''
@@ -113,8 +280,13 @@ class GltfExporter:
                                  extensions={},
                                  extras={})
 
-    def to_gltf_node(self, node: Node, nodes: List[Node], skins: List[Node],
-                     meshes: List[FaceMesh]) -> formats.gltf.Node:
+    def _to_gltf_node(self, node: Node) -> formats.gltf.Node:
+        # store node
+        # if isinstance(node.mesh, pyscene.FaceMesh):
+        #     submesh_mesh = facemesh_to_submesh(node)
+        #     logger.debug(submesh_mesh)
+        #     self.meshes.append(self._to_gltf_mesh(submesh_mesh))
+
         p = node.get_local_position()
         name = node.name
         if node.mesh:
@@ -123,10 +295,11 @@ class GltfExporter:
             name=name,
             children=[nodes.index(child) for child in node.children],
             translation=(p.x, p.y, p.z),
-            mesh=meshes.index(node.mesh) if node.mesh else None,
-            skin=skins.index(node.skin) if node.skin else None)
+            mesh=meshes.index(node.mesh) if node.mesh else None
+            # skin=skins.index(node.skin) if node.skin else None
+        )
 
-    def to_gltf_skin(self, skin: Node, nodes: List[Node]):
+    def _to_gltf_skin(self, skin: Node, nodes: List[Node]):
         joints = [joint for joint in skin.traverse()][1:]
 
         matrices = (Mat4 * len(joints))()
@@ -143,8 +316,8 @@ class GltfExporter:
             skeleton=nodes.index(skin),
             joints=[nodes.index(joint) for joint in joints])
 
-    def export_vrm(self, nodes: List[Node], version: str, title: str,
-                   author: str):
+    def _export_vrm(self, nodes: List[Node], version: str, title: str,
+                    author: str):
         humanoid_bones = [node for node in nodes if node.humanoid_bone]
         if humanoid_bones:
             meta = {
@@ -188,45 +361,27 @@ class GltfExporter:
                     'textureProperties': {},
                     'keywordMap': {},
                     'tagMap': {}
-                } for material in self.material_store.materials]
+                } for material in self.material_exporter.materials]
             }
             return VRM
 
-    def export(
-        self, meshes: List[FaceMesh], nodes: List[Node], skins: List[Node]
-    ) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
-        def get_skin_for_store(store: FaceMesh) -> Optional[Node]:
-            for node in nodes:
-                if node.mesh == store:
-                    return node.skin
-            return None
+    def _push_node_recursive(self, node: Node):
+        gltf_node = self._to_gltf_node(node)
+        self.nodes.append(gltf_node)
 
-        for mesh in meshes:
-            logger.debug(mesh)
-            skin = get_skin_for_store(mesh)
+        for child in node.children:
+            self._push_node_recursive(child)
 
-            bone_names: List[str] = []
-            if skin:
-                bone_names = [joint.name for joint in skin.traverse()][1:]
-            submesh_mesh = facemesh_to_submesh(mesh, bone_names)
+    def push_tree(self, root: Node):
+        '''
+        情報を蓄える
+        '''
+        self._push_node_recursive(root)
 
-            logger.debug(submesh_mesh)
-            self.meshes.append(self.to_gltf_mesh(submesh_mesh))
-
-        # node
-        for node in nodes:
-            gltf_node = self.to_gltf_node(node, nodes, skins, meshes)
-            self.nodes.append(gltf_node)
-
-        def get_root_nodes() -> Iterator[Node]:
-            for node in nodes:
-                if not node.parent:
-                    yield node
-
-        roots = [nodes.index(root) for root in get_root_nodes()]
-        for skin in skins:
-            gltf_skin = self.to_gltf_skin(skin, nodes)
-            self.skins.append(gltf_skin)
+    def export(self) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
+        '''
+        出力する
+        '''
 
         extensionsUsed = ['KHR_materials_unlit']
 
@@ -243,14 +398,14 @@ class GltfExporter:
             ],
             bufferViews=self.buffer.views,
             accessors=self.buffer.accessors,
-            # images=self.material_store.images,
-            # samplers=self.material_store.samplers,
-            # textures=self.material_store.textures,
-            # materials=self.material_store.materials,
+            images=self.material_exporter.images,
+            samplers=self.material_exporter.samplers,
+            textures=self.material_exporter.textures,
+            materials=self.material_exporter.materials,
             nodes=self.nodes,
             meshes=self.meshes,
             skins=self.skins,
-            scenes=[formats.gltf.Scene(name='main', nodes=roots)],
+            scenes=[formats.gltf.Scene(name='main', nodes=self.roots)],
             extensionsUsed=extensionsUsed,
             # extensions={'VRM': vrm}
         )
@@ -258,9 +413,12 @@ class GltfExporter:
         return data, self.buffers
 
 
-def to_gltf(meshes: List[FaceMesh], nodes: List[Node],
-            skins: List[Node]) -> formats.GltfContext:
+def to_gltf(nodes: List[Node]) -> formats.GltfContext:
     exporter = GltfExporter()
-    exported, bins = exporter.export(meshes, nodes, skins)
+    for node in nodes:
+        if not node.parent:
+            exporter.push_tree(node)
+
+    exported, bins = exporter.export()
     return formats.GltfContext(exported, bytes(bins[0].buffer.data),
                                pathlib.Path())

@@ -88,8 +88,7 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         scanner = bpy_helper.scan()
 
         from .lib import pyscene
-        data = pyscene.to_gltf(scanner.meshes, scanner.nodes,
-                               [s for s in scanner.skin_map.values()])
+        data = pyscene.to_gltf(scanner.nodes)
         d = data.gltf.to_dict()
 
         from .lib.formats.glb import Glb

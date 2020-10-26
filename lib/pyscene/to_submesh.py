@@ -1,6 +1,7 @@
 from typing import List, Dict, NamedTuple
 import bpy
 from ..struct_types import Float3, Float2
+from .node import Node, Skin
 from .facemesh import FaceMesh
 from .submesh_mesh import Submesh, SubmeshMesh, Material
 
@@ -62,12 +63,14 @@ class TmpModel:
         submesh.indices.append(self._add_vertex(p2, n2, uv2))
 
 
-def facemesh_to_submesh(src: FaceMesh,
-                        skin_bone_names: List[str]) -> SubmeshMesh:
+def facemesh_to_submesh(node: Node) -> SubmeshMesh:
     '''
     blenderの面毎にmaterialを持つ形式から、
     同じmaterialをsubmeshにまとめた形式に変換する
     '''
+    if not isinstance(node.mesh, FaceMesh):
+        raise Exception()
+    src = node.mesh
 
     # 三角形をsubmeshに分配する
     tmp = TmpModel()
