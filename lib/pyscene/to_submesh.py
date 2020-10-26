@@ -2,7 +2,7 @@ from typing import List, Dict, NamedTuple
 import bpy
 from ..struct_types import Float3, Float2
 from .node import Node, Skin
-from .facemesh import FaceMesh
+from .facemesh import FaceMesh, Triangle
 from .submesh_mesh import Submesh, SubmeshMesh, Material
 
 
@@ -19,7 +19,10 @@ class TmpSubmesh:
 
 
 def mod_p(p: Float3) -> Float3:
-    return Float3(p.x, -p.z, p.y)
+    '''
+    BL to GLTF
+    '''
+    return Float3(p.x, p.z, -p.y)
 
 
 def mod_uv(uv: Float2) -> Float2:
@@ -63,13 +66,23 @@ class TmpModel:
         self.vertex_map[vertex] = i
         return i
 
-    def push_triangle(self, material_index: int, p0: Float3, p1: Float3,
-                      p2: Float3, n0: Float3, n1: Float3, n2: Float3, uv0, uv1,
-                      uv2):
-        submesh = self._get_or_create_submesh(material_index)
+    def push_triangle(self, t: Triangle, p0: Float3, p1: Float3, p2: Float3,
+                      n0: Float3, n1: Float3, n2: Float3, uv0, uv1, uv2):
+        submesh = self._get_or_create_submesh(t.material_index)
         submesh.indices.append(self._add_vertex(p0, n0, uv0))
         submesh.indices.append(self._add_vertex(p1, n1, uv1))
         submesh.indices.append(self._add_vertex(p2, n2, uv2))
+
+    def push_triangle_index(self, t: Triangle, p0: Float3, p1: Float3,
+                            p2: Float3, n0: Float3, n1: Float3, n2: Float3,
+                            uv0, uv1, uv2):
+        submesh = self._get_or_create_submesh(t.material_index)
+        self.vertices[t.i0] = TmpVertex(p0, n0, uv0)
+        self.vertices[t.i1] = TmpVertex(p1, n1, uv1)
+        self.vertices[t.i2] = TmpVertex(p2, n2, uv2)
+        submesh.indices.append(t.i0)
+        submesh.indices.append(t.i1)
+        submesh.indices.append(t.i2)
 
 
 def facemesh_to_submesh(node: Node) -> SubmeshMesh:
@@ -83,6 +96,18 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
 
     # 三角形をsubmeshに分配する
     tmp = TmpModel(src.name)
+
+    if src.is_face_splitted():
+        tmp.vertices = [TmpVertex(Float3(), Float3(), Float2())] * len(
+            src.positions)
+
+        def push(t: Triangle, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2):
+            tmp.push_triangle_index(t, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2)
+    else:
+
+        def push(t: Triangle, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2):
+            tmp.push_triangle(t, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2)
+
     for t in src.triangles:
         fv0 = src.face_vertices[t.i0]
         fv1 = src.face_vertices[t.i1]
@@ -103,8 +128,7 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
         uv1 = mod_uv(fv1.uv) if fv1.uv else Float2(0, 0)
         uv2 = mod_uv(fv2.uv) if fv2.uv else Float2(0, 0)
 
-        tmp.push_triangle(t.material_index, p0, p1, p2, n0, n1, n2, uv0, uv1,
-                          uv2)
+        push(t, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2)
 
     # # each submesh
     # i = 0

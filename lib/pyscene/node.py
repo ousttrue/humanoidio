@@ -36,12 +36,9 @@ class Node:
     '''
     GLTF変換との中間形式
     '''
-    def __init__(self, name: str, position: mathutils.Vector = None) -> None:
+    def __init__(self, name: str) -> None:
         self.name = name
-        if position:
-            self.position = Float3.from_Vector(position)
-        else:
-            self.position = Float3(0, 0, 0)
+        self.position = Float3(0, 0, 0)
         self.rotation = Float4(0, 0, 0, 1)
         self.scale = Float3(1, 1, 1)
         self.parent: Optional[Node] = None

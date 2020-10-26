@@ -237,7 +237,7 @@ class Scanner:
         # location = o.location
         # if o.parent:
         #     location -= o.parent.location
-        node = pyscene.Node(o.name, mathutils.Vector((0, 0, 0)))
+        node = pyscene.Node(o.name)
         self._add_node(o, node)
         return node
 

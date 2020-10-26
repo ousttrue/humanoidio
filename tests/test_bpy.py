@@ -3,6 +3,7 @@ from lib.pyscene import to_submesh
 from lib.pyscene.facemesh import FaceMesh
 from lib.pyscene.submesh_mesh import SubmeshMesh
 from lib.bpy_helper import scan
+from lib.struct_types import Float3
 import unittest
 import os
 import pathlib
@@ -25,9 +26,11 @@ class BpyTests(unittest.TestCase):
 
         data = formats.parse_gltf(path)
         roots = pyscene.nodes_from_gltf(data)
+        self.assertEqual(roots[0].children[0].mesh.attributes.position[0], Float3(-0.5, -0.5, 0.5))
 
         bpy_helper.load(bpy.context, roots)
         scanner = bpy_helper.scan()
+        self.assertEqual(scanner.nodes[1].mesh.positions[0], Float3(-0.5, -0.5, -0.5))
 
         exported = [node for node in scanner.nodes if not node.parent]
         self.assertEqual(len(roots), len(exported))

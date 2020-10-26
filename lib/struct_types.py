@@ -2,7 +2,6 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import NamedTuple, MutableSequence, Dict, Tuple, Iterable, List
 import ctypes
-import bpy, mathutils
 
 
 class Float2(ctypes.Structure):
@@ -11,10 +10,6 @@ class Float2(ctypes.Structure):
         ("x", ctypes.c_float),
         ("y", ctypes.c_float),
     ]
-
-    @staticmethod
-    def from_faceUV(uv: mathutils.Vector) -> 'Float2':
-        return Float2(uv.x, -uv.y)
 
     def __hash__(self):
         return hash(self.x)
@@ -29,11 +24,6 @@ class Float3(ctypes.Structure):
     _pack_ = 1
     _fields_ = [("x", ctypes.c_float), ("y", ctypes.c_float),
                 ("z", ctypes.c_float)]
-
-    @staticmethod
-    def from_Vector(v: mathutils.Vector) -> 'Float3':
-        # return Float3(v.x, v.z, -v.y)
-        return Float3(-v.x, v.z, v.y)
 
     def __getitem__(self, i: int) -> int:
         if i == 0:

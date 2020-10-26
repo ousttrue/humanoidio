@@ -48,8 +48,8 @@ class FaceMesh:
         self.positions: Any = (Float3 * len(vertices))()
         self.normals: Any = (Float3 * len(vertices))()
         for i, v in enumerate(vertices):
-            self.positions[i] = Float3.from_Vector(v.co)
-            self.normals[i] = Float3.from_Vector(v.normal)
+            self.positions[i] = Float3(v.co.x, v.co.y, v.co.z)
+            self.normals[i] = Float3(v.normal.x, v.normal.y, v.normal.z)
 
         self.materials: List[bpy.types.Material] = materials
 
@@ -69,6 +69,9 @@ class FaceMesh:
 
         self.morph_map: Dict[str, Any] = {}
 
+    def is_face_splitted(self) -> bool:
+        return len(self.positions) == len(self.face_vertices)
+
     def __str__(self) -> str:
         return f'<FaceMesh: {self.name}: {len(self.face_vertices)}vertices>'
 
@@ -78,8 +81,8 @@ class FaceMesh:
             if not uv_texture_layer: return None
             return uv_texture_layer.data[i].uv
 
-        face_normal = None if face.use_smooth else Float3.from_Vector(
-            face.normal)
+        face_normal = None if face.use_smooth else Float3(
+            face.normal.x, -face.normal.z, face.normal.y)
 
         assert len(face.vertices) == 3
         i0 = self._get_or_add_face_vertex(face.material_index,
@@ -104,7 +107,7 @@ class FaceMesh:
         face = FaceVertex(
             material_index, vertex_index,
             face_normal if face_normal else self.normals[vertex_index],
-            Float2.from_faceUV(uv) if uv else None)
+            Float2(uv.x, 1.0 - uv.y) if uv else None)
         index = self.face_vertex_index_map.get(face, None)
         if index != None:
             return index
@@ -119,6 +122,6 @@ class FaceMesh:
         assert (len(vertices) == len(self.positions))
         positions = (Float3 * len(vertices))()
         for i, v in enumerate(vertices):
-            delta = Float3.from_Vector(v.co) - self.positions[i]
+            delta = Float3(v.co.x, -v.co.z, v.co.y) - self.positions[i]
             positions[i] = delta
         self.morph_map[name] = positions

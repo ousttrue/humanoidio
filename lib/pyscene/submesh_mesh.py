@@ -11,6 +11,17 @@ class Submesh:
         self.offset = offset
         self.vertex_count = vertex_count
 
+    def compare(self, other) -> bool:
+        if not isinstance(other, Submesh):
+            raise Exception('other is not Submesh')
+        if self.material != other.material:
+            raise Exception('self.material != other.material')
+        if self.offset != other.offset:
+            raise Exception('self.offset != other.offset')
+        if self.vertex_count != other.vertex_count:
+            raise Exception('self.vertex_count != other.vertex_count')
+        return True
+
 
 class MorphTarget:
     def __init__(self, name: str, vertex_count: int):
@@ -51,7 +62,7 @@ class SubmeshMesh:
         if self.name != other.name:
             raise Exception(f'{self.name} != {other.name}')
 
-        if self.attributes.compare(other.attributes):
+        if not self.attributes.compare(other.attributes):
             raise Exception(f'{self.attributes} != {other.attributes}')
 
         if self.indices != other.indices:
@@ -67,7 +78,7 @@ class SubmeshMesh:
         if len(self.submeshes) != len(other.submeshes):
             raise Exception('len(self.submeshes) != len(other.submeshes)')
         for l, r in zip(self.submeshes, other.submeshes):
-            if l != r:
+            if not l.compare(r):
                 raise Exception(f'{l} != {r}')
 
         return True
