@@ -20,17 +20,21 @@ class MorphTarget:
     def __str__(self):
         return f'<PlanarBuffer {self.attributes.get_vertex_count()}>'
 
+
 class SubmeshMesh:
     def __init__(self, name: str, vertex_count: int, has_bone_weight: bool):
         self.name = name
         self.attributes = PlanarBuffer.create(vertex_count, has_bone_weight)
         # morph
-        self.morph_map: Dict[str, memoryview] = {}
+        # self.morph_map: Dict[str, memoryview] = {}
         # indices
         self.indices = array.array('I')
         self.submeshes: List[Submesh] = []
         # morph targets
         self.morphtargets: List[MorphTarget] = []
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         vertex_count = self.attributes.get_vertex_count()
@@ -39,6 +43,34 @@ class SubmeshMesh:
         ]
         morph = f' {len(self.morphtargets)}morph' if self.morphtargets else ''
         return f'<SubmeshMesh: {vertex_count}verts {"".join(submeshes)}{morph}>'
+
+    def compare(self, other) -> bool:
+        if not isinstance(other, SubmeshMesh):
+            raise Exception('r is not SubmeshMesh')
+
+        if self.name != other.name:
+            raise Exception(f'{self.name} != {other.name}')
+
+        if self.attributes.compare(other.attributes):
+            raise Exception(f'{self.attributes} != {other.attributes}')
+
+        if self.indices != other.indices:
+            raise Exception(f'{self.indices} != {other.indices}')
+
+        if len(self.morphtargets) != len(other.morphtargets):
+            raise Exception(
+                'len(self.morphtargets) != len(other.morphtargets)')
+        for l, r in zip(self.morphtargets, other.morphtargets):
+            if l != r:
+                raise Exception(f'{l} != {r}')
+
+        if len(self.submeshes) != len(other.submeshes):
+            raise Exception('len(self.submeshes) != len(other.submeshes)')
+        for l, r in zip(self.submeshes, other.submeshes):
+            if l != r:
+                raise Exception(f'{l} != {r}')
+
+        return True
 
     def get_or_create_morphtarget(self, i: int) -> MorphTarget:
         if i < len(self.morphtargets):

@@ -138,3 +138,9 @@ def scan() -> Scanner:
 def load(context: bpy.types.Context, roots: List[pyscene.Node]):
     importer = Importer(context)
     importer.execute(roots)
+
+
+def clear():
+    # clear scene
+    bpy.ops.object.select_all(action='SELECT')  # type: ignore
+    bpy.ops.object.delete()

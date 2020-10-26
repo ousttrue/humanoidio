@@ -1,3 +1,4 @@
+from lib import bpy_helper
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -27,8 +28,7 @@ DST_FILE = HERE / 'tmp.glb'
 
 # clear scene
 logger.debug('clear scene')
-bpy.ops.object.select_all(action='SELECT')  # type: ignore
-bpy.ops.object.delete()
+bpy_helper.clear()
 
 bpy.ops.pyimpex.importer(filepath=str(SRC_FILE))  # type: ignore
 bpy.ops.pyimpex.exporter(filepath=str(DST_FILE))  # type: ignore

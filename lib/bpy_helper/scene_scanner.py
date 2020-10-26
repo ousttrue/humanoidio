@@ -89,12 +89,12 @@ class Scanner:
 
         return True
 
-    def _mesh_node_under_empty(self):
-        mesh_node = pyscene.Node('Mesh')
-        for node in self.nodes:
-            if node.mesh:
-                mesh_node.add_child(node)
-        self.nodes.append(mesh_node)
+    # def _mesh_node_under_empty(self):
+    #     mesh_node = pyscene.Node('Mesh')
+    #     for node in self.nodes:
+    #         if node.mesh:
+    #             mesh_node.add_child(node)
+    #     self.nodes.append(mesh_node)
 
     def _export_bone(self, parent: pyscene.Node,
                      matrix_world: mathutils.Matrix,
@@ -179,7 +179,7 @@ class Scanner:
             # vertices
             # bone_names = [b.name
             #               for b in node.skin.traverse()] if node.skin else []
-            facemesh = pyscene.FaceMesh(o.name, new_mesh.vertices,
+            facemesh = pyscene.FaceMesh(o.data.name, new_mesh.vertices,
                                         new_mesh.materials, o.vertex_groups,
                                         [])
             # triangles
@@ -270,7 +270,7 @@ class Scanner:
         for root in roots:
             self._export_object(root)
 
-        self._mesh_node_under_empty()
+        # self._mesh_node_under_empty()
         while True:
             if not self.remove_empty_leaf_nodes():
                 break

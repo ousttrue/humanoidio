@@ -77,7 +77,7 @@ class Node:
         child.parent = None
 
     def __repr__(self) -> str:
-        return f'[{self.name} {self.position}]'
+        return f'<{self.name} {self.position}>'
 
     def __str__(self) -> str:
         if not self.mesh:

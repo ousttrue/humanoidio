@@ -167,6 +167,18 @@ class PlanarBuffer(NamedTuple):
     def get_vertex_count(self) -> int:
         return len(self.position)
 
+    def compare(self, other) -> bool:
+        if not isinstance(other, PlanarBuffer):
+            raise Exception('r is not PlanarBuffer')
+
+        if memoryview(self.position).tobytes() != memoryview(
+                other.position).tobytes():
+            l = [(p.x, p.y, p.z) for p in self.position]
+            r = [(p.x, p.y, p.z) for p in other.position]
+            raise Exception('position is not same')
+
+        return True
+
     @staticmethod
     def create(vertex_count: int, has_bone_weight: bool) -> 'PlanarBuffer':
         pos = (Float3 * vertex_count)()

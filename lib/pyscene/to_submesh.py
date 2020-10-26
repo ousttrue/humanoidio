@@ -18,15 +18,24 @@ class TmpSubmesh:
         self.indices: List[int] = []
 
 
+def mod_p(p: Float3) -> Float3:
+    return Float3(p.x, -p.z, p.y)
+
+
+def mod_uv(uv: Float2) -> Float2:
+    return Float2(uv.x, 1 - uv.y)
+
+
 class TmpModel:
-    def __init__(self):
+    def __init__(self, name: str):
+        self.name = name
         self.submeshes: List[TmpSubmesh] = []
         self.submesh_map: Dict[int, TmpSubmesh] = {}
         self.vertices: List[TmpVertex] = []
         self.vertex_map: Dict[TmpVertex, int] = {}
 
     def attributes(self) -> SubmeshMesh:
-        mesh = SubmeshMesh('submesh', len(self.vertices), False)
+        mesh = SubmeshMesh(self.name, len(self.vertices), False)
         for i, v in enumerate(self.vertices):
             mesh.attributes.position[i] = v.position
             mesh.attributes.normal[i] = v.normal
@@ -73,26 +82,26 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
     src = node.mesh
 
     # 三角形をsubmeshに分配する
-    tmp = TmpModel()
+    tmp = TmpModel(src.name)
     for t in src.triangles:
         fv0 = src.face_vertices[t.i0]
         fv1 = src.face_vertices[t.i1]
         fv2 = src.face_vertices[t.i2]
 
-        p0 = src.positions[fv0.position_index]
-        p1 = src.positions[fv1.position_index]
-        p2 = src.positions[fv2.position_index]
+        p0 = mod_p(src.positions[fv0.position_index])
+        p1 = mod_p(src.positions[fv1.position_index])
+        p2 = mod_p(src.positions[fv2.position_index])
 
         if t.normal:
-            n0 = n1 = n2 = t.normal
+            n0 = n1 = n2 = mod_p(t.normal)
         else:
-            n0 = fv0.normal
-            n1 = fv1.normal
-            n2 = fv2.normal
+            n0 = mod_p(fv0.normal)
+            n1 = mod_p(fv1.normal)
+            n2 = mod_p(fv2.normal)
 
-        uv0 = fv0.uv if fv0.uv else Float2(0, 0)
-        uv1 = fv1.uv if fv1.uv else Float2(0, 0)
-        uv2 = fv2.uv if fv2.uv else Float2(0, 0)
+        uv0 = mod_uv(fv0.uv) if fv0.uv else Float2(0, 0)
+        uv1 = mod_uv(fv1.uv) if fv1.uv else Float2(0, 0)
+        uv2 = mod_uv(fv2.uv) if fv2.uv else Float2(0, 0)
 
         tmp.push_triangle(t.material_index, p0, p1, p2, n0, n1, n2, uv0, uv1,
                           uv2)
@@ -131,11 +140,11 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
     # dst.joints = memoryview(joints) if has_bone_weights else None
     # dst.weights = memoryview(weights) if has_bone_weights else None
     # morph
-    morph_map = {}
-    for k, morph in src.morph_map.items():
-        morph_positions = (Float3 * len(tmp.vertices))()
-        morph_map[k] = morph_positions
-    dst.morph_map = {k: memoryview(v) for k, v in morph_map.items()}
+    # morph_map = {}
+    # for k, morph in src.morph_map.items():
+    #     morph_positions = (Float3 * len(tmp.vertices))()
+    #     morph_map[k] = morph_positions
+    # dst.morph_map = {k: memoryview(v) for k, v in morph_map.items()}
     # submesh
     keys = sorted(tmp.submesh_map.keys())
     index_offset = 0
