@@ -1,3 +1,4 @@
+from lib import pyscene
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Optional, List, Dict, Union
@@ -68,6 +69,17 @@ class Material:
             raise Exception(f'{self.__class__} != {other.__class__}')
         if self.name != other.name:
             raise Exception(f'{self.name} != {other.name}')
+
+        if self.color != other.color:
+            raise Exception('self.color != other.color')
+
+        if not self._compare_texture(self.texture, other.texture):
+            return False
+
+        return True
+
+    def _compare_texture(self, l: Optional[Texture],
+                         r: Optional[Texture]):
         return True
 
 
@@ -86,3 +98,9 @@ class PBRMaterial(Material):
 
     def __str__(self):
         return f'<PBR {self.name}>'
+
+    def compare(self, other) -> bool:
+        if not super().compare(other):
+            return False
+
+        return True

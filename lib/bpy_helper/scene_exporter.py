@@ -5,8 +5,7 @@ from typing import List, Optional, Iterator, Dict, Any, Sequence
 import bpy, mathutils
 from .. import bpy_helper
 from .. import pyscene
-from ..struct_types import Float3
-from ..formats.vrm0x import HumanoidBones
+from .material_exporter import MaterialExporter
 
 
 class Vrm:
@@ -19,14 +18,11 @@ class Vrm:
 class Scanner:
     def __init__(self) -> None:
         self.nodes: List[pyscene.Node] = []
-        self.materials: List[pyscene.Material] = []
         self.meshes: List[pyscene.FaceMesh] = []
-
         self._node_map: Dict[bpy.types.Object, pyscene.Node] = {}
-        self._material_map: Dict[bpy.types.Material, int] = {}
         self._skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
-
         self.vrm = Vrm()
+        self.material_exporter = MaterialExporter()
 
     def _add_node(self, obj: Any, node: pyscene.Node):
         self.nodes.append(node)
@@ -145,11 +141,6 @@ class Scanner:
 
         return armature_node
 
-    def _get_or_create_material(self,
-                                m: bpy.types.Material) -> pyscene.Material:
-        material = pyscene.Material(m.name)
-        return material
-
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: pyscene.Node) -> pyscene.FaceMesh:
         # copy
@@ -185,7 +176,7 @@ class Scanner:
                         return l
 
             materials = [
-                self._get_or_create_material(material)
+                self.material_exporter.get_or_create_material(material)
                 for material in new_mesh.materials
             ]
 
@@ -265,9 +256,9 @@ class Scanner:
         if parent:
             parent.add_child(node)
 
-        for slot in o.material_slots:
-            if slot and slot not in self.materials:
-                self.materials.append(slot.material)
+        # for slot in o.material_slots:
+        #     if slot and slot not in self.material_exporter.materials:
+        #         self.materials.append(slot.material)
 
         if o.type == 'MESH':
             if not o.hide_viewport:
