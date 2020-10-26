@@ -1,7 +1,7 @@
 from typing import List
 from contextlib import contextmanager
 import bpy, mathutils
-from .scene_scanner import Scanner
+from .scene_exporter import Scanner
 from .importer import Importer
 from .. import pyscene
 
