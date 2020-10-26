@@ -2,7 +2,6 @@
 * serialize: pyscene => GLTF
 * deserialize: GLTF => pyscene
 '''
-from lib.formats.gltf_generated import TextureInfo
 import pathlib
 from logging import getLogger
 logger = getLogger(__name__)

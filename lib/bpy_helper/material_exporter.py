@@ -1,4 +1,3 @@
-from lib.pyscene.material import Texture, TextureUsage
 from typing import List, Dict
 import pathlib
 import bpy
@@ -121,13 +120,13 @@ class MaterialExporter:
                 texture: bpy.types.Texture = principled.base_color_texture
                 image: bpy.types.Image = texture.image
                 if image.packed_file:
-                    material.texture = Texture(image.name,
+                    material.texture = pyscene.Texture(image.name,
                                                image.packed_file.data)
-                    material.texture.usage = TextureUsage.Color
+                    material.texture.usage = pyscene.TextureUsage.Color
                 elif image.filepath:
-                    material.texture = Texture(image.name,
+                    material.texture = pyscene.Texture(image.name,
                                                pathlib.Path(image.filepath))
-                    material.texture.usage = TextureUsage.Color
+                    material.texture.usage = pyscene.TextureUsage.Color
                 else:
                     raise NotImplementedError()
         else:

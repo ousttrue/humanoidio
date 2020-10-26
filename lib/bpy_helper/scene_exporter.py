@@ -1,4 +1,3 @@
-from lib.formats.gltf_generated import Material
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Iterator, Dict, Any, Sequence

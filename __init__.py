@@ -15,10 +15,8 @@ bl_info = {
     "warning": "This addon is still in development.",
 }
 
-from lib.bpy_helper import scan
 from logging import getLogger
 logger = getLogger(__name__)
-import os
 import json
 import pathlib
 

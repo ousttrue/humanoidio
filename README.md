@@ -43,8 +43,8 @@ for Blender-2.83
 
 ## TODO
 
-* [ ] export: texture
-* [ ] export: material
+* [x] export: texture
+* [x] export: material
 * [ ] export: morphTarget
 * [ ] export: skin
 
