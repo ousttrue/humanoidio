@@ -1,9 +1,8 @@
 from typing import List, Dict, NamedTuple
-import bpy
 from ..struct_types import Float3, Float2
-from .node import Node, Skin
+from .node import Node
 from .facemesh import FaceMesh, Triangle
-from .submesh_mesh import Submesh, SubmeshMesh, Material
+from .submesh_mesh import Submesh, SubmeshMesh
 
 
 class TmpVertex(NamedTuple):
@@ -174,13 +173,8 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
     index_offset = 0
     for key in keys:
         s = tmp.submesh_map[key]
-        if s.material_index < len(src.materials):
-            material = src.materials[s.material_index]
-        else:
-            # default material
-            material = bpy.data.materials[0]
         submesh = Submesh(index_offset, len(s.indices),
-                          Material(material.name))
+                          src.materials[s.material_index])
         index_offset += len(s.indices)
         dst.submeshes.append(submesh)
         dst.indices.extend(s.indices)

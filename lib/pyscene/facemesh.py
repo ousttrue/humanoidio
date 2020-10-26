@@ -3,6 +3,7 @@ logger = getLogger(__name__)
 from typing import (Any, List, Dict, Optional, NamedTuple, Sequence)
 import bpy, mathutils
 from ..struct_types import Float2, Float3, BoneWeight
+from .material import Material
 
 
 class FaceVertex(NamedTuple):
@@ -41,7 +42,7 @@ class Triangle(NamedTuple):
 
 class FaceMesh:
     def __init__(self, name: str, vertices: List[bpy.types.MeshVertex],
-                 materials: List[bpy.types.Material],
+                 materials: List[Material],
                  vertex_groups: List[bpy.types.VertexGroup],
                  bone_names: List[str]) -> None:
         self.name = name
@@ -50,8 +51,7 @@ class FaceMesh:
         for i, v in enumerate(vertices):
             self.positions[i] = Float3(v.co.x, v.co.y, v.co.z)
             self.normals[i] = Float3(v.normal.x, v.normal.y, v.normal.z)
-
-        self.materials: List[bpy.types.Material] = materials
+        self.materials = materials
 
         # faces
         self.face_vertices: List[FaceVertex] = []

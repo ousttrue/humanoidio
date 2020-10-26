@@ -14,7 +14,7 @@ class Submesh:
     def compare(self, other) -> bool:
         if not isinstance(other, Submesh):
             raise Exception('other is not Submesh')
-        if self.material != other.material:
+        if not self.material.compare(other.material):
             raise Exception('self.material != other.material')
         if self.offset != other.offset:
             raise Exception('self.offset != other.offset')

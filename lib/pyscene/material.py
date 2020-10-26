@@ -10,8 +10,6 @@ from ..formats.buffermanager import BufferManager
 from ..struct_types import Float4
 
 
-
-
 class TextureUsage(Enum):
     Unknown = 0
     Color = 1
@@ -65,6 +63,13 @@ class Material:
     def __str__(self):
         return f'<Unlit {self.name}>'
 
+    def compare(self, other) -> bool:
+        if self.__class__ != other.__class__:
+            raise Exception(f'{self.__class__} != {other.__class__}')
+        if self.name != other.name:
+            raise Exception(f'{self.name} != {other.name}')
+        return True
+
 
 class PBRMaterial(Material):
     '''
@@ -81,5 +86,3 @@ class PBRMaterial(Material):
 
     def __str__(self):
         return f'<PBR {self.name}>'
-
-

@@ -1,3 +1,4 @@
+from lib.formats.gltf_generated import Material
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Iterator, Dict, Any, Sequence
@@ -18,10 +19,13 @@ class Vrm:
 class Scanner:
     def __init__(self) -> None:
         self.nodes: List[pyscene.Node] = []
-        self._node_map: Dict[bpy.types.Object, pyscene.Node] = {}
+        self.materials: List[pyscene.Material] = []
         self.meshes: List[pyscene.FaceMesh] = []
-        self.materials: List[bpy.types.Material] = []
-        self.skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
+
+        self._node_map: Dict[bpy.types.Object, pyscene.Node] = {}
+        self._material_map: Dict[bpy.types.Material, int] = {}
+        self._skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
+
         self.vrm = Vrm()
 
     def _add_node(self, obj: Any, node: pyscene.Node):
@@ -56,7 +60,7 @@ class Scanner:
 
     def remove_empty_leaf_nodes(self) -> bool:
         bones: List[pyscene.Node] = []
-        for skin in self.skin_map.values():
+        for skin in self._skin_map.values():
             skin_node = self._get_node_for_skin(skin)
             if not skin_node:
                 raise Exception()
@@ -100,7 +104,8 @@ class Scanner:
                      matrix_world: mathutils.Matrix,
                      bone: bpy.types.Bone) -> pyscene.Node:
         armature_local_head_position = bone.head_local
-        node = pyscene.Node(bone.name, armature_local_head_position)
+        node = pyscene.Node(bone.name)
+        node.position = armature_local_head_position
         # if hasattr(bone, 'humanoid_bone'):
         #     humanoid_bone = bone.humanoid_bone
         #     if humanoid_bone:
@@ -122,14 +127,14 @@ class Scanner:
 
     def _get_or_create_skin(self,
                             armature_object: bpy.types.Object) -> pyscene.Skin:
-        if armature_object in self.skin_map:
-            return self.skin_map[armature_object]
+        if armature_object in self._skin_map:
+            return self._skin_map[armature_object]
 
         bpy.context.view_layer.objects.active = armature_object
         with bpy_helper.disposable_mode('POSE'):
 
             armature_node = self._get_or_create_node(armature_object)
-            self.skin_map[armature_object] = armature_node
+            self._skin_map[armature_object] = armature_node
 
             armature = armature_object.data
             for b in armature.bones:
@@ -139,6 +144,11 @@ class Scanner:
                                       armature_object.matrix_world, b)
 
         return armature_node
+
+    def _get_or_create_material(self,
+                                m: bpy.types.Material) -> pyscene.Material:
+        material = pyscene.Material(m.name)
+        return material
 
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: pyscene.Node) -> pyscene.FaceMesh:
@@ -174,15 +184,18 @@ class Scanner:
                     if l.active:
                         return l
 
-            uv_texture_layer = get_texture_layer(new_mesh.uv_layers)
+            materials = [
+                self._get_or_create_material(material)
+                for material in new_mesh.materials
+            ]
 
             # vertices
             # bone_names = [b.name
             #               for b in node.skin.traverse()] if node.skin else []
             facemesh = pyscene.FaceMesh(o.data.name, new_mesh.vertices,
-                                        new_mesh.materials, o.vertex_groups,
-                                        [])
+                                        materials, o.vertex_groups, [])
             # triangles
+            uv_texture_layer = get_texture_layer(new_mesh.uv_layers)
             for i, triangle in enumerate(triangles):
                 facemesh.add_triangle(triangle, uv_texture_layer)
 
@@ -195,13 +208,14 @@ class Scanner:
                     #
                     # copy and apply shapekey
                     #
-                    vertices = self._export_shapekey(o, i, shape)                    
+                    vertices = self._export_shapekey(o, i, shape)
                     facemesh.add_morph(shape.name, vertices)
 
             return facemesh
 
-    def _export_shapekey(self, o: bpy.types.Object, i: int,
-                         shape: bpy.types.ShapeKey) -> Sequence[bpy.types.MeshVertex]:
+    def _export_shapekey(
+            self, o: bpy.types.Object, i: int,
+            shape: bpy.types.ShapeKey) -> Sequence[bpy.types.MeshVertex]:
         logger.debug(f'{i}: {shape}')
 
         # TODO: modifier

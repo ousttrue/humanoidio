@@ -266,23 +266,23 @@ class GltfExporter:
 
         # morph targets
         targets = []
-        target_names = []
-        for k, v in mesh.morph_map.items():
-            zero = (Float3 * (len(v)))()
-            target = {
-                'POSITION':
-                self.buffer.push_bytes(f'{mesh.name}.targets[{k}].POSITION',
-                                       v,
-                                       get_min_max3,
-                                       use_sparse=True),
-                'NORMAL':
-                self.buffer.push_bytes(
-                    f'{mesh.name}.targets[{k}].NORMAL',
-                    memoryview(zero),  # type: ignore
-                    use_sparse=True)
-            }
-            targets.append(target)
-            target_names.append(k)
+        # target_names = []
+        # for k, v in mesh.morph_map.items():
+        #     zero = (Float3 * (len(v)))()
+        #     target = {
+        #         'POSITION':
+        #         self.buffer.push_bytes(f'{mesh.name}.targets[{k}].POSITION',
+        #                                v,
+        #                                get_min_max3,
+        #                                use_sparse=True),
+        #         'NORMAL':
+        #         self.buffer.push_bytes(
+        #             f'{mesh.name}.targets[{k}].NORMAL',
+        #             memoryview(zero),  # type: ignore
+        #             use_sparse=True)
+        #     }
+        #     targets.append(target)
+        #     target_names.append(k)
 
         primitives = []
         offset = 0
