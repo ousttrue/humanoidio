@@ -59,8 +59,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         roots = pyscene.nodes_from_gltf(data)
 
         from .lib import bpy_helper
-        importer = bpy_helper.Importer(context)
-        importer.execute(roots)
+        bpy_helper.load(context, roots)
 
         return {'FINISHED'}
 

@@ -1,10 +1,8 @@
 from logging import getLogger
+logger = getLogger(__name__)
 import pathlib
 import tempfile
-logger = getLogger(__name__)
 from typing import Dict, List, Callable, Tuple, Any
-import PIL.Image
-import PIL.ImageOps
 import bpy, mathutils
 from .. import pyscene
 
@@ -202,6 +200,6 @@ class MaterialImporter:
 
         bl_image.colorspace_settings.is_data = texture.is_data
         bl_image.name = texture.name
-        
+
         self.image_map[texture] = bl_image
         return bl_image

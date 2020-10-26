@@ -2,10 +2,11 @@
 * serialize: pyscene => GLTF
 * deserialize: GLTF => pyscene
 '''
+from lib.formats.gltf_generated import TextureInfo
 import pathlib
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import List, Optional, Tuple, Any, Iterator, Dict
+from typing import List, Optional, Tuple, Any, Iterator, Dict, Union
 import bpy, mathutils
 from .. import formats
 from ..struct_types import Float3, Mat4
@@ -13,40 +14,20 @@ from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
 from .to_submesh import facemesh_to_submesh
 from .node import Node, Skin
+from .material import BlendMode, Material, PBRMaterial, Texture
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
 
 
-def image_to_png(image: bpy.types.Image) -> bytes:
-    '''
-    https://blender.stackexchange.com/questions/62072/does-blender-have-a-method-to-a-get-png-formatted-bytearray-for-an-image-via-pyt
-    '''
-    import struct
-    import zlib
+def get_png_bytes(texture: Texture) -> bytes:
+    if isinstance(texture.url_or_bytes, bytes):
+        return texture.url_or_bytes
 
-    width = image.size[0]
-    height = image.size[1]
-    buf = bytes([int(p * 255) for p in image.pixels])  # type: ignore
+    if isinstance(texture.url_or_bytes, pathlib.Path):
+        return texture.url_or_bytes.read_bytes()
 
-    # reverse the vertical line order and add null bytes at the start
-    width_byte_4 = width * 4
-    raw_data = b''.join(b'\x00' + buf[span:span + width_byte_4]
-                        for span in range((height - 1) *
-                                          width_byte_4, -1, -width_byte_4))
-
-    def png_pack(png_tag, data):
-        chunk_head = png_tag + data
-        return (struct.pack("!I", len(data)) + chunk_head +
-                struct.pack("!I", 0xFFFFFFFF & zlib.crc32(chunk_head)))
-
-    png_bytes = b''.join([
-        b'\x89PNG\r\n\x1a\n',
-        png_pack(b'IHDR', struct.pack("!2I5B", width, height, 8, 6, 0, 0, 0)),
-        png_pack(b'IDAT', zlib.compress(raw_data, 9)),
-        png_pack(b'IEND', b'')
-    ])
-    return png_bytes
+    raise NotImplementedError()
 
 
 class MaterialExporter:
@@ -55,26 +36,113 @@ class MaterialExporter:
         self.samplers: List[formats.gltf.Sampler] = []
         self.textures: List[formats.gltf.Texture] = []
         self.materials: List[formats.gltf.Material] = []
-        self.texture_map: Dict[bpy.types.Image, int] = {}
-        self.material_map: Dict[bpy.types.Material, int] = {}
+        self.texture_map: Dict[Texture, int] = {}
+        self.material_map: Dict[Material, int] = {}
 
-    def get_texture_index(self, texture: bpy.types.Image,
-                          buffer: formats.BufferManager) -> int:
-        if texture in self.texture_map:
-            return self.texture_map[texture]
+    def get_or_create_material(self, src: Material,
+                               buffer: formats.BufferManager) -> int:
+        material_index = self.material_map.get(src)
+        if isinstance(material_index, int):
+            return material_index
 
-        gltf_texture_index = len(self.textures)
-        self.texture_map[texture] = gltf_texture_index
-        self.add_texture(texture, buffer)
-        return gltf_texture_index
+        #
+        # 共通項目
+        #
+        color = [0.5, 0.5, 0.5, 1.0]
+        if src.color:
+            color = [src.color.x, src.color.y, src.color.z, src.color.w]
+        color_texture = None
+        if src.texture:
+            texture_index = self._get_or_create_texture(src.texture, buffer)
+            color_texture = formats.gltf.TextureInfo(index=texture_index)
 
-    def add_texture(self, src: bpy.types.Image, buffer: formats.BufferManager):
-        image_index = len(self.images)
+        alpha_mode = formats.gltf.MaterialAlphaMode.OPAQUE
+        if src.blend_mode == BlendMode.AlphaBlend:
+            alpha_mode = formats.gltf.MaterialAlphaMode.BLEND
+        elif src.blend_mode == BlendMode.Mask:
+            alpha_mode = formats.gltf.MaterialAlphaMode.MASK
+
+        if isinstance(src, PBRMaterial):
+            #
+            # PBR
+            #
+            metallic_roughness_texture = None
+            if src.metallic_roughness_texture:
+                metallic_roughness_texture_index = self._get_or_create_texture(
+                    src.metallic_roughness_texture, buffer)
+                metallic_roughness_texture = formats.gltf.TextureInfo(
+                    index=metallic_roughness_texture_index)
+
+            normal_texture = None
+            if src.normal_map:
+                normal_texture_index = self._get_or_create_texture(
+                    src.normal_map, buffer)
+                normal_texture = formats.gltf.MaterialNormalTextureInfo(
+                    index=normal_texture_index)
+
+            # occlusionTexture
+            # emissiveTexture
+
+            gltf_material = formats.gltf.Material(
+                name=src.name,
+                pbrMetallicRoughness=formats.gltf.MaterialPBRMetallicRoughness(
+                    baseColorFactor=color,
+                    baseColorTexture=color_texture,
+                    metallicFactor=0,
+                    roughnessFactor=0.9,
+                    metallicRoughnessTexture=metallic_roughness_texture,
+                    extensions={},
+                    extras={}),
+                normalTexture=normal_texture,
+                occlusionTexture=None,
+                emissiveTexture=None,
+                emissiveFactor=None,
+                alphaMode=alpha_mode,
+                alphaCutoff=src.threshold,
+                doubleSided=src.double_sided,
+                extensions=None,
+                extras=None)
+
+        else:
+            # Unlit
+            gltf_material = formats.gltf.Material(
+                name=src.name,
+                pbrMetallicRoughness=formats.gltf.MaterialPBRMetallicRoughness(
+                    baseColorFactor=color,
+                    baseColorTexture=color_texture,
+                    metallicFactor=0,
+                    roughnessFactor=0.9,
+                    metallicRoughnessTexture=None,
+                    extensions={},
+                    extras={}),
+                normalTexture=None,
+                occlusionTexture=None,
+                emissiveTexture=None,
+                emissiveFactor=None,
+                alphaMode=alpha_mode,
+                alphaCutoff=src.threshold,
+                doubleSided=src.double_sided,
+                extensions=formats.gltf.materialsItemExtension(
+                    KHR_materials_unlit=formats.gltf.
+                    KHR_materials_unlitGlTFExtension()),
+                extras=None)
+
+        material_index = len(self.materials)
+        self.materials.append(gltf_material)
+        self.material_map[src] = material_index
+        return material_index
+
+    def _get_or_create_texture(self, src: Texture,
+                               buffer: formats.BufferManager) -> int:
+        texture_index = self.texture_map.get(src)
+        if isinstance(texture_index, int):
+            return texture_index
 
         logger.debug(f'add_texture: {src.name}')
-        png = image_to_png(src)
-        view_index = buffer.add_view(src.name, png)
 
+        png = get_png_bytes(src)
+        view_index = buffer.add_view(src.name, png)
+        image_index = len(self.images)
         self.images.append(
             formats.gltf.Image(name=src.name,
                                uri=None,
@@ -92,96 +160,10 @@ class MaterialExporter:
         dst = formats.gltf.Texture(name=src.name,
                                    source=image_index,
                                    sampler=sampler_index)
+
+        texture_index = len(self.textures)
         self.textures.append(dst)
-
-    def get_material_index(self, material: bpy.types.Material,
-                           bufferManager: formats.BufferManager) -> int:
-        if material in self.material_map:
-            return self.material_map[material]
-
-        gltf_material_index = len(self.materials)
-        self.material_map[material] = gltf_material_index
-        if material:
-            self.add_material(material, bufferManager)
-        else:
-            self.materials.append(formats.gltf.Material())
-        return gltf_material_index
-
-    def add_material(self, src: bpy.types.Material,
-                     bufferManager: formats.BufferManager):
-        # texture
-        color_texture = None
-        normal_texture = None
-        alpha_mode = formats.gltf.MaterialAlphaMode.OPAQUE
-
-        # if slot.use_map_color_diffuse and slot.texture and slot.texture.image:
-        #     color_texture_index = self.get_texture_index(
-        #         slot.texture.image, bufferManager)
-        #     color_texture = gltf.TextureInfo(
-        #         index=color_texture_index,
-        #         texCoord=0
-        #     )
-        #     if slot.use_map_alpha:
-        #         if slot.use_stencil:
-        #             alpha_mode = gltf.AlphaMode.MASK
-        #         else:
-        #             alpha_mode = gltf.AlphaMode.BLEND
-        # elif slot.use_map_normal and slot.texture and slot.texture.image:
-        #     normal_texture_index = self.get_texture_index(
-        #         slot.texture.image, bufferManager)
-        #     normal_texture = gltf.MaterialNormalTextureInfo(
-        #         index=normal_texture_index,
-        #         texCoord=0,
-        #         scale=slot.normal_factor,
-        #     )
-
-        # material
-        color = [0.5, 0.5, 0.5, 1.0]
-        texture = None
-        # if src.use_nodes:
-        #     principled_bsdf = src.node_tree.nodes['Principled BSDF']
-        #     if principled_bsdf:
-
-        #         base_color = principled_bsdf.inputs["Base Color"]
-
-        #         if base_color.is_linked:
-        #             from_node = base_color.links[0].from_node
-        #             if from_node.bl_idname == 'ShaderNodeTexImage':
-        #                 image = from_node.image
-        #                 if image:
-        #                     color_texture_index = self.get_texture_index(
-        #                         image, bufferManager)
-        #                     color_texture = gltf.TextureInfo(
-        #                         index=color_texture_index, texCoord=0)
-
-        #         else:
-        #             color = [x for x in base_color.default_value]
-
-        # else:
-        #     color = [x for x in src.diffuse_color]
-
-        dst = formats.gltf.Material(
-            name=src.name,
-            pbrMetallicRoughness=formats.gltf.MaterialPBRMetallicRoughness(
-                baseColorFactor=color,
-                baseColorTexture=color_texture,
-                metallicFactor=0,
-                roughnessFactor=0.9,
-                metallicRoughnessTexture=None,
-                extensions={},
-                extras={}),
-            normalTexture=normal_texture,
-            occlusionTexture=None,
-            emissiveTexture=None,
-            emissiveFactor=None,
-            alphaMode=alpha_mode,
-            alphaCutoff=None,
-            doubleSided=False,
-            extensions=formats.gltf.materialsItemExtension(
-                KHR_materials_unlit=formats.gltf.
-                KHR_materials_unlitGlTFExtension()),
-            extras=None)
-        self.materials.append(dst)
+        return texture_index
 
 
 def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
@@ -216,7 +198,7 @@ class GltfExporter:
         self.gltf_meshes: List[formats.gltf.Mesh] = []
         self.gltf_skins: List[formats.gltf.Skin] = []
         self.gltf_roots: List[int] = []
-        self._mesh_index_map: Dict[FaceMesh, int] = {}
+        self._mesh_index_map: Dict[Union[SubmeshMesh, FaceMesh], int] = {}
         self._skin_index_map: Dict[Skin, int] = {}
 
     def _get_or_create_node(self, node: Node):
@@ -242,15 +224,20 @@ class GltfExporter:
         '''
         UniVRM compatible shared attributes and targets
         '''
-        if not isinstance(node.mesh, FaceMesh):
+        if not node.mesh:
             return None
-
         mesh_index = self._mesh_index_map.get(node.mesh)
         if isinstance(mesh_index, int):
             return mesh_index
 
+        if isinstance(node.mesh, FaceMesh):
+            mesh = facemesh_to_submesh(node)
+        elif isinstance(node.mesh, SubmeshMesh):
+            mesh = node.mesh
+        else:
+            raise Exception()
+
         # store node
-        mesh = facemesh_to_submesh(node)
         logger.debug(mesh)
 
         # attributes
@@ -309,7 +296,8 @@ class GltfExporter:
             primitive = formats.gltf.MeshPrimitive(
                 attributes=attributes,
                 indices=indices_accessor_index,
-                material=0,
+                material=self.material_exporter.get_or_create_material(
+                    submesh.material, self.buffer),
                 mode=formats.gltf.MeshPrimitiveMode.TRIANGLES,
                 targets=targets,
                 # gltf.MeshPrimitiveExtra(target_names)

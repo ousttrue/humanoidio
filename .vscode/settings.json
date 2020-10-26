@@ -1,6 +1,10 @@
 {
     "cSpell.words": [
         "Bsdf",
+        "GLTFSHADER",
+        "IDAT",
+        "IEND",
+        "IHDR",
         "PYTHONPATH",
         "TEXCOORD",
         "chdir",
@@ -9,6 +13,7 @@
         "getenv",
         "gltf",
         "idname",
+        "pyimpex",
         "pyscene",
         "struct",
         "submesh",

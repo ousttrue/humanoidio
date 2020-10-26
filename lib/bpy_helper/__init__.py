@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import bpy, mathutils
 from .scene_scanner import Scanner
 from .importer import Importer
+from .. import pyscene
 
 
 def objects_selected_or_roots(
@@ -132,3 +133,8 @@ def scan() -> Scanner:
     scanner = Scanner()
     scanner.scan(targets)
     return scanner
+
+
+def load(context: bpy.types.Context, roots: List[pyscene.Node]):
+    importer = Importer(context)
+    importer.execute(roots)

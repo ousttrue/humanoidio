@@ -37,9 +37,9 @@ def check_mesh(l: formats.GltfContext, lm: formats.gltf.Mesh,
 
     for lp, rp in zip(lm.primitives, rm.primitives):
         # pos
-        lpos = [p for p in lb.get_bytes(lp.attributes['POSITION'])]
-        rpos = [p for p in rb.get_bytes(rp.attributes['POSITION'])]
-        if len(lpos) != len(rpos):
+        l_pos = [p for p in lb.get_bytes(lp.attributes['POSITION'])]
+        r_pos = [p for p in rb.get_bytes(rp.attributes['POSITION'])]
+        if len(l_pos) != len(r_pos):
             return False
 
         # normal
@@ -66,26 +66,61 @@ def check_mesh(l: formats.GltfContext, lm: formats.gltf.Mesh,
     return True
 
 
+def is_unlit(material: formats.gltf.Material) -> bool:
+    if not material.extensions:
+        return False
+    if not material.extensions.KHR_materials_unlit:
+        return False
+    return True
+
+
+def check_material(l: formats.GltfContext, lm: formats.gltf.Material,
+                   r: formats.GltfContext, rm: formats.gltf.Material):
+    if not check_vec(lm.pbrMetallicRoughness.baseColorFactor,
+                     rm.pbrMetallicRoughness.baseColorFactor):
+        raise Exception('pbrMetallicRoughness.baseColorFactor')
+
+    if lm.pbrMetallicRoughness.baseColorTexture and not rm.pbrMetallicRoughness.baseColorTexture:
+        raise Exception('r has not colorTexture')
+    if not lm.pbrMetallicRoughness.baseColorTexture and rm.pbrMetallicRoughness.baseColorTexture:
+        raise Exception('l has not colorTexture')
+
+    if is_unlit(lm) and not is_unlit(rm):
+        raise Exception('r is not Unlit')
+    elif not is_unlit(lm) and is_unlit(rm):
+        raise Exception('l is not unlit')
+    elif is_unlit(lm) and is_unlit(rm):
+        # unlit
+        pass
+    else:
+        # pbr
+        pass
+    return True
+
+
 def check_gltf(l: formats.GltfContext, r: formats.GltfContext):
     '''
     import して再 export した結果が一致するか、緩く比較する
     '''
 
     if l.gltf.materials and not r.gltf.materials:
-        return False
+        raise Exception('r.gltf.materials is None')
     elif not l.gltf.materials and r.gltf.materials:
-        return False
+        raise Exception('l.gltf.materials is None')
     elif l.gltf.materials and r.gltf.materials:
         if len(l.gltf.materials) != len(r.gltf.materials):
-            return False
+            return Exception('len(l.gltf.materials) != len(r.gltf.materials)')
+        for ll, rr in zip(l.gltf.materials, r.gltf.materials):
+            if not check_material(l, ll, r, rr):
+                return False
 
     if l.gltf.meshes and not r.gltf.meshes:
-        return False
+        raise Exception('r.gltf.meshes is None')
     elif not l.gltf.meshes and r.gltf.meshes:
-        return False
+        raise Exception('l.gltf.meshes is None')
     elif l.gltf.meshes and r.gltf.meshes:
         if len(l.gltf.meshes) != len(r.gltf.meshes):
-            return False
+            raise Exception('len(l.gltf.meshes) != len(r.gltf.meshes)')
         for ll, rr in zip(l.gltf.meshes, r.gltf.meshes):
             if not check_mesh(l, ll, r, rr):
                 return False
@@ -186,6 +221,23 @@ class GltfTests(unittest.TestCase):
         self.assertEqual(material.color, Float4(1, 1, 1, 1))
         self.assertEqual(texture.url_or_bytes,
                          path.parent / 'CesiumLogoFlat.png')
+
+        # export
+        nodes = [node for root in roots for node in root.traverse()]
+        exported = pyscene.to_gltf(nodes)
+        self.assertTrue(check_gltf(exported, data))
+
+    def test_box_textured_glb(self):
+        path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF-Binary/BoxTextured.glb'
+        self.assertTrue(path.exists())
+
+        data = formats.parse_gltf(path)
+        roots = pyscene.nodes_from_gltf(data)
+
+        # export
+        nodes = [node for root in roots for node in root.traverse()]
+        exported = pyscene.to_gltf(nodes)
+        self.assertTrue(check_gltf(exported, data))
 
     def test_unlit_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
