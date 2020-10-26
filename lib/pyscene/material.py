@@ -30,6 +30,15 @@ class Texture:
     def __str__(self) -> str:
         return f'<[{self.usage}] {self.name}>'
 
+    def compare(self, other) -> bool:
+        if self.name != other.name:
+            raise Exception(f'{self.name} != {other.name}')
+        if self.url_or_bytes != other.url_or_bytes:
+            raise Exception(f'{self.url_or_bytes} != {other.url_or_bytes}')
+        if self.usage != other.usage:
+            raise Exception(f'{self.usage} != {other.usage}')
+        return True
+
     def set_usage(self, usage: TextureUsage):
         if self.usage != TextureUsage.Unknown and self.usage != usage:
             raise Exception('multi use by different usage')
@@ -73,13 +82,20 @@ class Material:
         if self.color != other.color:
             raise Exception('self.color != other.color')
 
+        if self.texture and not other.texture:
+            raise Exception('other.texture is None')
+        elif not self.texture and other.texture:
+            raise Exception('self.texture is None')
+        elif self.texture and other.texture:
+            if not self.texture.compare(other.texture):
+                return False
+
         if not self._compare_texture(self.texture, other.texture):
             return False
 
         return True
 
-    def _compare_texture(self, l: Optional[Texture],
-                         r: Optional[Texture]):
+    def _compare_texture(self, l: Optional[Texture], r: Optional[Texture]):
         return True
 
 
