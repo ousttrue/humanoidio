@@ -67,6 +67,7 @@ class FaceMesh:
                 if vg_name in self.bone_names:
                     self.bone_weights[i].push(ve.group, ve.weight)
 
+        self.moprh_targets: List[Sequence[Float3]] = []
         self.morph_map: Dict[str, Any] = {}
 
     def is_face_splitted(self) -> bool:
@@ -124,4 +125,5 @@ class FaceMesh:
         for i, v in enumerate(vertices):
             delta = Float3(v.co.x, -v.co.z, v.co.y) - self.positions[i]
             positions[i] = delta
+        self.moprh_targets.append(positions)  # type: ignore
         self.morph_map[name] = positions

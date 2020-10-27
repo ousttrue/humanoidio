@@ -72,8 +72,10 @@ class SubmeshMesh:
             raise Exception(
                 'len(self.morphtargets) != len(other.morphtargets)')
         for l, r in zip(self.morphtargets, other.morphtargets):
-            if l != r:
-                raise Exception(f'{l} != {r}')
+            if l.name != r.name:
+                raise Exception(f'{l.name} != {r.name}')
+            if not l.attributes.compare(r.attributes):
+                return False
 
         if len(self.submeshes) != len(other.submeshes):
             raise Exception('len(self.submeshes) != len(other.submeshes)')

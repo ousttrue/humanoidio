@@ -1,3 +1,4 @@
+import enum
 from typing import List, Dict
 from ..struct_types import Float2
 from .node import Node
@@ -59,6 +60,8 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
             uv1 = fv1.uv.flip_uv() if fv1.uv else Float2(0, 0)
             uv2 = fv2.uv.flip_uv() if fv2.uv else Float2(0, 0)
 
+            # TODO: boneweight
+
             dst.attributes.set_vertex(fv0.position_index, p0, n0, uv0)
             dst.attributes.set_vertex(fv1.position_index, p1, n1, uv1)
             dst.attributes.set_vertex(fv2.position_index, p2, n2, uv2)
@@ -66,6 +69,16 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
             submesh.indices.append(fv0.position_index)
             submesh.indices.append(fv1.position_index)
             submesh.indices.append(fv2.position_index)
+
+            # morph target
+            for i, m in enumerate(src.moprh_targets):
+                morph = dst.get_or_create_morphtarget(i)
+                morph.attributes.position[fv0.position_index] = m[
+                    fv0.position_index]
+                morph.attributes.position[fv1.position_index] = m[
+                    fv1.position_index]
+                morph.attributes.position[fv2.position_index] = m[
+                    fv2.position_index]
 
     else:
         raise Exception()
