@@ -74,13 +74,17 @@ def apply_transform(obj: bpy.types.Object) -> None:
     obj.select_set(False)
     bpy.ops.object.select_all(action='DESELECT')
 
-
-def clone_and_apply_transform(obj: bpy.types.Object) -> bpy.types.Object:
+def clone(obj: bpy.types.Object)->bpy.types.Object:
     enter_mode('OBJECT')
 
     new_obj: bpy.types.Object = obj.copy()
     new_obj.data = obj.data.copy()
     bpy.context.scene.collection.objects.link(new_obj)
+
+    return new_obj
+
+def clone_and_apply_transform(obj: bpy.types.Object) -> bpy.types.Object:
+    new_obj = clone(obj)
 
     # apply transform
     if obj.parent:

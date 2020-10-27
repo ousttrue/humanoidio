@@ -65,49 +65,7 @@ class TmpModel:
         self.vertex_map[vertex] = i
         return i
 
-    def push_triangle(self, t: Triangle, p0: Float3, p1: Float3, p2: Float3,
-                      n0: Float3, n1: Float3, n2: Float3, uv0, uv1, uv2):
-        submesh = self._get_or_create_submesh(t.material_index)
-        submesh.indices.append(self._add_vertex(p0, n0, uv0))
-        submesh.indices.append(self._add_vertex(p1, n1, uv1))
-        submesh.indices.append(self._add_vertex(p2, n2, uv2))
-
-    def push_triangle_index(self, t: Triangle, p0: Float3, p1: Float3,
-                            p2: Float3, n0: Float3, n1: Float3, n2: Float3,
-                            uv0, uv1, uv2):
-        submesh = self._get_or_create_submesh(t.material_index)
-        self.vertices[t.i0] = TmpVertex(p0, n0, uv0)
-        self.vertices[t.i1] = TmpVertex(p1, n1, uv1)
-        self.vertices[t.i2] = TmpVertex(p2, n2, uv2)
-        submesh.indices.append(t.i0)
-        submesh.indices.append(t.i1)
-        submesh.indices.append(t.i2)
-
-
-def facemesh_to_submesh(node: Node) -> SubmeshMesh:
-    '''
-    blenderの面毎にmaterialを持つ形式から、
-    同じmaterialをsubmeshにまとめた形式に変換する
-    '''
-    if not isinstance(node.mesh, FaceMesh):
-        raise Exception()
-    src = node.mesh
-
-    # 三角形をsubmeshに分配する
-    tmp = TmpModel(src.name)
-
-    if src.is_face_splitted():
-        tmp.vertices = [TmpVertex(Float3(), Float3(), Float2())] * len(
-            src.positions)
-
-        def push(t: Triangle, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2):
-            tmp.push_triangle_index(t, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2)
-    else:
-
-        def push(t: Triangle, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2):
-            tmp.push_triangle(t, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2)
-
-    for t in src.triangles:
+    def push_triangle(self, t: Triangle, src: FaceMesh):
         fv0 = src.face_vertices[t.i0]
         fv1 = src.face_vertices[t.i1]
         fv2 = src.face_vertices[t.i2]
@@ -127,7 +85,65 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
         uv1 = mod_uv(fv1.uv) if fv1.uv else Float2(0, 0)
         uv2 = mod_uv(fv2.uv) if fv2.uv else Float2(0, 0)
 
-        push(t, p0, p1, p2, n0, n1, n2, uv0, uv1, uv2)
+        submesh = self._get_or_create_submesh(t.material_index)
+        submesh.indices.append(self._add_vertex(p0, n0, uv0))
+        submesh.indices.append(self._add_vertex(p1, n1, uv1))
+        submesh.indices.append(self._add_vertex(p2, n2, uv2))
+
+    def push_triangle_index(self, t: Triangle, src: FaceMesh):
+        fv0 = src.face_vertices[t.i0]
+        fv1 = src.face_vertices[t.i1]
+        fv2 = src.face_vertices[t.i2]
+
+        p0 = mod_p(src.positions[fv0.position_index])
+        p1 = mod_p(src.positions[fv1.position_index])
+        p2 = mod_p(src.positions[fv2.position_index])
+
+        if t.normal:
+            n0 = n1 = n2 = mod_p(t.normal)
+        else:
+            n0 = mod_p(fv0.normal)
+            n1 = mod_p(fv1.normal)
+            n2 = mod_p(fv2.normal)
+
+        uv0 = mod_uv(fv0.uv) if fv0.uv else Float2(0, 0)
+        uv1 = mod_uv(fv1.uv) if fv1.uv else Float2(0, 0)
+        uv2 = mod_uv(fv2.uv) if fv2.uv else Float2(0, 0)
+
+        submesh = self._get_or_create_submesh(t.material_index)
+        self.vertices[fv0.position_index] = TmpVertex(p0, n0, uv0)
+        self.vertices[fv1.position_index] = TmpVertex(p1, n1, uv1)
+        self.vertices[fv2.position_index] = TmpVertex(p2, n2, uv2)
+        submesh.indices.append(fv0.position_index)
+        submesh.indices.append(fv1.position_index)
+        submesh.indices.append(fv2.position_index)
+
+
+def facemesh_to_submesh(node: Node) -> SubmeshMesh:
+    '''
+    blenderの面毎にmaterialを持つ形式から、
+    同じmaterialをsubmeshにまとめた形式に変換する
+    '''
+    if not isinstance(node.mesh, FaceMesh):
+        raise Exception()
+    src = node.mesh
+
+    # 三角形をsubmeshに分配する
+    tmp = TmpModel(src.name)
+
+    if src.is_face_splitted():
+        tmp.vertices = [TmpVertex(Float3(), Float3(), Float2())] * len(
+            src.positions)
+
+        def push(t: Triangle, src: FaceMesh):
+            tmp.push_triangle_index(t, src)
+    else:
+
+        def push(t: Triangle, src: FaceMesh):
+            tmp.push_triangle(t, src)
+
+    for t in src.triangles:
+        push(t, src)
 
     # # each submesh
     # i = 0

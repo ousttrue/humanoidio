@@ -32,7 +32,7 @@ class Exporter:
             if not node.parent:
                 yield node
 
-    def remove_node(self, node: pyscene.Node):
+    def _remove_node(self, node: pyscene.Node):
         # _node_map
         keys = []
         for k, v in self._node_map.items():
@@ -53,7 +53,7 @@ class Exporter:
             if node.skin == skin:
                 return node
 
-    def remove_empty_leaf_nodes(self) -> bool:
+    def _remove_empty_leaf_nodes(self) -> bool:
         bones: List[pyscene.Node] = []
         for skin in self._skin_map.values():
             skin_node = self._get_node_for_skin(skin)
@@ -84,7 +84,7 @@ class Exporter:
             return False
 
         for remove in remove_list:
-            self.remove_node(remove)
+            self._remove_node(remove)
 
         return True
 
@@ -143,7 +143,7 @@ class Exporter:
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: pyscene.Node) -> pyscene.FaceMesh:
         # copy
-        new_obj = bpy_helper.clone_and_apply_transform(o)
+        new_obj = bpy_helper.clone(o)
         with bpy_helper.disposable(new_obj):
             new_mesh: bpy.types.Mesh = new_obj.data
 
@@ -234,30 +234,19 @@ class Exporter:
 
         return shape.data
 
-    def _get_or_create_node(self, o: bpy.types.Object) -> pyscene.Node:
-        if o in self._node_map:
-            return self._node_map[o]
-
-        # location = o.location
-        # if o.parent:
-        #     location -= o.parent.location
-        node = pyscene.Node(o.name)
-        self._add_node(o, node)
-        return node
-
     def _export_object(self,
                        o: bpy.types.Object,
                        parent: Optional[pyscene.Node] = None) -> pyscene.Node:
         '''
         scan Node recursive
         '''
-        node = self._get_or_create_node(o)
+        # location = o.location
+        # if o.parent:
+        #     location -= o.parent.location
+        node = pyscene.Node(o.name)
+        self._add_node(o, node)
         if parent:
             parent.add_child(node)
-
-        # for slot in o.material_slots:
-        #     if slot and slot not in self.material_exporter.materials:
-        #         self.materials.append(slot.material)
 
         if o.type == 'MESH':
             if not o.hide_viewport:
@@ -276,7 +265,7 @@ class Exporter:
 
         # self._mesh_node_under_empty()
         while True:
-            if not self.remove_empty_leaf_nodes():
+            if not self._remove_empty_leaf_nodes():
                 break
 
         # # get vrm meta

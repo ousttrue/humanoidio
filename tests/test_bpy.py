@@ -98,7 +98,7 @@ class BpyTests(unittest.TestCase):
         bpy_helper.load(bpy.context, roots)
         scanner = bpy_helper.scan()
         self.assertEqual(scanner.nodes[0].mesh.positions[0],
-                         Float3(-0.009999999776482582, 0.009999999776482582, -0.009999998845160007))
+                         Float3(-0.009999999776482582, -0.009999999776482582, 0.009999998845160007))
 
         exported = [node for node in scanner.nodes if not node.parent]
         self.assertEqual(len(roots), len(exported))
