@@ -19,46 +19,6 @@ class BpyTests(unittest.TestCase):
     '''
     gltf(glb, vrm) -> pyscene -> bpy -> pyscene
     '''
-    def test_box_textured_glb(self):
-        bpy_helper.clear()
-        path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF-Binary/BoxTextured.glb'
-        self.assertTrue(path.exists())
-
-        data = formats.parse_gltf(path)
-        roots = pyscene.nodes_from_gltf(data)
-        self.assertEqual(roots[0].children[0].mesh.attributes.position[0],
-                         Float3(-0.5, -0.5, 0.5))
-
-        bpy_helper.load(bpy.context, roots)
-        scanner = bpy_helper.scan()
-        self.assertEqual(scanner.nodes[1].mesh.positions[0],
-                         Float3(-0.5, -0.5, -0.5))
-
-        exported = [node for node in scanner.nodes if not node.parent]
-        self.assertEqual(len(roots), len(exported))
-        for l, r in zip(roots, exported):
-            self._check_node(l, r)
-
-    def test_box_textured_gltf(self):
-        bpy_helper.clear()
-        path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF/BoxTextured.gltf'
-        self.assertTrue(path.exists())
-
-        data = formats.parse_gltf(path)
-        roots = pyscene.nodes_from_gltf(data)
-        self.assertEqual(roots[0].children[0].mesh.attributes.position[0],
-                         Float3(-0.5, -0.5, 0.5))
-
-        bpy_helper.load(bpy.context, roots)
-        scanner = bpy_helper.scan()
-        self.assertEqual(scanner.nodes[1].mesh.positions[0],
-                         Float3(-0.5, -0.5, -0.5))
-
-        exported = [node for node in scanner.nodes if not node.parent]
-        self.assertEqual(len(roots), len(exported))
-        for l, r in zip(roots, exported):
-            self._check_node(l, r)
-
     def _check_mesh(self, _l: pyscene.Node, _r: pyscene.Node):
         l = _l.mesh
         r = _r.mesh
@@ -84,4 +44,63 @@ class BpyTests(unittest.TestCase):
 
         self.assertEqual(len(l.children), len(r.children))
         for l, r in zip(l.children, r.children):
+            self._check_node(l, r)
+
+    def setUp(self):
+        bpy_helper.clear()
+
+    def test_box_textured_glb(self):
+        path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF-Binary/BoxTextured.glb'
+        self.assertTrue(path.exists())
+
+        data = formats.parse_gltf(path)
+        roots = pyscene.nodes_from_gltf(data)
+        self.assertEqual(roots[0].children[0].mesh.attributes.position[0],
+                         Float3(-0.5, -0.5, 0.5))
+
+        bpy_helper.load(bpy.context, roots)
+        scanner = bpy_helper.scan()
+        self.assertEqual(scanner.nodes[1].mesh.positions[0],
+                         Float3(-0.5, -0.5, -0.5))
+
+        exported = [node for node in scanner.nodes if not node.parent]
+        self.assertEqual(len(roots), len(exported))
+        for l, r in zip(roots, exported):
+            self._check_node(l, r)
+
+    def test_box_textured_gltf(self):
+        path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF/BoxTextured.gltf'
+        self.assertTrue(path.exists())
+
+        data = formats.parse_gltf(path)
+        roots = pyscene.nodes_from_gltf(data)
+        self.assertEqual(roots[0].children[0].mesh.attributes.position[0],
+                         Float3(-0.5, -0.5, 0.5))
+
+        bpy_helper.load(bpy.context, roots)
+        scanner = bpy_helper.scan()
+        self.assertEqual(scanner.nodes[1].mesh.positions[0],
+                         Float3(-0.5, -0.5, -0.5))
+
+        exported = [node for node in scanner.nodes if not node.parent]
+        self.assertEqual(len(roots), len(exported))
+        for l, r in zip(roots, exported):
+            self._check_node(l, r)
+
+    def test_animated_morph_cube_gltf(self):
+        path = GLTF_SAMPLE_DIR / '2.0/AnimatedMorphCube/glTF/AnimatedMorphCube.gltf'
+        self.assertTrue(path.exists())
+
+        data = formats.parse_gltf(path)
+        roots = pyscene.nodes_from_gltf(data)
+        self.assertEqual(roots[0].mesh.attributes.position[0],
+                         Float3(-0.009999999776482582, 0.009999998845160007, 0.009999999776482582))
+        bpy_helper.load(bpy.context, roots)
+        scanner = bpy_helper.scan()
+        self.assertEqual(scanner.nodes[0].mesh.positions[0],
+                         Float3(-0.009999999776482582, 0.009999999776482582, -0.009999998845160007))
+
+        exported = [node for node in scanner.nodes if not node.parent]
+        self.assertEqual(len(roots), len(exported))
+        for l, r in zip(roots, exported):
             self._check_node(l, r)

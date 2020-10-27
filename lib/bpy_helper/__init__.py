@@ -1,7 +1,7 @@
 from typing import List
 from contextlib import contextmanager
 import bpy, mathutils
-from .scene_exporter import Scanner
+from .exporter import Exporter
 from .importer import Importer
 from .. import pyscene
 
@@ -128,9 +128,9 @@ def apply_modifiers(obj: bpy.types.Object):
         bpy.ops.object.modifier_apply(apply_as='DATA', modifier=m)
 
 
-def scan() -> Scanner:
+def scan() -> Exporter:
     targets = objects_selected_or_roots()
-    scanner = Scanner()
+    scanner = Exporter()
     scanner.scan(targets)
     return scanner
 

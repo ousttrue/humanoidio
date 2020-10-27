@@ -14,7 +14,7 @@ class Vrm:
         self.version = '1'
 
 
-class Scanner:
+class Exporter:
     def __init__(self) -> None:
         self.nodes: List[pyscene.Node] = []
         self.meshes: List[pyscene.FaceMesh] = []

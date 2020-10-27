@@ -117,18 +117,19 @@ class MaterialExporter:
                                     principled.base_color.g,
                                     principled.base_color.b, 1.0)
             if principled.base_color_texture:
-                texture: bpy.types.Texture = principled.base_color_texture
-                image: bpy.types.Image = texture.image
-                if image.packed_file:
-                    material.texture = pyscene.Texture(image.name,
-                                               image.packed_file.data)
-                    material.texture.usage = pyscene.TextureUsage.Color
-                elif image.filepath:
-                    material.texture = pyscene.Texture(image.name,
-                                               pathlib.Path(image.filepath))
-                    material.texture.usage = pyscene.TextureUsage.Color
-                else:
-                    raise NotImplementedError()
+                texture: bpy.types.ShaderNodeTexImage = principled.base_color_texture               
+                if texture.image:
+                    image = texture.image                                
+                    if image.packed_file:
+                        material.texture = pyscene.Texture(image.name,
+                                                image.packed_file.data)
+                        material.texture.usage = pyscene.TextureUsage.Color
+                    elif image.filepath:
+                        material.texture = pyscene.Texture(image.name,
+                                                pathlib.Path(image.filepath))
+                        material.texture.usage = pyscene.TextureUsage.Color
+                    else:
+                        raise NotImplementedError()
         else:
             material = pyscene.Material(m.name)
             # color
