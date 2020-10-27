@@ -19,6 +19,9 @@ class Float2(ctypes.Structure):
         if self.y != other.y: return False
         return True
 
+    def flip_uv(self) -> 'Float2':
+        return Float2(self.x, 1 - self.y)
+
 
 class Float3(ctypes.Structure):
     _pack_ = 1
@@ -52,6 +55,9 @@ class Float3(ctypes.Structure):
 
     def __add__(self, rhs):
         return Float3(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+
+    def zup2yup(self) -> 'Float3':
+        return Float3(self.x, self.z, -self.y)
 
 
 class Float4(ctypes.Structure):
@@ -156,6 +162,12 @@ class PlanarBuffer(NamedTuple):
 
     def get_vertex_count(self) -> int:
         return len(self.position)
+
+    def set_vertex(self, i: int, pos: Float3, normal: Float3,
+                   texcoord: Float2):
+        self.position[i] = pos
+        self.normal[i] = normal
+        self.texcoord[i] = texcoord
 
     def compare(self, other) -> bool:
         if not isinstance(other, PlanarBuffer):
