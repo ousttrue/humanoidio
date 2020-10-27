@@ -53,11 +53,20 @@ class Float3(ctypes.Structure):
     def __sub__(self, rhs):
         return Float3(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
 
+    def __isub__(self, other):
+        self.x -= other.x
+        self.y -= other.y
+        self.z -= other.z
+        return self
+
     def __add__(self, rhs):
         return Float3(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
 
-    def zup2yup(self) -> 'Float3':
-        return Float3(self.x, self.z, -self.y)
+    def zup2yup(self) -> Tuple[float, float, float]:
+        return (self.x, self.z, -self.y)
+
+    def yup2zup(self) -> Tuple[float, float, float]:
+        return (self.x, -self.z, self.y)
 
 
 class Float4(ctypes.Structure):

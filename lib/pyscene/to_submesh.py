@@ -71,7 +71,7 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
             submesh.indices.append(fv2.position_index)
 
             # morph target
-            for i, m in enumerate(src.moprh_targets):
+            for i, m in enumerate(src.morph_targets):
                 morph = dst.get_or_create_morphtarget(i)
                 morph.attributes.position[fv0.position_index] = m[
                     fv0.position_index]

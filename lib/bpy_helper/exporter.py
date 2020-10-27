@@ -4,6 +4,7 @@ from typing import List, Optional, Iterator, Dict, Any, Sequence
 import bpy, mathutils
 from .. import bpy_helper
 from .. import pyscene
+from ..struct_types import Float3
 from .material_exporter import MaterialExporter
 
 
@@ -191,48 +192,47 @@ class Exporter:
 
             # shapekey
             if o.data.shape_keys:
-                for i, shape in enumerate(o.data.shape_keys.key_blocks):
-                    if shape.name == 'Basis':
+                for i, key_block in enumerate(o.data.shape_keys.key_blocks):
+                    if key_block.name == 'Basis':
                         continue
 
-                    #
-                    # copy and apply shapekey
-                    #
-                    vertices = self._export_shapekey(o, i, shape)
-                    facemesh.add_morph(shape.name, vertices)
+                    shape_positions = (Float3 * len(o.data.vertices))()
+                    for i, v in enumerate(key_block.data):
+                        shape_positions[i] = Float3(v.co.x, v.co.z, -v.co.y)
+                    facemesh.add_morph(key_block.name, shape_positions) # type: ignore
 
             return facemesh
 
-    def _export_shapekey(
-            self, o: bpy.types.Object, i: int,
-            shape: bpy.types.ShapeKey) -> Sequence[bpy.types.MeshVertex]:
-        logger.debug(f'{i}: {shape}')
+    # def _export_shapekey(
+    #         self, o: bpy.types.Object, i: int,
+    #         shape: bpy.types.ShapeKey) -> Sequence[bpy.types.MeshVertex]:
+    #     logger.debug(f'{i}: {shape}')
 
-        # TODO: modifier
+    #     # TODO: modifier
 
-        # # copy
-        # new_obj = bpy_helper.clone_and_apply_transform(o)
-        # with bpy_helper.disposable(new_obj):
-        #     new_mesh: bpy.types.Mesh = new_obj.data
+    #     # # copy
+    #     # new_obj = bpy_helper.clone_and_apply_transform(o)
+    #     # with bpy_helper.disposable(new_obj):
+    #     #     new_mesh: bpy.types.Mesh = new_obj.data
 
-        #     # apply shape key
-        #     bpy_helper.remove_shapekey_except(new_obj, i)
-        #     new_obj.shape_key_clear()
+    #     #     # apply shape key
+    #     #     bpy_helper.remove_shapekey_except(new_obj, i)
+    #     #     new_obj.shape_key_clear()
 
-        #     # apply modifiers
-        #     bpy_helper.apply_modifiers(new_obj)
+    #     #     # apply modifiers
+    #     #     bpy_helper.apply_modifiers(new_obj)
 
-        #     # メッシュの三角形化
-        #     if bpy.app.version[1] > 80:
-        #         new_mesh.calc_loop_triangles()
-        #         new_mesh.update()
-        #     else:
-        #         new_mesh.update(calc_loop_triangles=True)
+    #     #     # メッシュの三角形化
+    #     #     if bpy.app.version[1] > 80:
+    #     #         new_mesh.calc_loop_triangles()
+    #     #         new_mesh.update()
+    #     #     else:
+    #     #         new_mesh.update(calc_loop_triangles=True)
 
-        #     # POSITIONSを得る
-        #     return [v for v in new_mesh.vertices]
+    #     #     # POSITIONSを得る
+    #     #     return [v for v in new_mesh.vertices]
 
-        return shape.data
+    #     return shape.data
 
     def _export_object(self,
                        o: bpy.types.Object,

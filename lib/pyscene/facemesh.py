@@ -1,6 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import (Any, List, Dict, Optional, NamedTuple, Sequence)
+from typing import (Any, List, Dict, Optional, NamedTuple, Sequence, MutableSequence)
 import bpy, mathutils
 from ..struct_types import Float2, Float3, BoneWeight
 from .material import Material
@@ -67,7 +67,7 @@ class FaceMesh:
                 if vg_name in self.bone_names:
                     self.bone_weights[i].push(ve.group, ve.weight)
 
-        self.moprh_targets: List[Sequence[Float3]] = []
+        self.morph_targets: List[Sequence[Float3]] = []
         self.morph_map: Dict[str, Any] = {}
 
     def is_face_splitted(self) -> bool:
@@ -118,12 +118,11 @@ class FaceMesh:
         self.face_vertex_index_map[face] = index
         return index
 
-    def add_morph(self, name: str, vertices: Sequence[bpy.types.MeshVertex]):
+    def add_morph(self, name: str, shape_positions: MutableSequence[Float3]):
         logger.debug(f'add_morph: {name}')
-        assert (len(vertices) == len(self.positions))
-        positions = (Float3 * len(vertices))()
-        for i, v in enumerate(vertices):
-            delta = Float3(v.co.x, -v.co.z, v.co.y) - self.positions[i]
-            positions[i] = delta
-        self.moprh_targets.append(positions)  # type: ignore
-        self.morph_map[name] = positions
+        assert (len(shape_positions) == len(self.positions))
+        # for i, p in enumerate(self.positions):
+        #     shape_positions[i] = shape_positions[i] - p
+        # tmp = [(x.x, x.y, x.z) for x in shape_positions]
+        self.morph_targets.append(shape_positions)  # type: ignore
+        self.morph_map[name] = shape_positions
