@@ -121,8 +121,5 @@ class FaceMesh:
     def add_morph(self, name: str, shape_positions: MutableSequence[Float3]):
         logger.debug(f'add_morph: {name}')
         assert (len(shape_positions) == len(self.positions))
-        # for i, p in enumerate(self.positions):
-        #     shape_positions[i] = shape_positions[i] - p
-        # tmp = [(x.x, x.y, x.z) for x in shape_positions]
         self.morph_targets.append(shape_positions)  # type: ignore
         self.morph_map[name] = shape_positions

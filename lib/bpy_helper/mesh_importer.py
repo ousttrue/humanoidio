@@ -57,6 +57,6 @@ def create_bmesh(
 
         for i, vert in enumerate(bm.verts):
             p = target.attributes.position[i].yup2zup()
-            vert[layer] = mathutils.Vector(p)
+            vert[layer] = mathutils.Vector(p) + vert.co
 
     return bm

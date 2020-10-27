@@ -45,7 +45,7 @@ for Blender-2.83
 
 * [x] export: texture
 * [x] export: material
-* [ ] export: morphTarget
+* [x] export: morphTarget
 * [ ] export: skin
 
 * [x] generate: VRM formats

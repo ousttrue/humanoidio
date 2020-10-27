@@ -192,13 +192,14 @@ class Exporter:
 
             # shapekey
             if o.data.shape_keys:
-                for i, key_block in enumerate(o.data.shape_keys.key_blocks):
+                for key_block in o.data.shape_keys.key_blocks:
                     if key_block.name == 'Basis':
                         continue
 
                     shape_positions = (Float3 * len(o.data.vertices))()
                     for i, v in enumerate(key_block.data):
-                        shape_positions[i] = Float3(v.co.x, v.co.z, -v.co.y)
+                        delta = v.co - o.data.vertices[i].co
+                        shape_positions[i] = Float3(delta.x, delta.z, -delta.y)
                     facemesh.add_morph(key_block.name, shape_positions) # type: ignore
 
             return facemesh
