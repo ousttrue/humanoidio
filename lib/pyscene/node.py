@@ -9,11 +9,9 @@ class Skin:
     def __init__(self, name: str):
         self.name = name
         self.joints: List[Node] = []
-        # 1つ以上あるはず
-        self.root_joints: List[Node] = []
-        self.parent_space: Optional[Node] = None
 
     def get_root_joints(self):
+        i = 0
         for joint in self.joints:
             is_root = True
             aa = [a for a in joint.get_ancestors()]
@@ -23,10 +21,11 @@ class Skin:
                 if a in self.joints:
                     is_root = False
                     break
-                if a == self.parent_space:
-                    break
             if is_root:
                 yield joint
+                i += 1
+        if i == 0:
+            raise Exception()
 
 
 # class Skin:

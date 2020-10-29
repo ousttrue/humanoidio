@@ -171,7 +171,8 @@ class GltfTests(unittest.TestCase):
         self.assertAlmostEqual(weights[64][1], 0.264140, delta=3e-3)
 
         # skin
-        skin = mesh_node.skin
+        skin_node = mesh_node
+        skin = skin_node.skin
         self.assertEqual(skin.name, 'Armature')
         self.assertEqual(len(skin.joints), 2)
         self.assertEqual(skin.joints[0].name, 'Bone')

@@ -158,4 +158,5 @@ def clear():
             bpy.data.materials,
     ):
         for id_data in bpy_data_iter:
+            # id_data.user_clear();            
             bpy_data_iter.remove(id_data)

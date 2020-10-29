@@ -14,8 +14,8 @@ def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
     if not name:
         name = f'skin{skin_index}'
     skin = pyscene.Skin(name)
-    if isinstance(gl_skin.skeleton, int):
-        skin.parent_space = nodes[gl_skin.skeleton]
+    # if isinstance(gl_skin.skeleton, int):
+    #     skin.parent_space = nodes[gl_skin.skeleton]
     skin.joints = [nodes[j] for j in gl_skin.joints]
 
     return skin
