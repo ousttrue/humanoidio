@@ -9,12 +9,17 @@ from .. import pyscene
 def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
                     nodes: List[pyscene.Node]) -> pyscene.Skin:
     gl_skin = data.gltf.skins[skin_index]
-    joints = [nodes[j] for j in gl_skin.joints]
 
-    root: Optional[pyscene.Node] = None
+    name = gl_skin.name
+    if not name:
+        name = f'skin{skin_index}'
+    skin = pyscene.Skin(name)
     if isinstance(gl_skin.skeleton, int):
-        root = nodes[gl_skin.skeleton]
-    return pyscene.Skin(gl_skin.name, root, joints)
+        skin.parent_space = nodes[gl_skin.skeleton]
+    skin.root_joints = [
+        nodes[j] for j in gl_skin.joints if not nodes[j].parent
+    ]
+    return skin
 
 
 def _check_has_skin(prim: formats.gltf.MeshPrimitive) -> bool:

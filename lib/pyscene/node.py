@@ -1,5 +1,4 @@
 from typing import List, Optional, Iterator, Union
-import bpy, mathutils
 from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
 from ..formats.vrm0x import HumanoidBones
@@ -7,11 +6,12 @@ from ..struct_types import Float3, Float4
 
 
 class Skin:
-    def __init__(self, name: Optional[str], root: Optional['Node'],
-                 joints: List['Node']):
+    def __init__(self, name: str):
         self.name = name
-        self.root = root
-        self.joints = joints
+        # ボーンヒエラルキー
+        self.root_joints: List[Node] = []
+        # スキンの親空間
+        self.parent_space: Optional[Node] = None
 
 
 # class Skin:

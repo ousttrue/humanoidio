@@ -93,12 +93,30 @@ class BpyTests(unittest.TestCase):
 
         data = formats.parse_gltf(path)
         roots = pyscene.nodes_from_gltf(data)
-        self.assertEqual(roots[0].mesh.attributes.position[0],
-                         Float3(-0.009999999776482582, 0.009999998845160007, 0.009999999776482582))
+        self.assertEqual(
+            roots[0].mesh.attributes.position[0],
+            Float3(-0.009999999776482582, 0.009999998845160007,
+                   0.009999999776482582))
         bpy_helper.load(bpy.context, roots)
         scanner = bpy_helper.scan()
-        self.assertEqual(scanner.nodes[0].mesh.positions[0],
-                         Float3(-0.009999999776482582, -0.009999999776482582, 0.009999998845160007))
+        self.assertEqual(
+            scanner.nodes[0].mesh.positions[0],
+            Float3(-0.009999999776482582, -0.009999999776482582,
+                   0.009999998845160007))
+
+        exported = [node for node in scanner.nodes if not node.parent]
+        self.assertEqual(len(roots), len(exported))
+        for l, r in zip(roots, exported):
+            self._check_node(l, r)
+
+    def test_rig_gltf(self):
+        path = GLTF_SAMPLE_DIR / '2.0/RiggedSimple/glTF/RiggedSimple.gltf'
+        self.assertTrue(path.exists())
+
+        data = formats.parse_gltf(path)
+        roots = pyscene.nodes_from_gltf(data)
+        bpy_helper.load(bpy.context, roots)
+        scanner = bpy_helper.scan()
 
         exported = [node for node in scanner.nodes if not node.parent]
         self.assertEqual(len(roots), len(exported))

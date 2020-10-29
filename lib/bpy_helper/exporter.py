@@ -126,20 +126,25 @@ class Exporter:
         if armature_object in self._skin_map:
             return self._skin_map[armature_object]
 
+        name = armature_object.name
+        if not name:
+            name = 'skin'
+        skin = pyscene.Skin(name, [])
+        self._skin_map[armature_object] = skin
+
         bpy.context.view_layer.objects.active = armature_object
         with bpy_helper.disposable_mode('POSE'):
 
-            armature_node = self._get_or_create_node(armature_object)
-            self._skin_map[armature_object] = armature_node
+            # armature_node = self._get_or_create_node(armature_object)
+            # self._skin_map[armature_object] = armature_node
 
             armature = armature_object.data
             for b in armature.bones:
                 if not b.parent:
                     # root bone
-                    self._export_bone(armature_node,
-                                      armature_object.matrix_world, b)
+                    self._export_bone(None, armature_object.matrix_world, b)
 
-        return armature_node
+        return skin
 
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: pyscene.Node) -> pyscene.FaceMesh:
@@ -156,8 +161,9 @@ class Exporter:
             # first create skin
             for m in new_obj.modifiers:
                 if m.type == 'ARMATURE':
-                    node.skin = self._get_or_create_skin(m.object)
-                    break
+                    if m.object:
+                        node.skin = self._get_or_create_skin(m.object)
+                        break
 
             # apply modifiers
             bpy_helper.apply_modifiers(new_obj)
@@ -200,7 +206,8 @@ class Exporter:
                     for i, v in enumerate(key_block.data):
                         delta = v.co - o.data.vertices[i].co
                         shape_positions[i] = Float3(delta.x, delta.z, -delta.y)
-                    facemesh.add_morph(key_block.name, shape_positions) # type: ignore
+                    facemesh.add_morph(key_block.name,
+                                       shape_positions)  # type: ignore
 
             return facemesh
 

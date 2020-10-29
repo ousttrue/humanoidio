@@ -111,8 +111,8 @@ class Importer:
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)
 
-        if skin.root:
-            bl_obj.parent = self.obj_map[skin.root]
+        if skin.parent_space:
+            bl_obj.parent = self.obj_map[skin.parent_space]
 
         self.context.view_layer.objects.active = bl_obj
         bl_obj.select_set(True)
@@ -195,6 +195,7 @@ class Importer:
 
         # indices to material_index
         current = [0]
+
         def to_material_index(indices_index: int) -> int:
             submesh = mesh.submeshes[current[0]]
             indices_index -= submesh.offset
@@ -214,7 +215,8 @@ class Importer:
             # parent mesh to an object and use obj.shape_key_add.
             tmp_ob = None
             try:
-                tmp_ob = bpy.data.objects.new('##gltf-import:tmp-object##', bl_mesh)
+                tmp_ob = bpy.data.objects.new('##gltf-import:tmp-object##',
+                                              bl_mesh)
                 tmp_ob.shape_key_add(name='Basis')
                 bl_mesh.shape_keys.name = bl_mesh.name
                 for layer_name in bm.verts.layers.shape.keys():
@@ -226,7 +228,7 @@ class Importer:
                         key_block.data[i].co = v[layer]
             finally:
                 if tmp_ob:
-                    bpy.data.objects.remove(tmp_ob)        
+                    bpy.data.objects.remove(tmp_ob)
 
         # *Very* important to not remove lnors here!
         # bl_mesh.validate(clean_customdata=False)
