@@ -123,6 +123,10 @@ class Exporter:
 
     def _get_or_create_skin(self,
                             armature_object: bpy.types.Object) -> pyscene.Skin:
+        '''
+        Armature を root とするヒエラルキーを作る
+        Armatureに親が無くTRSが原点の場合は省略できる(TODO)
+        '''
         if armature_object in self._skin_map:
             return self._skin_map[armature_object]
 

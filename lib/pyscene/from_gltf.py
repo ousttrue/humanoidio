@@ -16,9 +16,7 @@ def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
     skin = pyscene.Skin(name)
     if isinstance(gl_skin.skeleton, int):
         skin.parent_space = nodes[gl_skin.skeleton]
-    skin.root_joints = [
-        nodes[j] for j in gl_skin.joints if not nodes[j].parent
-    ]
+    skin.joints = [nodes[j] for j in gl_skin.joints]
     return skin
 
 
@@ -303,8 +301,6 @@ def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
         for i, n in enumerate(data.gltf.nodes):
             if isinstance(n.skin, int):
                 skin = _skin_from_gltf(data, n.skin, nodes)
-                if not skin.name:
-                    skin.name = n.name
                 nodes[i].skin = skin
 
     # scene

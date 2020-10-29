@@ -170,6 +170,13 @@ class GltfTests(unittest.TestCase):
         self.assertAlmostEqual(weights[64][0], 0.73860, delta=3e-3)
         self.assertAlmostEqual(weights[64][1], 0.264140, delta=3e-3)
 
+        # skin
+        skin = mesh_node.skin
+        self.assertEqual(skin.name, 'Armature')
+        self.assertEqual(len(skin.joints), 2)
+        self.assertEqual(skin.joints[0].name, 'Bone')
+        self.assertEqual(skin.joints[1].name, 'Bone.001')
+
     def test_animated_morph_cube_gltf(self):
         path = GLTF_SAMPLE_DIR / '2.0/AnimatedMorphCube/glTF/AnimatedMorphCube.gltf'
         self.assertTrue(path.exists())

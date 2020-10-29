@@ -8,9 +8,7 @@ from ..struct_types import Float3, Float4
 class Skin:
     def __init__(self, name: str):
         self.name = name
-        # ボーンヒエラルキー
-        self.root_joints: List[Node] = []
-        # スキンの親空間
+        self.joints: List[Node] = []
         self.parent_space: Optional[Node] = None
 
 

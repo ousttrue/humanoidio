@@ -57,7 +57,10 @@ class Importer:
             return
 
         skin = mesh_node.skin
-        bone_names = [joint.name for joint in skin.joints]
+        bone_names = [
+            joint.name for root in skin.root_joints
+            for joint in root.traverse()
+        ]
         bl_object = self.obj_map[mesh_node]
 
         # create vertex groups
@@ -126,7 +129,8 @@ class Importer:
 
         # create bones
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-        self._create_bone(bl_skin, skin.root, None, False)
+        for joint in skin.root_joints:
+            self._create_bone(bl_skin, joint, None, False)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     def _create_bone(self, armature: bpy.types.Armature, node: pyscene.Node,
