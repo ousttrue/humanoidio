@@ -57,10 +57,7 @@ class Importer:
             return
 
         skin = mesh_node.skin
-        bone_names = [
-            joint.name for root in skin.root_joints
-            for joint in root.traverse()
-        ]
+        bone_names = [joint.name for joint in skin.joints]
         bl_object = self.obj_map[mesh_node]
 
         # create vertex groups
@@ -104,34 +101,6 @@ class Importer:
 
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map[skin]
-
-    def _create_armature(self, node: pyscene.Node,
-                         skin: pyscene.Skin) -> bpy.types.Object:
-        logger.debug(f'skin')
-        bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
-        bl_obj = bpy.data.objects.new(skin.name, bl_skin)
-        self.skin_map[skin] = bl_obj
-        bl_obj.show_in_front = True
-        self.collection.objects.link(bl_obj)
-
-        if skin.parent_space:
-            bl_obj.parent = self.obj_map[skin.parent_space]
-
-        self.context.view_layer.objects.active = bl_obj
-        bl_obj.select_set(True)
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-        # set identity matrix_world to armature
-        m = mathutils.Matrix()
-        m.identity()
-        bl_obj.matrix_world = m
-        # self.context.scene.update()  # recalc matrix_world
-
-        # create bones
-        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-        for joint in skin.root_joints:
-            self._create_bone(bl_skin, joint, None, False)
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     def _create_bone(self, armature: bpy.types.Armature, node: pyscene.Node,
                      parent_bone: Optional[bpy.types.Bone],
@@ -179,6 +148,34 @@ class Importer:
             for i, child in enumerate(node.children):
                 self._create_bone(armature, child, bl_bone,
                                   i == child_is_connect)
+
+    def _create_armature(self, node: pyscene.Node,
+                         skin: pyscene.Skin) -> bpy.types.Object:
+        logger.debug(f'skin')
+        bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
+        bl_obj = bpy.data.objects.new(skin.name, bl_skin)
+        self.skin_map[skin] = bl_obj
+        bl_obj.show_in_front = True
+        self.collection.objects.link(bl_obj)
+
+        if skin.parent_space:
+            bl_obj.parent = self.obj_map.get(skin.parent_space)
+
+        self.context.view_layer.objects.active = bl_obj
+        bl_obj.select_set(True)
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+        # set identity matrix_world to armature
+        m = mathutils.Matrix()
+        m.identity()
+        bl_obj.matrix_world = m
+        # self.context.scene.update()  # recalc matrix_world
+
+        # create bones
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        for joint in skin.get_root_joints():
+            self._create_bone(bl_skin, joint, None, False)
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     def _get_or_create_mesh(self, mesh: pyscene.SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
@@ -294,7 +291,7 @@ class Importer:
         if node.mesh:
             return
         for skin, v in self.skin_map.items():
-            if skin.root == node:
+            if skin.parent_space == node:
                 bl_parent = self.obj_map[node]
                 bl_skin = self.skin_map[skin]
                 tmp = bl_skin.matrix_world

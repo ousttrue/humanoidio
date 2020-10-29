@@ -9,7 +9,24 @@ class Skin:
     def __init__(self, name: str):
         self.name = name
         self.joints: List[Node] = []
+        # 1つ以上あるはず
+        self.root_joints: List[Node] = []
         self.parent_space: Optional[Node] = None
+
+    def get_root_joints(self):
+        for joint in self.joints:
+            is_root = True
+            aa = [a for a in joint.get_ancestors()]
+            for a in aa:
+                if a == joint:
+                    continue
+                if a in self.joints:
+                    is_root = False
+                    break
+                if a == self.parent_space:
+                    break
+            if is_root:
+                yield joint
 
 
 # class Skin:
@@ -48,6 +65,22 @@ class Node:
     def __getitem__(self, i: int) -> 'Node':
         return self.children[i]
 
+    def __repr__(self) -> str:
+        return f'<{self.name} {self.position}>'
+
+    def __str__(self) -> str:
+        if not self.mesh:
+            return f'<Node {self.name}>'
+        return f'<Node {self.name}: {self.mesh}>'
+
+    def get_ancestors(self):
+        current = self
+        while True:
+            yield current
+            if not current.parent:
+                break
+            current = current.parent
+
     def get_root(self):
         current = self
         while True:
@@ -70,14 +103,6 @@ class Node:
             return
         self.children.remove(child)
         child.parent = None
-
-    def __repr__(self) -> str:
-        return f'<{self.name} {self.position}>'
-
-    def __str__(self) -> str:
-        if not self.mesh:
-            return f'<Node {self.name}>'
-        return f'<Node {self.name}: {self.mesh}>'
 
     def traverse(self) -> Iterator['Node']:
         yield self

@@ -96,12 +96,14 @@ class Exporter:
     #             mesh_node.add_child(node)
     #     self.nodes.append(mesh_node)
 
-    def _export_bone(self, parent: pyscene.Node,
+    def _export_bone(self,
+                     skin: pyscene.Skin,
                      matrix_world: mathutils.Matrix,
-                     bone: bpy.types.Bone) -> pyscene.Node:
-        armature_local_head_position = bone.head_local
+                     bone: bpy.types.Bone,
+                     parent: Optional[pyscene.Node] = None):
         node = pyscene.Node(bone.name)
-        node.position = armature_local_head_position
+        h = bone.head_local
+        node.position = Float3(h.x, h.y, h.z)
         # if hasattr(bone, 'humanoid_bone'):
         #     humanoid_bone = bone.humanoid_bone
         #     if humanoid_bone:
@@ -113,19 +115,18 @@ class Exporter:
         #             # unknown
         #             pass
 
-        parent.add_child(node)
-        self._add_node(bone, node)
+        if parent:
+            parent.add_child(node)
+            skin.joints.append(node)
 
         for child in bone.children:
-            self._export_bone(node, matrix_world, child)
-
-        return node
+            self._export_bone(skin, matrix_world, child, node)
 
     def _get_or_create_skin(self,
                             armature_object: bpy.types.Object) -> pyscene.Skin:
         '''
-        Armature を root とするヒエラルキーを作る
-        Armatureに親が無くTRSが原点の場合は省略できる(TODO)
+        Armature -> pyscene.Skin
+        Bone[] -> pyscene.Skin.joints: List[pyscene.Node]
         '''
         if armature_object in self._skin_map:
             return self._skin_map[armature_object]
@@ -133,20 +134,17 @@ class Exporter:
         name = armature_object.name
         if not name:
             name = 'skin'
-        skin = pyscene.Skin(name, [])
+        skin = pyscene.Skin(name)
         self._skin_map[armature_object] = skin
 
         bpy.context.view_layer.objects.active = armature_object
         with bpy_helper.disposable_mode('POSE'):
 
-            # armature_node = self._get_or_create_node(armature_object)
-            # self._skin_map[armature_object] = armature_node
-
             armature = armature_object.data
             for b in armature.bones:
                 if not b.parent:
                     # root bone
-                    self._export_bone(None, armature_object.matrix_world, b)
+                    self._export_bone(skin, armature_object.matrix_world, b)
 
         return skin
 
