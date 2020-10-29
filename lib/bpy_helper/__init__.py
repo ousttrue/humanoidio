@@ -4,6 +4,7 @@ import bpy, mathutils
 from .exporter import Exporter
 from .importer import Importer
 from .. import pyscene
+from .functions import remove_mesh
 
 
 def objects_selected_or_roots(
@@ -61,9 +62,7 @@ def disposable(obj: bpy.types.Object):
     try:
         yield None
     finally:
-        mesh = obj.data
-        bpy.data.objects.remove(obj)
-        bpy.data.meshes.remove(mesh)
+        remove_mesh(obj)
 
 
 def apply_transform(obj: bpy.types.Object) -> None:
@@ -74,7 +73,8 @@ def apply_transform(obj: bpy.types.Object) -> None:
     obj.select_set(False)
     bpy.ops.object.select_all(action='DESELECT')
 
-def clone(obj: bpy.types.Object)->bpy.types.Object:
+
+def clone(obj: bpy.types.Object) -> bpy.types.Object:
     enter_mode('OBJECT')
 
     new_obj: bpy.types.Object = obj.copy()
@@ -82,6 +82,7 @@ def clone(obj: bpy.types.Object)->bpy.types.Object:
     bpy.context.scene.collection.objects.link(new_obj)
 
     return new_obj
+
 
 def clone_and_apply_transform(obj: bpy.types.Object) -> bpy.types.Object:
     new_obj = clone(obj)
@@ -158,5 +159,5 @@ def clear():
             bpy.data.materials,
     ):
         for id_data in bpy_data_iter:
-            # id_data.user_clear();            
+            # id_data.user_clear();
             bpy_data_iter.remove(id_data)

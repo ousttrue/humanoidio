@@ -109,6 +109,13 @@ class Node:
             for x in child.traverse():
                 yield x
 
+    def contains(self, joints: List['Node']) -> bool:
+        descendants = [node for node in self.traverse()][1:]
+        for j in joints:
+            if j not in descendants:
+                return False
+        return True
+
     def get_local_position(self) -> Float3:
         if self.parent:
             return self.position - self.parent.position

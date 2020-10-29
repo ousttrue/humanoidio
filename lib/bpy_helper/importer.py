@@ -6,6 +6,7 @@ import bpy, mathutils
 from .. import pyscene
 from .material_importer import MaterialImporter
 from .mesh_importer import create_bmesh
+from .functions import remove_mesh
 
 
 def mod_v(v):
@@ -102,79 +103,124 @@ class Importer:
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map[skin]
 
-    def _create_bone(self, armature: bpy.types.Armature, node: pyscene.Node,
-                     parent_bone: Optional[bpy.types.Bone],
-                     is_connect: bool) -> None:
+    def _create_bones(self, armature: bpy.types.Armature, m: mathutils.Matrix,
+                      skin_node: pyscene.Node, skin: pyscene.Skin) -> None:
 
-        bl_bone = armature.edit_bones.new(node.name)
-        bl_bone.parent = parent_bone
-        if is_connect:
-            bl_bone.use_connect = True
+        # pass1: create
+        bones = {}
+        for node in skin.joints:
+            bl_object = self.obj_map[node]
+            bl_bone = armature.edit_bones.new(node.name)
+            # get armature local matrix
+            world_to_local = m @ bl_object.matrix_world
+            bl_bone.head = world_to_local @ mathutils.Vector((0, 0, 0))
+            bl_bone.tail = world_to_local @ mathutils.Vector((0, 1, 0))
+            bones[node] = bl_bone
 
-        bl_object = self.obj_map[node]
-        object_pos = bl_object.matrix_world.to_translation()
-        bl_bone.head = object_pos
-
-        if not is_connect:
-            if parent_bone and parent_bone.tail == (0, 0, 0):
-                tail_offset = (bl_bone.head -
-                               parent_bone.head).normalized() * 0.1
-                parent_bone.tail = parent_bone.head + tail_offset
-
-        if not node.children:
-            if parent_bone:
-                bl_bone.tail = bl_bone.head + \
-                    (bl_bone.head - parent_bone.head)
-        else:
-
-            def get_child_is_connect(child_pos) -> bool:
-                if len(node.children) == 1:
-                    return True
-
-                if abs(child_pos.x) < 0.001:
-                    return True
-
-                return False
-
-            if parent_bone:
-                child_is_connect = 0
-                for i, child in enumerate(node.children):
-                    if get_child_is_connect(
-                            self.obj_map[child].matrix_world.to_translation()):
-                        child_is_connect = i
+        # pass2: connect
+        roots = [root for root in skin.get_root_joints()]
+        for node in skin.joints:
+            bone = bones[node]
+            if node in roots:
+                # no parent
+                pass
             else:
-                child_is_connect = -1
+                if node.parent:
+                    # connect
+                    parent_bone = bones[node.parent]
+                    parent_bone.tail = bone.head
+                    bone.parent = parent_bone
+                    bone.use_connect = True
 
-            for i, child in enumerate(node.children):
-                self._create_bone(armature, child, bl_bone,
-                                  i == child_is_connect)
+        # bl_bone.parent = parent_bone
+        # if is_connect:
+        #     bl_bone.use_connect = True
 
-    def _create_armature(self, node: pyscene.Node,
-                         skin: pyscene.Skin) -> bpy.types.Object:
+        # bl_object = self.obj_map[node]
+        # object_pos = bl_object.matrix_world.to_translation()
+        # bl_bone.head = object_pos
+
+        # if not is_connect:
+        #     if parent_bone and parent_bone.tail == (0, 0, 0):
+        #         tail_offset = (bl_bone.head -
+        #                        parent_bone.head).normalized() * 0.1
+        #         parent_bone.tail = parent_bone.head + tail_offset
+
+        # if not node.children:
+        #     if parent_bone:
+        #         bl_bone.tail = bl_bone.head + \
+        #             (bl_bone.head - parent_bone.head)
+        # else:
+
+        #     def get_child_is_connect(child_pos) -> bool:
+        #         if len(node.children) == 1:
+        #             return True
+
+        #         if abs(child_pos.x) < 0.001:
+        #             return True
+
+        #         return False
+
+        #     if parent_bone:
+        #         child_is_connect = 0
+        #         for i, child in enumerate(node.children):
+        #             if get_child_is_connect(
+        #                     self.obj_map[child].matrix_world.to_translation()):
+        #                 child_is_connect = i
+        #     else:
+        #         child_is_connect = -1
+
+        #     for i, child in enumerate(node.children):
+        #         self._create_bones(armature, child, bl_bone,
+        #                           i == child_is_connect)
+
+    def _create_armature(self, skin_node: pyscene.Node) -> bpy.types.Object:
         logger.debug(f'skin')
-        bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
-        bl_obj = bpy.data.objects.new(skin.name, bl_skin)
-        self.skin_map[skin] = bl_obj
+        # すべての Joints を子孫に持つノードを探す
+        # while True:
+        #     if node.contains(skin.joints):
+        #         break
+        if not skin_node.skin:
+            raise Exception()
+        skin = skin_node.skin
+        if skin_node.parent:
+            skin_node = skin_node.parent
+
+        if skin_node.contains(skin.joints) and not skin_node.mesh:
+            # replace node by armature
+            bl_node = self.obj_map[skin_node]
+            bl_node.name = 'tmp'
+
+            bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
+            bl_obj = bpy.data.objects.new(skin.name, bl_skin)
+            self.skin_map[skin] = bl_obj
+            bl_obj.matrix_world = bl_node.matrix_world
+
+            bl_obj.parent = bl_node.parent
+            for bl_child in bl_node.children:
+                bl_child.parent = bl_obj
+            if bl_node.data:
+                raise Exception()
+            self.obj_map[skin_node] = bl_obj
+            bpy.data.objects.remove(bl_node)
+        else:
+            # create new node
+            raise NotImplementedError()
+
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)
 
-        if skin.parent_space:
-            bl_obj.parent = self.obj_map.get(skin.parent_space)
+        # if skin.parent_space:
+        #     bl_obj.parent = self.obj_map.get(skin.parent_space)
 
         self.context.view_layer.objects.active = bl_obj
         bl_obj.select_set(True)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        # set identity matrix_world to armature
-        m = mathutils.Matrix()
-        m.identity()
-        bl_obj.matrix_world = m
-        # self.context.scene.update()  # recalc matrix_world
-
         # create bones
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-        for joint in skin.get_root_joints():
-            self._create_bone(bl_skin, joint, None, False)
+        self._create_bones(bl_skin, bl_obj.matrix_world.inverted(), skin_node,
+                           skin)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     def _get_or_create_mesh(self, mesh: pyscene.SubmeshMesh) -> bpy.types.Mesh:
@@ -266,7 +312,7 @@ class Importer:
             bl_obj.parent = self.obj_map.get(node.parent)
 
         # TRS
-        bl_obj.location = mod_v(node.position)
+        bl_obj.location = node.position.yup2zup()
         with tmp_mode(bl_obj, 'QUATERNION'):
             bl_obj.rotation_quaternion = mod_q(node.rotation)
         bl_obj.scale = mod_s(node.scale)
@@ -290,15 +336,15 @@ class Importer:
             return
         if node.mesh:
             return
-        for skin, v in self.skin_map.items():
-            if skin.parent_space == node:
-                bl_parent = self.obj_map[node]
-                bl_skin = self.skin_map[skin]
-                tmp = bl_skin.matrix_world
-                bl_skin.parent = bl_parent.parent
-                bpy.data.objects.remove(bl_parent, do_unlink=True)
-                bl_skin.matrix_world = tmp
-                return
+        # for skin, v in self.skin_map.items():
+        #     if skin.parent_space == node:
+        #         bl_parent = self.obj_map[node]
+        #         bl_skin = self.skin_map[skin]
+        #         tmp = bl_skin.matrix_world
+        #         bl_skin.parent = bl_parent.parent
+        #         bpy.data.objects.remove(bl_parent, do_unlink=True)
+        #         bl_skin.matrix_world = tmp
+        #         return
 
         # remove empty
         bl_obj = self.obj_map[node]
@@ -312,9 +358,9 @@ class Importer:
 
         # skinning
         for root in roots:
-            for skin_node in root.traverse():
-                if skin_node.skin:
-                    self._create_armature(skin_node, skin_node.skin)
+            for node in root.traverse():
+                if node.skin:
+                    self._create_armature(node)
 
         for n, o in self.obj_map.items():
             if o.type == 'MESH' and n.skin:
