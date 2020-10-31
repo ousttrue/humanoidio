@@ -105,74 +105,66 @@ class Importer:
 
     def _create_bones(self, armature: bpy.types.Armature, m: mathutils.Matrix,
                       skin_node: pyscene.Node, skin: pyscene.Skin) -> None:
+        '''
+        ボーンを作る
 
-        # pass1: create
-        bones = {}
+        tail を決める
+
+        * child が 0。親からまっすぐに伸ばす
+        * child が ひとつ。それ
+        * chidl が 2つ以上。どれか選べ
+        '''
+        roots = [root for root in skin.get_root_joints()]
+
+        # pass1: create and head postiion
+        bones: Dict[pyscene.Node, bpy.types.EditBone] = {}
         for node in skin.joints:
             bl_object = self.obj_map[node]
             bl_bone = armature.edit_bones.new(node.name)
             # get armature local matrix
             world_to_local = m @ bl_object.matrix_world
             bl_bone.head = world_to_local @ mathutils.Vector((0, 0, 0))
-            bl_bone.tail = world_to_local @ mathutils.Vector((0, 1, 0))
+            bl_bone.tail = bl_bone.head + mathutils.Vector((0, 1, 0))
             bones[node] = bl_bone
 
         # pass2: connect
-        roots = [root for root in skin.get_root_joints()]
+        def extend_tail(node: pyscene.Node):
+            bl_bone = bones[node]
+            if not node.parent:
+                raise Exception()
+            bl_parent = bones[node.parent]
+            tail_offset = (bl_bone.head - bl_parent.head)
+            bl_bone.tail = bl_bone.head + tail_offset
+
+        def select_tail(node: pyscene.Node) -> pyscene.Node:
+            return node.children[0]
+            #     def get_child_is_connect(child_pos) -> bool:
+            #         if len(node.children) == 1:
+            #             return True
+
+            #         if abs(child_pos.x) < 0.001:
+            #             return True
+
+            #         return False
+
+        def connect_tail(node: pyscene.Node, tail: pyscene.Node):
+            bl_bone = bones[node]
+            bl_tail = bones[tail]
+            bl_bone.tail = bl_tail.head
+            bl_tail.parent = bl_bone
+            bl_tail.use_connect = True
+
         for node in skin.joints:
-            bone = bones[node]
-            if node in roots:
-                # no parent
-                pass
+
+            child_count = len(node.children)
+            if child_count == 0:
+                extend_tail(node)
+
+            elif child_count == 1:
+                connect_tail(node, node.children[0])
+
             else:
-                if node.parent:
-                    # connect
-                    parent_bone = bones[node.parent]
-                    parent_bone.tail = bone.head
-                    bone.parent = parent_bone
-                    bone.use_connect = True
-
-        # bl_bone.parent = parent_bone
-        # if is_connect:
-        #     bl_bone.use_connect = True
-
-        # bl_object = self.obj_map[node]
-        # object_pos = bl_object.matrix_world.to_translation()
-        # bl_bone.head = object_pos
-
-        # if not is_connect:
-        #     if parent_bone and parent_bone.tail == (0, 0, 0):
-        #         tail_offset = (bl_bone.head -
-        #                        parent_bone.head).normalized() * 0.1
-        #         parent_bone.tail = parent_bone.head + tail_offset
-
-        # if not node.children:
-        #     if parent_bone:
-        #         bl_bone.tail = bl_bone.head + \
-        #             (bl_bone.head - parent_bone.head)
-        # else:
-
-        #     def get_child_is_connect(child_pos) -> bool:
-        #         if len(node.children) == 1:
-        #             return True
-
-        #         if abs(child_pos.x) < 0.001:
-        #             return True
-
-        #         return False
-
-        #     if parent_bone:
-        #         child_is_connect = 0
-        #         for i, child in enumerate(node.children):
-        #             if get_child_is_connect(
-        #                     self.obj_map[child].matrix_world.to_translation()):
-        #                 child_is_connect = i
-        #     else:
-        #         child_is_connect = -1
-
-        #     for i, child in enumerate(node.children):
-        #         self._create_bones(armature, child, bl_bone,
-        #                           i == child_is_connect)
+                connect_tail(node, select_tail(node))
 
     def _create_armature(self, skin_node: pyscene.Node) -> bpy.types.Object:
         logger.debug(f'skin')
@@ -205,7 +197,9 @@ class Importer:
             bpy.data.objects.remove(bl_node)
         else:
             # create new node
-            raise NotImplementedError()
+            bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
+            bl_obj = bpy.data.objects.new(skin.name, bl_skin)
+            self.skin_map[skin] = bl_obj
 
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)
