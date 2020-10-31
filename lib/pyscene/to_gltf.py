@@ -13,7 +13,7 @@ from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
 from .to_submesh import facemesh_to_submesh
 from .node import Node, Skin
-from .material import BlendMode, Material, PBRMaterial, Texture
+from .material import BlendMode, UnlitMaterial, PBRMaterial, Texture
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
@@ -36,9 +36,9 @@ class MaterialExporter:
         self.textures: List[formats.gltf.Texture] = []
         self.materials: List[formats.gltf.Material] = []
         self.texture_map: Dict[Texture, int] = {}
-        self.material_map: Dict[Material, int] = {}
+        self.material_map: Dict[UnlitMaterial, int] = {}
 
-    def get_or_create_material(self, src: Material,
+    def get_or_create_material(self, src: UnlitMaterial,
                                buffer: formats.BufferManager) -> int:
         material_index = self.material_map.get(src)
         if isinstance(material_index, int):
@@ -51,8 +51,8 @@ class MaterialExporter:
         if src.color:
             color = [src.color.x, src.color.y, src.color.z, src.color.w]
         color_texture = None
-        if src.texture:
-            texture_index = self._get_or_create_texture(src.texture, buffer)
+        if src.color_texture:
+            texture_index = self._get_or_create_texture(src.color_texture, buffer)
             color_texture = formats.gltf.TextureInfo(index=texture_index)
 
         alpha_mode = formats.gltf.MaterialAlphaMode.OPAQUE
@@ -73,9 +73,9 @@ class MaterialExporter:
                     index=metallic_roughness_texture_index)
 
             normal_texture = None
-            if src.normal_map:
+            if src.normal_texture:
                 normal_texture_index = self._get_or_create_texture(
-                    src.normal_map, buffer)
+                    src.normal_texture, buffer)
                 normal_texture = formats.gltf.MaterialNormalTextureInfo(
                     index=normal_texture_index)
 

@@ -321,7 +321,7 @@ class Importer:
         bl_mesh = bpy.data.meshes.new(mesh.name)
         self.mesh_map[mesh] = bl_mesh
 
-        material_index_map: Dict[pyscene.Material, int] = {}
+        material_index_map: Dict[pyscene.UnlitMaterial, int] = {}
         material_index = 0
         for i, submesh in enumerate(mesh.submeshes):
             bl_material = self.material_importer.get_or_create_material(

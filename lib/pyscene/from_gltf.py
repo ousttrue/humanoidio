@@ -1,3 +1,5 @@
+from ctypes import c_ulong
+from lib.pyscene.material import BlendMode, UnlitMaterial
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, Optional, List
@@ -34,8 +36,12 @@ class Reader:
         self.data = data
         self.reader = formats.BytesReader(data)
         # gltf の url 参照の外部ファイルバッファをキャッシュする
-        self._material_map: Dict[int, pyscene.Material] = {}
+        self._material_map: Dict[int, pyscene.UnlitMaterial] = {}
         self._texture_map: Dict[int, pyscene.Texture] = {}
+
+    def get_vrm(self) -> Optional[formats.gltf.vrm]:
+        if self.data.gltf.extensions:
+            return self.data.gltf.extensions.VRM
 
     def _get_or_create_texture(self, image_index: int) -> pyscene.Texture:
         texture = self._texture_map.get(image_index)
@@ -63,28 +69,99 @@ class Reader:
         return texture
 
     def _get_or_create_material(
-            self, material_index: Optional[int]) -> pyscene.Material:
+            self, material_index: Optional[int]) -> pyscene.UnlitMaterial:
         if not isinstance(material_index, int):
-            return pyscene.Material(f'default')
+            return pyscene.UnlitMaterial(f'default')
         material = self._material_map.get(material_index)
         if material:
             return material
 
+        def load_common_porperties(matrial: UnlitMaterial,
+                                   gl_material: formats.gltf.Material):
+            # color
+            if gl_material.pbrMetallicRoughness.baseColorFactor:
+                material.color.x = gl_material.pbrMetallicRoughness.baseColorFactor[
+                    0]
+                material.color.y = gl_material.pbrMetallicRoughness.baseColorFactor[
+                    1]
+                material.color.z = gl_material.pbrMetallicRoughness.baseColorFactor[
+                    2]
+                material.color.w = gl_material.pbrMetallicRoughness.baseColorFactor[
+                    3]
+            # texture
+            if gl_material.pbrMetallicRoughness.baseColorTexture:
+                image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
+                texture = self._get_or_create_texture(image_index)
+                texture.set_usage(pyscene.TextureUsage.Color)
+                material.color_texture = texture
+
+            # alpha blending
+            if isinstance(gl_material.alphaMode,
+                          formats.gltf.MaterialAlphaMode):
+                if gl_material.alphaMode == formats.gltf.MaterialAlphaMode.OPAQUE:
+                    material.blend_mode = pyscene.BlendMode.Opaque
+                elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.BLEND:
+                    material.blend_mode = pyscene.BlendMode.AlphaBlend
+                elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.MASK:
+                    material.blend_mode = pyscene.BlendMode.Mask
+                    if isinstance(gl_material.alphaCutoff, float):
+                        material.threshold = gl_material.alphaCutoff
+                else:
+                    raise NotImplementedError()
+            else:
+                pass
+
         # create
         gl_material = self.data.gltf.materials[material_index]
+
+        vrm = self.get_vrm()
+        vrm_material = None
+        if vrm:
+            vrm_material = vrm.materialProperties[material_index]
+
         name = gl_material.name
         if not name:
             name = f'material{material_index}'
-        if gl_material.extensions and 'KHR_materials_unlit' in gl_material.extensions:
-            material = pyscene.Material(name)
-        else:
-            material = pyscene.PBRMaterial(name)
 
+        if vrm_material and vrm_material.shader == 'VRM/MToon':
+            #
+            # MToon
+            #
+            material = pyscene.MToonMaterial(name)
+            load_common_porperties(material, gl_material)
+            for k, v in vrm_material.tagMap.items():
+                if k == 'RenderType':
+                    if v == 'Opaque':
+                        pass
+                    elif v == 'Transparent':
+                        pass
+                    elif v == 'TransparentCutout':
+                        pass
+                    else:
+                        raise NotImplementedError()
+                else:
+                    raise NotImplementedError()
+            for k, v in vrm_material.floatProperties.items():
+                material.set_scalar(k, v)
+            for k, v in vrm_material.textureProperties.items():
+                material.set_texture(k, self._get_or_create_texture(v))
+            for k, v in vrm_material.vectorProperties.items():
+                material.set_vector4(k, v)
+
+        elif gl_material.extensions and 'KHR_materials_unlit' in gl_material.extensions:
+            material = pyscene.UnlitMaterial(name)
+            load_common_porperties(material, gl_material)
+        else:
+            #
+            # PBR
+            #
+            material = pyscene.PBRMaterial(name)
+            load_common_porperties(material, gl_material)
             # normal map
             if gl_material.normalTexture:
-                material.normal_map = self._get_or_create_texture(
+                material.normal_texture = self._get_or_create_texture(
                     gl_material.normalTexture.index)
-                material.normal_map.set_usage(pyscene.TextureUsage.NormalMap)
+                material.normal_texture.set_usage(pyscene.TextureUsage.NormalMap)
 
             # emissive
             if gl_material.emissiveTexture:
@@ -92,6 +169,10 @@ class Reader:
                     gl_material.emissiveTexture.index)
                 material.emissive_texture.set_usage(
                     pyscene.TextureUsage.EmissiveTexture)
+            if gl_material.emissiveFactor:
+                material.emissive_color.x = gl_material.emissiveFactor[0]
+                material.emissive_color.y = gl_material.emissiveFactor[1]
+                material.emissive_color.z = gl_material.emissiveFactor[2]
 
             # metallic roughness
             if gl_material.pbrMetallicRoughness and gl_material.pbrMetallicRoughness.metallicRoughnessTexture:
@@ -109,38 +190,6 @@ class Reader:
                     pyscene.TextureUsage.OcclusionTexture)
 
         self._material_map[material_index] = material
-
-        # color
-        if gl_material.pbrMetallicRoughness.baseColorFactor:
-            material.color.x = gl_material.pbrMetallicRoughness.baseColorFactor[
-                0]
-            material.color.y = gl_material.pbrMetallicRoughness.baseColorFactor[
-                1]
-            material.color.z = gl_material.pbrMetallicRoughness.baseColorFactor[
-                2]
-            material.color.w = gl_material.pbrMetallicRoughness.baseColorFactor[
-                3]
-        # texture
-        if gl_material.pbrMetallicRoughness.baseColorTexture:
-            image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
-            texture = self._get_or_create_texture(image_index)
-            texture.set_usage(pyscene.TextureUsage.Color)
-            material.texture = texture
-
-        # alpha blending
-        if isinstance(gl_material.alphaMode, formats.gltf.MaterialAlphaMode):
-            if gl_material.alphaMode == formats.gltf.MaterialAlphaMode.OPAQUE:
-                material.blend_mode = pyscene.BlendMode.Opaque
-            elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.BLEND:
-                material.blend_mode = pyscene.BlendMode.AlphaBlend
-            elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.MASK:
-                material.blend_mode = pyscene.BlendMode.Mask
-                if isinstance(gl_material.alphaCutoff, float):
-                    material.threshold = gl_material.alphaCutoff
-            else:
-                raise NotImplementedError()
-        else:
-            pass
 
         return material
 

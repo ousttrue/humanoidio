@@ -88,11 +88,11 @@ from ..struct_types import Float4
 
 class MaterialExporter:
     def __init__(self):
-        self.materials: List[pyscene.Material] = []
+        self.materials: List[pyscene.UnlitMaterial] = []
         self._material_map: Dict[bpy.types.Material, int] = {}
 
     def get_or_create_material(self,
-                               m: bpy.types.Material) -> pyscene.Material:
+                               m: bpy.types.Material) -> pyscene.UnlitMaterial:
         material_index = self._material_map.get(m)
         if isinstance(material_index, int):
             return self.materials[material_index]
@@ -121,17 +121,17 @@ class MaterialExporter:
                 if texture.image:
                     image = texture.image                                
                     if image.packed_file:
-                        material.texture = pyscene.Texture(image.name,
+                        material.color_texture = pyscene.Texture(image.name,
                                                 image.packed_file.data)
-                        material.texture.usage = pyscene.TextureUsage.Color
+                        material.color_texture.usage = pyscene.TextureUsage.Color
                     elif image.filepath:
-                        material.texture = pyscene.Texture(image.name,
+                        material.color_texture = pyscene.Texture(image.name,
                                                 pathlib.Path(image.filepath))
-                        material.texture.usage = pyscene.TextureUsage.Color
+                        material.color_texture.usage = pyscene.TextureUsage.Color
                     else:
                         raise NotImplementedError()
         else:
-            material = pyscene.Material(m.name)
+            material = pyscene.UnlitMaterial(m.name)
             # color
             # colorTexture
 

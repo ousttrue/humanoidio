@@ -96,7 +96,7 @@ class GltfTests(unittest.TestCase):
 
         submesh = mesh.submeshes[0]
         material = submesh.material
-        texture = material.texture
+        texture = material.color_texture
 
         # material
         self.assertEqual(material.name, 'Texture')
@@ -136,7 +136,7 @@ class GltfTests(unittest.TestCase):
             raise Exception()
         material0 = mesh0.submeshes[0].material
         self.assertEqual(material0.name, 'Orange')
-        self.assertIsInstance(material0, pyscene.Material)
+        self.assertIsInstance(material0, pyscene.UnlitMaterial)
         self.assertTrue(
             helper.check_vec(material0.color, (1, 0.21763764, 0, 1)))
 
@@ -146,7 +146,7 @@ class GltfTests(unittest.TestCase):
             raise Exception()
         material1 = mesh1.submeshes[0].material
         self.assertEqual(material1.name, 'Blue')
-        self.assertIsInstance(material1, pyscene.Material)
+        self.assertIsInstance(material1, pyscene.UnlitMaterial)
         self.assertTrue(
             helper.check_vec(material1.color, (0, 0.21763764, 1, 1)))
 

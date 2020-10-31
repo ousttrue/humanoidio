@@ -5,6 +5,7 @@ from .glb import Glb
 from .gltf_context import GltfContext
 from .bytesreader import BytesReader
 from .buffermanager import BufferManager
+from .vrm0x import HumanoidBones
 
 def parse_gltf(path: pathlib.Path) -> GltfContext:
     '''

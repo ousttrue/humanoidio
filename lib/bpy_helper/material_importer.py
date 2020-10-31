@@ -51,7 +51,7 @@ class NodeTree:
                 self.links.new(texture_node.outputs[1],
                                input_alpha)  # type: ignore
 
-    def create_unlit(self, src: pyscene.Material,
+    def create_unlit(self, src: pyscene.UnlitMaterial,
                      get_or_create_image: Callable[[pyscene.Texture],
                                                    bpy.types.Image]):
         '''
@@ -68,9 +68,9 @@ class NodeTree:
         self.links.new(transparent.outputs[0],
                        mix_node.inputs[1])  # type: ignore
 
-        if src.texture:
+        if src.color_texture:
             self._create_texture_node(
-                'ColorTexture', get_or_create_image(src.texture),
+                'ColorTexture', get_or_create_image(src.color_texture),
                 src.blend_mode == pyscene.BlendMode.Opaque, mix_node.inputs[2],
                 mix_node.inputs[0])
 
@@ -90,18 +90,18 @@ class NodeTree:
         self.links.new(bsdf_node.outputs[0],
                        output_node.inputs[0])  # type: ignore
 
-        if src.texture:
+        if src.color_texture:
             # color texture
             self._create_texture_node(
-                'ColorTexture', get_or_create_image(src.texture),
+                'ColorTexture', get_or_create_image(src.color_texture),
                 src.blend_mode == pyscene.BlendMode.Opaque,
                 bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
 
-        if src.normal_map:
+        if src.normal_texture:
             # normal map
             normal_texture_node = self._create_node("TexImage")
             normal_texture_node.label = 'NormalTexture'
-            normal_image = get_or_create_image(src.normal_map)  # type: ignore
+            normal_image = get_or_create_image(src.normal_texture)  # type: ignore
             normal_texture_node.image = normal_image
 
             normal_map = self._create_node("NormalMap")
@@ -132,11 +132,11 @@ class NodeTree:
 
 class MaterialImporter:
     def __init__(self):
-        self.material_map: Dict[pyscene.Material, bpy.types.Material] = {}
+        self.material_map: Dict[pyscene.UnlitMaterial, bpy.types.Material] = {}
         self.image_map: Dict[pyscene.Texture, bpy.types.Image] = {}
 
     def get_or_create_material(
-            self, material: pyscene.Material) -> bpy.types.Material:
+            self, material: pyscene.UnlitMaterial) -> bpy.types.Material:
         bl_material = self.material_map.get(material)
         if bl_material:
             return bl_material

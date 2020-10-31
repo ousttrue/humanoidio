@@ -1,12 +1,12 @@
 from typing import Any, List, Optional, Dict, Sequence
 import array
 from ..struct_types import PlanarBuffer
-from .material import Material
+from .material import UnlitMaterial
 
 
 class Submesh:
     def __init__(self, offset: int, vertex_count: int,
-                 material: Material) -> None:
+                 material: UnlitMaterial) -> None:
         self.material = material
         self.offset = offset
         self.vertex_count = vertex_count
