@@ -1,9 +1,11 @@
+from mathutils import Vector
 from logging import getLogger
 logger = getLogger(__name__)
 from contextlib import contextmanager
 from typing import List, Optional, Dict, Set
 import bpy, mathutils
 from .. import pyscene
+from .. import formats
 from .material_importer import MaterialImporter
 from .mesh_importer import create_bmesh
 from .functions import remove_mesh
@@ -30,6 +32,94 @@ def tmp_mode(obj, tmp: str):
         yield
     finally:
         obj.rotation_mode = mode
+
+
+class BoneConnector:
+    '''
+    ボーンを適当に接続したり、しない場合でも tail を設定してやる
+    '''
+    def __init__(self, bones: Dict[pyscene.Node, bpy.types.EditBone]):
+        self.bones = bones
+
+    def extend_tail(self, node: pyscene.Node):
+        '''
+        親ボーンと同じ方向にtailを延ばす
+        '''
+        bl_bone = self.bones[node]
+        if node.parent:
+            bl_parent = self.bones[node.parent]
+            tail_offset = (bl_bone.head - bl_parent.head)
+            bl_bone.tail = bl_bone.head + tail_offset
+
+    def connect_tail(self, node: pyscene.Node, tail: pyscene.Node):
+        bl_bone = self.bones[node]
+        bl_tail = self.bones[tail]
+        bl_bone.tail = bl_tail.head
+        bl_tail.parent = bl_bone
+        bl_tail.use_connect = True
+
+    def traverse(self, node: pyscene.Node, parent: Optional[pyscene.Node],
+                 is_connect: bool):
+        # connect
+        if parent:
+            # print(f'connect {parent} => {node}')
+            bl_parent = self.bones[parent]
+            bl_bone = self.bones[node]
+            bl_bone.parent = bl_parent
+            if is_connect:
+                bl_parent.tail = bl_bone.head
+                bl_bone.use_connect = True
+
+        if node.children:
+            # recursive
+            connect_child_index = None
+            if any(child.humanoid_bone for child in node.children):
+                # humanioid
+                for i, child in enumerate(node.children):
+                    if child.humanoid_bone:
+                        if child.humanoid_bone in [
+                                formats.HumanoidBones.hips,
+                                formats.HumanoidBones.leftUpperLeg,
+                                formats.HumanoidBones.rightUpperLeg,
+                                formats.HumanoidBones.leftShoulder,
+                                formats.HumanoidBones.rightShoulder,
+                                formats.HumanoidBones.leftEye,
+                                formats.HumanoidBones.rightEye,
+                        ]:
+                            continue
+                        connect_child_index = i
+                        break
+            else:
+                for i, child in enumerate(node.children):
+                    if child.name in [
+                            'J_Adj_L_FaceEyeSet', 'J_Adj_R_FaceEyeSet'
+                    ]:
+                        continue
+                    # とりあえず
+                    connect_child_index = i
+                    break
+
+            # select connect child
+            for i, child in enumerate(node.children):
+                self.traverse(child, node, i == connect_child_index)
+        else:
+            # stop recursive
+            self.extend_tail(node)
+
+
+def connect_bones(bones: Dict[pyscene.Node, bpy.types.EditBone]):
+
+    nodes = bones.keys()
+    roots = []
+    for node in nodes:
+        if not node.parent:
+            roots.append(node)
+        elif node.parent not in nodes:
+            roots.append(node)
+
+    connector = BoneConnector(bones)
+    for root in roots:
+        connector.traverse(root, None, False)
 
 
 class Importer:
@@ -114,8 +204,6 @@ class Importer:
         * child が ひとつ。それ
         * chidl が 2つ以上。どれか選べ
         '''
-        roots = [root for root in skin.get_root_joints()]
-
         # pass1: create and head postiion
         bones: Dict[pyscene.Node, bpy.types.EditBone] = {}
         for node in skin.joints:
@@ -124,47 +212,11 @@ class Importer:
             # get armature local matrix
             world_to_local = m @ bl_object.matrix_world
             bl_bone.head = world_to_local @ mathutils.Vector((0, 0, 0))
-            bl_bone.tail = bl_bone.head + mathutils.Vector((0, 1, 0))
+            bl_bone.tail = bl_bone.head + mathutils.Vector((0, 0.1, 0))
             bones[node] = bl_bone
 
         # pass2: connect
-        def extend_tail(node: pyscene.Node):
-            bl_bone = bones[node]
-            if not node.parent:
-                raise Exception()
-            bl_parent = bones[node.parent]
-            tail_offset = (bl_bone.head - bl_parent.head)
-            bl_bone.tail = bl_bone.head + tail_offset
-
-        def select_tail(node: pyscene.Node) -> pyscene.Node:
-            return node.children[0]
-            #     def get_child_is_connect(child_pos) -> bool:
-            #         if len(node.children) == 1:
-            #             return True
-
-            #         if abs(child_pos.x) < 0.001:
-            #             return True
-
-            #         return False
-
-        def connect_tail(node: pyscene.Node, tail: pyscene.Node):
-            bl_bone = bones[node]
-            bl_tail = bones[tail]
-            bl_bone.tail = bl_tail.head
-            bl_tail.parent = bl_bone
-            bl_tail.use_connect = True
-
-        for node in skin.joints:
-
-            child_count = len(node.children)
-            if child_count == 0:
-                extend_tail(node)
-
-            elif child_count == 1:
-                connect_tail(node, node.children[0])
-
-            else:
-                connect_tail(node, select_tail(node))
+        connect_bones(bones)
 
     def _create_armature(self, skin_node: pyscene.Node) -> bpy.types.Object:
         logger.debug(f'skin')
@@ -216,6 +268,50 @@ class Importer:
         self._create_bones(bl_skin, bl_obj.matrix_world.inverted(), skin_node,
                            skin)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+    def _create_humanoid(self, roots: List[pyscene.Node]) -> bpy.types.Object:
+        '''
+        Armature for Humanoid
+        '''
+        skins = [
+            node.skin for root in roots for node in root.traverse()
+            if node.skin
+        ]
+        # create new node
+        bl_skin: bpy.types.Armature = bpy.data.armatures.new('Humanoid')
+        # bl_skin.show_names = True
+        bl_obj = bpy.data.objects.new('Humanoid', bl_skin)
+        bl_obj.show_in_front = True
+        self.collection.objects.link(bl_obj)
+
+        # enter edit mode
+        self.context.view_layer.objects.active = bl_obj
+        bl_obj.select_set(True)
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+        # 1st pass: create bones
+        bones: Dict[pyscene.Node, bpy.types.EditBone] = {}
+        for skin in skins:
+            for node in skin.joints:
+                if node in bones:
+                    continue
+                bl_object = self.obj_map[node]
+                bl_bone = bl_skin.edit_bones.new(node.name)
+                # get armature local matrix
+                bl_bone.head = bl_object.matrix_world.translation
+                bl_bone.tail = bl_bone.head + mathutils.Vector((0, 0.1, 0))
+                bones[node] = bl_bone
+
+        # 2nd pass: tail, connect
+        connect_bones(bones)
+
+        # exit edit mode
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+        for skin in skins:
+            self.skin_map[skin] = bl_obj
+
+        return bl_obj
 
     def _get_or_create_mesh(self, mesh: pyscene.SubmeshMesh) -> bpy.types.Mesh:
         bl_mesh = self.mesh_map.get(mesh)
@@ -330,15 +426,6 @@ class Importer:
             return
         if node.mesh:
             return
-        # for skin, v in self.skin_map.items():
-        #     if skin.parent_space == node:
-        #         bl_parent = self.obj_map[node]
-        #         bl_skin = self.skin_map[skin]
-        #         tmp = bl_skin.matrix_world
-        #         bl_skin.parent = bl_parent.parent
-        #         bpy.data.objects.remove(bl_parent, do_unlink=True)
-        #         bl_skin.matrix_world = tmp
-        #         return
 
         # remove empty
         bl_obj = self.obj_map[node]
@@ -346,15 +433,19 @@ class Importer:
         if node.parent:
             node.parent.children.remove(node)
 
-    def execute(self, roots: List[pyscene.Node]):
+    def execute(self, roots: List[pyscene.Node], is_vrm: bool):
         for root in roots:
             self._create_tree(root)
 
-        # skinning
-        for root in roots:
-            for node in root.traverse():
-                if node.skin:
-                    self._create_armature(node)
+        if is_vrm:
+            # Armature を ひとつの Humanoid にまとめる
+            self._create_humanoid(roots)
+        else:
+            # skinning
+            for root in roots:
+                for node in root.traverse():
+                    if node.skin:
+                        self._create_armature(node)
 
         for n, o in self.obj_map.items():
             if o.type == 'MESH' and n.skin:

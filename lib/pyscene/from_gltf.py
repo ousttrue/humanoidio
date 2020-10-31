@@ -240,6 +240,19 @@ def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
     '''
     deserializer = Reader(data)
 
+    def get_humanoid_bone(node_index: int) -> Optional[formats.HumanoidBones]:
+        if not data.gltf.extensions:
+            return
+        vrm = data.gltf.extensions.VRM
+        if not vrm:
+            return
+
+        for humanoid_bone in vrm.humanoid.humanBones:
+            if humanoid_bone.node == node_index:
+                if not humanoid_bone.bone:
+                    raise Exception()
+                return getattr(formats.HumanoidBones, humanoid_bone.bone)
+
     # mesh
     meshes: List[pyscene.SubmeshMesh] = []
     if data.gltf.meshes:
@@ -253,6 +266,8 @@ def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
         for i, n in enumerate(data.gltf.nodes):
             name = n.name if n.name else f'node {i}'
             node = pyscene.Node(name)
+
+            node.humanoid_bone = get_humanoid_bone(i)
 
             if n.translation:
                 node.position.x = n.translation[0]

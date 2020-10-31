@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Optional
 from contextlib import contextmanager
 import bpy, mathutils
 from .exporter import Exporter
 from .importer import Importer
 from .. import pyscene
+from .. import formats
 from .functions import remove_mesh
 
 
@@ -140,9 +141,10 @@ def scan() -> Exporter:
     return scanner
 
 
-def load(context: bpy.types.Context, roots: List[pyscene.Node]):
+def load(context: bpy.types.Context, roots: List[pyscene.Node],
+         vrm: Optional[formats.gltf.vrm]):
     importer = Importer(context)
-    importer.execute(roots)
+    importer.execute(roots, vrm)
 
 
 def clear():

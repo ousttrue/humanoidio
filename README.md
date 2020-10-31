@@ -43,27 +43,9 @@ for Blender-2.83
 
 ## TODO
 
-* [x] export: texture
-* [x] export: material
-* [x] export: morphTarget
-* [ ] export: skin
-
-* [x] generate: VRM formats
-* [x] generate: meshes[].extras.targetNames
-* [x] generate: meshes[].primitives[].extras.targetNames
-
 * [ ] MultiplyColorTexture node
-* [x] BMesh
-* [x] emissiveTexture
-* [x] occlusionTexture
-* [x] metallicRoughnessTexture
-* [x] remove empty
-* [x] blend mode
-* [x] alpha cutout
-* [x] Unlit Transparent
-* [x] Standard Transparent
-* [x] shape key
-* [x] remove PIL. use tmpfile
+* [ ] ShapeKeyName
+* [ ] remove empty VertexGroup
 
 ### Export
 
@@ -71,9 +53,11 @@ for Blender-2.83
 
 ### VRM
 
-* [ ] VRM
-* [ ] armature 一個にまとめる
+* [x] humanoid
+* [ ] rename humanoid bone
+* [x] armature 一個にまとめる
 * [ ] MToon
+* [ ] 手前向きにする
 
 ## 仕様
 
