@@ -101,7 +101,8 @@ class NodeTree:
             # normal map
             normal_texture_node = self._create_node("TexImage")
             normal_texture_node.label = 'NormalTexture'
-            normal_image = get_or_create_image(src.normal_texture)  # type: ignore
+            normal_image = get_or_create_image(
+                src.normal_texture)  # type: ignore
             normal_texture_node.image = normal_image
 
             normal_map = self._create_node("NormalMap")
@@ -128,6 +129,48 @@ class NodeTree:
 
         if src.occlusion_texture:
             pass
+
+    def create_mtoon(self, src: pyscene.MToonMaterial,
+                     get_or_create_image: Callable[[pyscene.Texture],
+                                                   bpy.types.Image]):
+        '''
+        BsdfPrincipled
+        '''
+        # build node
+        output_node = self._create_node("OutputMaterial")
+        bsdf_node = self._create_node("BsdfPrincipled")
+        bsdf_node.inputs['Base Color'].default_value = (src.color.x,
+                                                        src.color.y,
+                                                        src.color.z,
+                                                        src.color.w)
+        self.links.new(bsdf_node.outputs[0],
+                       output_node.inputs[0])  # type: ignore
+
+        if src.color_texture:
+            # color texture
+            self._create_texture_node(
+                'ColorTexture', get_or_create_image(src.color_texture),
+                src.blend_mode == pyscene.BlendMode.Opaque,
+                bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
+
+        if src.normal_texture:
+            # normal map
+            normal_texture_node = self._create_node("TexImage")
+            normal_texture_node.label = 'NormalTexture'
+            normal_image = get_or_create_image(
+                src.normal_texture)  # type: ignore
+            normal_texture_node.image = normal_image
+
+            normal_map = self._create_node("NormalMap")
+            self.links.new(normal_texture_node.outputs[0],
+                           normal_map.inputs[1])  # type: ignore
+            self.links.new(normal_map.outputs[0],
+                           bsdf_node.inputs['Normal'])  # type: ignore
+
+        if src.emissive_texture:
+            self._create_texture_node(
+                'EmissiveTexture', get_or_create_image(src.emissive_texture),
+                False, bsdf_node.inputs['Emission'], None)
 
 
 class MaterialImporter:
@@ -160,7 +203,10 @@ class MaterialImporter:
             bl_material.alpha_threshold = material.threshold
 
         tree = NodeTree(bl_material)
-        if isinstance(material, pyscene.PBRMaterial):
+        if isinstance(material, pyscene.MToonMaterial):
+            # MToon
+            tree.create_mtoon(material, self._get_or_create_image)
+        elif isinstance(material, pyscene.PBRMaterial):
             # PBR
             tree.create_pbr(material, self._get_or_create_image)
         else:
