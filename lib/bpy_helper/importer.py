@@ -280,6 +280,7 @@ class Importer:
         # create new node
         bl_skin: bpy.types.Armature = bpy.data.armatures.new('Humanoid')
         # bl_skin.show_names = True
+        bl_skin.display_type = 'STICK'
         bl_obj = bpy.data.objects.new('Humanoid', bl_skin)
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)

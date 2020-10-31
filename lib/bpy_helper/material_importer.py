@@ -139,6 +139,8 @@ class NodeTree:
         # build node
         output_node = self._create_node("OutputMaterial")
         bsdf_node = self._create_node("BsdfPrincipled")
+        bsdf_node.inputs['Roughness'].default_value = 1
+        bsdf_node.inputs['Specular'].default_value = 0        
         bsdf_node.inputs['Base Color'].default_value = (src.color.x,
                                                         src.color.y,
                                                         src.color.z,

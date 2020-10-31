@@ -1,5 +1,4 @@
 from ctypes import c_ulong
-from lib.pyscene.material import BlendMode, UnlitMaterial
 from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, Optional, List
@@ -76,7 +75,7 @@ class Reader:
         if material:
             return material
 
-        def load_common_porperties(matrial: UnlitMaterial,
+        def load_common_porperties(matrial: pyscene.UnlitMaterial,
                                    gl_material: formats.gltf.Material):
             # color
             if gl_material.pbrMetallicRoughness.baseColorFactor:
@@ -161,7 +160,8 @@ class Reader:
             if gl_material.normalTexture:
                 material.normal_texture = self._get_or_create_texture(
                     gl_material.normalTexture.index)
-                material.normal_texture.set_usage(pyscene.TextureUsage.NormalMap)
+                material.normal_texture.set_usage(
+                    pyscene.TextureUsage.NormalMap)
 
             # emissive
             if gl_material.emissiveTexture:

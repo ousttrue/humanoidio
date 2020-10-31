@@ -224,7 +224,7 @@ class MToonMaterial(UnlitMaterial):
         else:
             raise NotImplementedError()
 
-    def set_vector4(self, k: str, v: Tuple[float, float, float, float]):
+    def set_vector4(self, k: str, v: List[float]):
         if k == '_Color':
             self.color.x = v[0]
             self.color.y = v[1]
