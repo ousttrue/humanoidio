@@ -1,12 +1,11 @@
-from typing import Callable
 import bpy
 from .. import pyscene
+from .texture_importer import TextureImporter
 from . import wrap_node
 
 
 def build_pbr(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
-              get_or_create_image: Callable[[pyscene.Texture],
-                                            bpy.types.Image]):
+              texture_importer: TextureImporter):
     '''
     BsdfPrincipled
     '''
@@ -29,7 +28,8 @@ def build_pbr(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
     if src.color_texture:
         # color texture
         color_texture = factory.create('TexImage', -700)
-        color_texture.node.image = get_or_create_image(src.color_texture)
+        color_texture.node.image = texture_importer.get_or_create_image(
+            src.color_texture)
         color.connect('Color2', color_texture, 'Color')
 
     # if src.normal_texture:

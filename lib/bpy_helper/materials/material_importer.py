@@ -1,12 +1,12 @@
 from logging import getLogger
 logger = getLogger(__name__)
-import pathlib
-import tempfile
-from typing import Dict, List, Callable, NamedTuple, Tuple, Any
+from typing import Dict, Any
 import bpy, mathutils
 from .. import pyscene
 from .unlit_material_importer import build_unlit
 from .pbr_material_importer import build_pbr
+from .texture_importer import TextureImporter
+
 
 class NodeTree:
     def __init__(self, bl_material: bpy.types.Material, x=0, y=0):
@@ -52,88 +52,8 @@ class NodeTree:
                 self.links.new(texture_node.outputs[1],
                                input_alpha)  # type: ignore
 
-    def create_unlit(self, src: pyscene.UnlitMaterial,
-                     get_or_create_image: Callable[[pyscene.Texture],
-                                                   bpy.types.Image]):
-        '''
-        Unlit(texture color without shading)
-        '''
-        output_node = self._create_node("OutputMaterial")
-
-        # build node
-        mix_node = self._create_node("MixShader")
-        self.links.new(mix_node.outputs[0],
-                       output_node.inputs[0])  # type: ignore
-
-        transparent = self._create_node("BsdfTransparent")
-        self.links.new(transparent.outputs[0],
-                       mix_node.inputs[1])  # type: ignore
-
-        if src.color_texture:
-            self._create_texture_node(
-                'ColorTexture', get_or_create_image(src.color_texture),
-                src.blend_mode == pyscene.BlendMode.Opaque, mix_node.inputs[2],
-                mix_node.inputs[0])
-
-    def create_pbr(self, src: pyscene.PBRMaterial,
-                   get_or_create_image: Callable[[pyscene.Texture],
-                                                 bpy.types.Image]):
-        '''
-        BsdfPrincipled
-        '''
-        # build node
-        output_node = self._create_node("OutputMaterial")
-        bsdf_node = self._create_node("BsdfPrincipled")
-        bsdf_node.inputs['Base Color'].default_value = (src.color.x,
-                                                        src.color.y,
-                                                        src.color.z,
-                                                        src.color.w)
-        self.links.new(bsdf_node.outputs[0],
-                       output_node.inputs[0])  # type: ignore
-
-        if src.color_texture:
-            # color texture
-            self._create_texture_node(
-                'ColorTexture', get_or_create_image(src.color_texture),
-                src.blend_mode == pyscene.BlendMode.Opaque,
-                bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
-
-        if src.normal_texture:
-            # normal map
-            normal_texture_node = self._create_node("TexImage")
-            normal_texture_node.label = 'NormalTexture'
-            normal_image = get_or_create_image(
-                src.normal_texture)  # type: ignore
-            normal_texture_node.image = normal_image
-
-            normal_map = self._create_node("NormalMap")
-            self.links.new(normal_texture_node.outputs[0],
-                           normal_map.inputs[1])  # type: ignore
-            self.links.new(normal_map.outputs[0],
-                           bsdf_node.inputs['Normal'])  # type: ignore
-
-        if src.emissive_texture:
-            self._create_texture_node(
-                'EmissiveTexture', get_or_create_image(src.emissive_texture),
-                False, bsdf_node.inputs['Emission'], None)
-
-        if src.metallic_roughness_texture:
-            separate_node = self._create_node("SeparateRGB")
-            self.links.new(separate_node.outputs['G'],
-                           bsdf_node.inputs['Roughness'])  # type: ignore
-            self.links.new(separate_node.outputs['B'],
-                           bsdf_node.inputs['Metallic'])  # type: ignore
-            self._create_texture_node(
-                'MetallicRoughness',
-                get_or_create_image(src.metallic_roughness_texture), False,
-                separate_node.inputs[0], None)
-
-        if src.occlusion_texture:
-            pass
-
     def create_mtoon(self, src: pyscene.MToonMaterial,
-                     get_or_create_image: Callable[[pyscene.Texture],
-                                                   bpy.types.Image]):
+                     texture_importer: TextureImporter):
         '''
         BsdfPrincipled
         '''
@@ -152,7 +72,8 @@ class NodeTree:
         if src.color_texture:
             # color texture
             self._create_texture_node(
-                'ColorTexture', get_or_create_image(src.color_texture),
+                'ColorTexture',
+                texture_importer.get_or_create_image(src.color_texture),
                 src.blend_mode == pyscene.BlendMode.Opaque,
                 bsdf_node.inputs[0], bsdf_node.inputs['Alpha'])
 
@@ -160,7 +81,7 @@ class NodeTree:
             # normal map
             normal_texture_node = self._create_node("TexImage")
             normal_texture_node.label = 'NormalTexture'
-            normal_image = get_or_create_image(
+            normal_image = texture_importer.get_or_create_image(
                 src.normal_texture)  # type: ignore
             normal_texture_node.image = normal_image
 
@@ -172,20 +93,20 @@ class NodeTree:
 
         if src.emissive_texture:
             self._create_texture_node(
-                'EmissiveTexture', get_or_create_image(src.emissive_texture),
+                'EmissiveTexture',
+                texture_importer.get_or_create_image(src.emissive_texture),
                 False, bsdf_node.inputs['Emission'], None)
 
 
 class MaterialImporter:
     def __init__(self):
         self.material_map: Dict[pyscene.UnlitMaterial, bpy.types.Material] = {}
-        self.image_map: Dict[pyscene.Texture, bpy.types.Image] = {}
+        self.texture_importer = TextureImporter()
 
     def get_or_create_material(
             self, material: pyscene.UnlitMaterial) -> bpy.types.Material:
-        bl_material = self.material_map.get(material)
-        if bl_material:
-            return bl_material
+        if material in self.material_map:
+            return self.material_map[material]
 
         # base color
         logger.debug(f'create: {material}')
@@ -211,51 +132,16 @@ class MaterialImporter:
         tree = NodeTree(bl_material)
         if isinstance(material, pyscene.MToonMaterial):
             # MToon
-            tree.create_mtoon(material, self._get_or_create_image)
+            tree.create_mtoon(material, self.texture_importer)
         elif isinstance(material, pyscene.PBRMaterial):
             # PBR
-            build_pbr(bl_material, material, self._get_or_create_image)
+            build_pbr(bl_material, material, self.texture_importer)
         else:
             # unlit
             # tree.create_unlit(material, self._get_or_create_image)
-            build_unlit(bl_material, material, self._get_or_create_image)
+            build_unlit(bl_material, material, self.texture_importer)
 
         for n in bl_material.node_tree.nodes:
             n.select = False
 
         return bl_material
-
-    def _get_or_create_image(self,
-                             texture: pyscene.Texture) -> bpy.types.Image:
-        bl_image = self.image_map.get(texture)
-        if bl_image:
-            return bl_image
-
-        logger.debug(f'create {texture}')
-
-        if isinstance(texture.url_or_bytes, pathlib.Path):
-            path = texture.url_or_bytes.absolute()
-            bl_image = bpy.data.images.load(str(path))
-
-        elif isinstance(texture.url_or_bytes, bytes):
-            # Image stored as data => create a tempfile, pack, and delete file
-            # img_from_file = False
-            img_data = texture.url_or_bytes
-            # img_name = img_name or 'Image_%d' % img_idx
-            tmp_dir = tempfile.TemporaryDirectory(prefix='gltfimg-')
-            # filename = _filenamify(img_name) or 'Image_%d' % img_idx
-            # filename += _img_extension(img)
-            path = pathlib.Path(tmp_dir.name) / texture.name
-            with open(path, 'wb') as f:
-                f.write(img_data)
-            bl_image = bpy.data.images.load(str(path))
-            bl_image.pack()
-
-        else:
-            raise Exception()
-
-        bl_image.colorspace_settings.is_data = texture.is_data
-        bl_image.name = texture.name
-
-        self.image_map[texture] = bl_image
-        return bl_image

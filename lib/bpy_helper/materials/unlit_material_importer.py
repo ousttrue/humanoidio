@@ -1,12 +1,11 @@
-from typing import Callable
 import bpy
-from . import wrap_node
 from .. import pyscene
+from . import wrap_node
+from .texture_importer import TextureImporter
 
 
 def build_unlit(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
-                get_or_create_image: Callable[[pyscene.Texture],
-                                              bpy.types.Image]):
+                texture_importer: TextureImporter):
     '''
     out -> mix Fac-> alpha ------------>|
                Sahder1 -> transparent   | TexImage
@@ -32,7 +31,7 @@ def build_unlit(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
 
     if src.color_texture:
         color_texture = factory.create('TexImage', -600, -100)
-        color_texture.node.image = get_or_create_image(
+        color_texture.node.image = texture_importer.get_or_create_image(
             src.color_texture)  # type: ignore
         color.connect('Color2', color_texture)
         mix.connect('Fac', color_texture, 'Alpha')
