@@ -3,7 +3,7 @@ import pathlib
 import bpy
 from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 from .. import pyscene
-from ..struct_types import Float4
+from ...struct_types import Float4
 
 # material
 # texture = None

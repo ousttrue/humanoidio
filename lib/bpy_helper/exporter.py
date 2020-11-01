@@ -5,7 +5,7 @@ import bpy, mathutils
 from .. import bpy_helper
 from .. import pyscene
 from ..struct_types import Float3
-from .material_exporter import MaterialExporter
+from .materials import MaterialExporter
 
 
 class Vrm:

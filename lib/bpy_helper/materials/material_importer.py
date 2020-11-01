@@ -5,8 +5,8 @@ import tempfile
 from typing import Dict, List, Callable, NamedTuple, Tuple, Any
 import bpy, mathutils
 from .. import pyscene
-from .materials.unlit_material_importer import build_unlit
-
+from .unlit_material_importer import build_unlit
+from .pbr_material_importer import build_pbr
 
 class NodeTree:
     def __init__(self, bl_material: bpy.types.Material, x=0, y=0):
@@ -205,17 +205,23 @@ class MaterialImporter:
             bl_material.blend_method = 'CLIP'
             bl_material.alpha_threshold = material.threshold
 
+        bl_material.use_nodes = True
+        bl_material.node_tree.nodes.clear()
+
         tree = NodeTree(bl_material)
         if isinstance(material, pyscene.MToonMaterial):
             # MToon
             tree.create_mtoon(material, self._get_or_create_image)
         elif isinstance(material, pyscene.PBRMaterial):
             # PBR
-            tree.create_pbr(material, self._get_or_create_image)
+            build_pbr(bl_material, material, self._get_or_create_image)
         else:
             # unlit
             # tree.create_unlit(material, self._get_or_create_image)
             build_unlit(bl_material, material, self._get_or_create_image)
+
+        for n in bl_material.node_tree.nodes:
+            n.select = False
 
         return bl_material
 

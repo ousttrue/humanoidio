@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Set
 import bpy, mathutils
 from .. import pyscene
 from .. import formats
-from .material_importer import MaterialImporter
+from .materials import MaterialImporter
 from .mesh_importer import create_bmesh
 from .functions import remove_mesh
 
