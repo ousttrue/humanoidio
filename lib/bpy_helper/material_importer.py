@@ -2,9 +2,10 @@ from logging import getLogger
 logger = getLogger(__name__)
 import pathlib
 import tempfile
-from typing import Dict, List, Callable, Tuple, Any
+from typing import Dict, List, Callable, NamedTuple, Tuple, Any
 import bpy, mathutils
 from .. import pyscene
+from .materials.unlit_material_importer import build_unlit
 
 
 class NodeTree:
@@ -140,7 +141,7 @@ class NodeTree:
         output_node = self._create_node("OutputMaterial")
         bsdf_node = self._create_node("BsdfPrincipled")
         bsdf_node.inputs['Roughness'].default_value = 1
-        bsdf_node.inputs['Specular'].default_value = 0        
+        bsdf_node.inputs['Specular'].default_value = 0
         bsdf_node.inputs['Base Color'].default_value = (src.color.x,
                                                         src.color.y,
                                                         src.color.z,
@@ -213,7 +214,8 @@ class MaterialImporter:
             tree.create_pbr(material, self._get_or_create_image)
         else:
             # unlit
-            tree.create_unlit(material, self._get_or_create_image)
+            # tree.create_unlit(material, self._get_or_create_image)
+            build_unlit(bl_material, material, self._get_or_create_image)
 
         return bl_material
 

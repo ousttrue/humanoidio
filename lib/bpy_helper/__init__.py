@@ -1,10 +1,10 @@
 from typing import List, Optional
 from contextlib import contextmanager
 import bpy, mathutils
-from .exporter import Exporter
-from .importer import Importer
 from .. import pyscene
 from .. import formats
+from .exporter import Exporter
+from .importer import Importer
 from .functions import remove_mesh
 
 
