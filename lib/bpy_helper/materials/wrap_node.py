@@ -18,6 +18,9 @@ class WrapNode(NamedTuple):
     def set_default_value(self, input, value):
         self.node.inputs[input].default_value = value  # type: ignore
 
+    def set_image(self, image: bpy.types.Image):
+        self.node.image = image  # type: ignore
+
 
 class WrapNodeFactory:
     def __init__(self, bl_material: bpy.types.Material):

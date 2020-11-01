@@ -11,8 +11,7 @@ class TextureImporter:
     def __init__(self):
         self.image_map: Dict[pyscene.Texture, bpy.types.Image] = {}
 
-    def get_or_create_image(self,
-                             texture: pyscene.Texture) -> bpy.types.Image:
+    def get_or_create_image(self, texture: pyscene.Texture) -> bpy.types.Image:
         bl_image = self.image_map.get(texture)
         if bl_image:
             return bl_image

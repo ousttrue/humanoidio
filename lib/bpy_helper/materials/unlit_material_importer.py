@@ -14,15 +14,15 @@ def build_unlit(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
     factory = wrap_node.WrapNodeFactory(bl_material)
 
     out = factory.create('OutputMaterial')
-    mix = factory.create('MixShader', -200, 0)
+    mix = factory.create('MixShader', -200)
     mix.set_default_value('Fac', src.color[3])
     out.connect('Surface', mix)
 
-    transparent = factory.create('BsdfTransparent', -400, 0)
+    transparent = factory.create('BsdfTransparent', -400)
     mix.connect(1, transparent)
 
     color = factory.create('MixRGB', -400, -200)
-    color.node.blend_type = 'MULTIPLY'
+    color.node.blend_type = 'MULTIPLY' # type: ignore
     color.set_default_value('Fac', 1)
     color.set_default_value('Color1',
                             (src.color[0], src.color[1], src.color[2], 1))
@@ -31,7 +31,7 @@ def build_unlit(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
 
     if src.color_texture:
         color_texture = factory.create('TexImage', -600, -100)
-        color_texture.node.image = texture_importer.get_or_create_image(
-            src.color_texture)  # type: ignore
+        color_texture.set_image(
+            texture_importer.get_or_create_image(src.color_texture))
         color.connect('Color2', color_texture)
         mix.connect('Fac', color_texture, 'Alpha')
