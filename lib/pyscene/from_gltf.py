@@ -147,7 +147,7 @@ class Reader:
             for k, v in vrm_material.vectorProperties.items():
                 material.set_vector4(k, v)
 
-        elif gl_material.extensions and 'KHR_materials_unlit' in gl_material.extensions:
+        elif gl_material.extensions and gl_material.extensions.KHR_materials_unlit:
             material = pyscene.UnlitMaterial(name)
             load_common_porperties(material, gl_material)
         else:
