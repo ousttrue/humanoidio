@@ -1,6 +1,6 @@
 from typing import List, Dict
 import pathlib
-import bpy
+import bpy, mathutils
 from bpy_extras.node_shader_utils import PrincipledBSDFWrapper
 from .. import pyscene
 from ...struct_types import Float4
@@ -113,9 +113,10 @@ class MaterialExporter:
 
             # Export
             principled = PrincipledBSDFWrapper(m, is_readonly=True)
-            material.color = Float4(principled.base_color.r,
-                                    principled.base_color.g,
-                                    principled.base_color.b, 1.0)
+            if isinstance(principled.base_color, mathutils.Color):
+                material.color = Float4(principled.base_color.r,
+                                        principled.base_color.g,
+                                        principled.base_color.b, 1.0)
             if principled.base_color_texture:
                 texture: bpy.types.ShaderNodeTexImage = principled.base_color_texture               
                 if texture.image:

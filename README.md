@@ -49,7 +49,9 @@ for Blender-2.83
 
 ### Export
 
-* [ ] rewrite material
+* [ ] unlit
+* [ ] PBR
+* [ ] MToon
 
 ### VRM
 

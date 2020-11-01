@@ -61,6 +61,9 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
             context, roots,
             data.gltf.extensions.VRM if data.gltf.extensions else None)
 
+        # color management
+        bpy.context.scene.view_settings.view_transform = 'Standard'
+
         return {'FINISHED'}
 
 

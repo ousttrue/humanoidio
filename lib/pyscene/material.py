@@ -152,6 +152,7 @@ class MToonMaterial(UnlitMaterial):
         self.emissive_texture: Optional[Texture] = None
         self.emissive_color = Float3(0, 0, 0)
         self.matcap_texture: Optional[Texture] = None
+        self.shade_color = Float3(1, 1, 1)
 
     def set_scalar(self, k: str, v: float):
         if k == '_Cutoff':
@@ -208,6 +209,7 @@ class MToonMaterial(UnlitMaterial):
         if k == '_MainTex':
             self.color_texture = texture
         elif k == '_BumpMap':
+            texture.is_data = True
             self.normal_texture = texture
         elif k == '_EmissionMap':
             self.emissive_texture = texture
@@ -236,9 +238,12 @@ class MToonMaterial(UnlitMaterial):
             self.emissive_color.z = v[2]
         elif k == '_OutlineColor':
             pass
+        elif k == '_ShadeColor':
+            self.shade_color.x = v[0]
+            self.shade_color.y = v[1]
+            self.shade_color.z = v[2]
         elif k in [
                 # Todo
-                '_ShadeColor',
                 '_MainTex',
                 '_ShadeTexture',
                 '_BumpMap',
