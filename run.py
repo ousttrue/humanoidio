@@ -1,4 +1,3 @@
-from lib import bpy_helper
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -9,9 +8,13 @@ basicConfig(
     format='%(asctime)s[%(levelname)s][%(name)s.%(funcName)s] %(message)s')
 
 import os
-import bpy
-import pyimpex
 import pathlib
+#
+import bpy
+#
+import pyimpex
+from pyimpex.lib import bpy_helper
+
 HERE = pathlib.Path(__file__).absolute().parent
 os.chdir(HERE)
 GLTF_SAMPLE_DIR = pathlib.Path(os.getenv('GLTF_SAMPLE_MODELS'))  # type: ignore
@@ -22,8 +25,8 @@ VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf'
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/DamagedHelmet/glTF/DamagedHelmet.gltf'
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/AnimatedMorphCube/glTF/AnimatedMorphCube.gltf'
-# SRC_FILE = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
-SRC_FILE = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
+SRC_FILE = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
+# SRC_FILE = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
 pyimpex.register()
 DST_FILE = HERE / 'tmp.glb'
 

@@ -3,7 +3,7 @@ logger = getLogger(__name__)
 from typing import Dict, Any
 import bpy, mathutils
 from .. import pyscene
-from .unlit_material_importer import build_unlit
+from . import unlit_material
 from .pbr_material_importer import build_pbr
 from .mtoon_material_importer import build_mtoon
 from .texture_importer import TextureImporter
@@ -53,7 +53,7 @@ class MaterialImporter:
 
         else:
             # unlit
-            build_unlit(bl_material, material, self.texture_importer)
+            unlit_material.build(bl_material, material, self.texture_importer)
 
         for n in bl_material.node_tree.nodes:
             n.select = False

@@ -23,13 +23,13 @@ class WrapNode(NamedTuple):
 
 
 class WrapNodeFactory:
-    def __init__(self, bl_material: bpy.types.Material):
-        self.bl_material = bl_material
+    def __init__(self, node_tree: bpy.types.NodeTree):
+        self.node_tree = node_tree
 
     def create(self, name: str, x=0, y=0) -> WrapNode:
         if not name.startswith("ShaderNode"):
             name = "ShaderNode" + name
-        node = self.bl_material.node_tree.nodes.new(type=name)
+        node = self.node_tree.nodes.new(type=name)
         node.location = (x, y)
         # return node
-        return WrapNode(self.bl_material.node_tree.links, node)
+        return WrapNode(self.node_tree.links, node)
