@@ -5,7 +5,7 @@ import bpy, mathutils
 from .. import pyscene
 from . import unlit_material
 from .pbr_material_importer import build_pbr
-from .mtoon_material_importer import build_mtoon
+from . import mtoon_material
 from .texture_importer import TextureImporter
 
 
@@ -45,7 +45,7 @@ class MaterialImporter:
 
         if isinstance(material, pyscene.MToonMaterial):
             # MToon
-            build_mtoon(bl_material, material, self.texture_importer)
+            mtoon_material.build(bl_material, material, self.texture_importer)
 
         elif isinstance(material, pyscene.PBRMaterial):
             # PBR

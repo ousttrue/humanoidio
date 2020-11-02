@@ -5,10 +5,10 @@ from .. import pyscene
 from .wrap_node import WrapNode, WrapNodeFactory
 from .texture_importer import TextureImporter
 
-GROUP_NAME = 'pyimpex_Unlit'
+GROUP_NAME = 'pyimpex:Unlit'
 
 
-def get_or_unlit_group() -> bpy.types.NodeTree:
+def _get_or_create_group() -> bpy.types.NodeTree:
     '''
     Unlit
     '''
@@ -64,7 +64,7 @@ def build(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
     factory = WrapNodeFactory(bl_material.node_tree)
 
     g = factory.create('Group', -300)
-    g.node.node_tree = get_or_unlit_group()
+    g.node.node_tree = _get_or_create_group()
     g.set_default_value('Color', (src.color[0], src.color[1], src.color[2], 1))
     g.set_default_value('Alpha', src.color[3])
     if src.color_texture:

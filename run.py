@@ -25,8 +25,8 @@ VRM_SAMPLE_DIR = pathlib.Path(os.getenv('VRM_SAMPLES'))  # type: ignore
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf'
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/DamagedHelmet/glTF/DamagedHelmet.gltf'
 # SRC_FILE = GLTF_SAMPLE_DIR / '2.0/AnimatedMorphCube/glTF/AnimatedMorphCube.gltf'
-SRC_FILE = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
-# SRC_FILE = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
+# SRC_FILE = GLTF_SAMPLE_DIR / '2.0/UnlitTest/glTF/UnlitTest.gltf'
+SRC_FILE = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
 pyimpex.register()
 DST_FILE = HERE / 'tmp.glb'
 
