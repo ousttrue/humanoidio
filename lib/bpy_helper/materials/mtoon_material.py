@@ -9,6 +9,10 @@ GROUP_NAME = 'pyimpex:MToon'
 
 
 def _get_or_create_group() -> bpy.types.NodeTree:
+    '''
+    normal -> bsdf -> to_rgb -> ramp -> mix -> mult -> out
+                                         shade   color
+    '''
     g = bpy.data.node_groups.get(GROUP_NAME)
     if g:
         return g
@@ -17,27 +21,36 @@ def _get_or_create_group() -> bpy.types.NodeTree:
     g = bpy.data.node_groups.new(GROUP_NAME, type='ShaderNodeTree')
     factory = WrapNodeFactory(g)
 
-    # create group inputs
+    #
+    # inputs
+    #
     group_inputs = g.nodes.new('NodeGroupInput')
     group_inputs.select = False
     group_inputs.location = (-900, 0)
-    g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
+    # color shade
+    g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
     g.inputs.new('NodeSocketColor', 'ShadeColor').default_value = (1, 1, 1, 1)
     g.inputs.new('NodeSocketColor',
+                 'ShadeColorTexture').default_value = (1, 1, 1, 1)
+    g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
+    g.inputs.new('NodeSocketColor',
                  'ColorTexture').default_value = (1, 1, 1, 1)
-    g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
+    # emission
+    g.inputs.new('NodeSocketColor', 'Emission').default_value = (0, 0, 0, 1)
+    g.inputs.new('NodeSocketColor',
+                 'EmissiveTexture').default_value = (1, 1, 1, 1)
+
+    # normal
     g.inputs.new('NodeSocketColor',
                  'NormalTexture').default_value = (0.5, 0.5, 1, 1)
     g.inputs.new('NodeSocketFloat', 'NormalStrength').default_value = 1
+    g.inputs.new('NodeSocketColor',
+                 'MatcapTexture').default_value = (0, 0, 0, 0)
     input = WrapNode(g.links, group_inputs)
 
-    # color x color_texture
-    mult_color = factory.create('MixRGB', -600)
-    mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
-    mult_color.set_default_value('Fac', 1)
-    mult_color.connect('Color1', input, 'Color')
-    mult_color.connect('Color2', input, 'ColorTexture')
-
+    #
+    # shading
+    #
     normal_map = factory.create('NormalMap', -600, -500)
     normal_map.connect('Color', input, 'NormalTexture')
     normal_map.connect('Strength', input, 'NormalStrength')
@@ -47,6 +60,16 @@ def _get_or_create_group() -> bpy.types.NodeTree:
     bsdf.set_default_value('Roughness', 1)
     bsdf.connect('Normal', normal_map)
 
+    # color x color_texture
+    mult_color = factory.create('MixRGB', -600)
+    mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
+    mult_color.set_default_value('Fac', 1)
+    mult_color.connect('Color1', input, 'Color')
+    mult_color.connect('Color2', input, 'ColorTexture')
+
+    #
+    # toon
+    #
     to_rgb = factory.create('ShaderToRGB', 0, -900)
     to_rgb.connect('Shader', bsdf)
 
@@ -71,12 +94,12 @@ def _get_or_create_group() -> bpy.types.NodeTree:
     mult_shade.connect('Color1', mult_color)
     mult_shade.connect('Color2', ramp_mix)
 
-    emission = factory.create('Emission', 100)
+    emission = factory.create('Emission')
     emission.connect('Color', mult_shade)
 
-    transparent = factory.create('BsdfTransparent', -600, 100)
+    transparent = factory.create('BsdfTransparent', -400, 100)
 
-    mix = factory.create('MixShader', -300, 200)
+    mix = factory.create('MixShader', -200, 200)
     mix.connect('Fac', input, 'Alpha')
     mix.connect(1, transparent)
     mix.connect(2, emission)
@@ -109,41 +132,7 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
     out = factory.create('OutputMaterial')
     out.connect('Surface', g)
 
-    # #
-    # # color ramp
-    # # bsdf -> to_rgb -> ramp -> ramp_mult -> from_rgb -> output
-    # #
-
-    # ramp = factory.create('ValToRGB', 200)
-    # ramp.node.label = 'ShadeColor'
-    # ramp.connect('Fac', to_rgb)
-    # color_ramp: bpy.types.ColorRamp = ramp.node.color_ramp  # type: ignore
-    # if len(color_ramp.elements) != 2:
-    #     raise Exception()
-    # color_ramp.elements[0].position = 0.5
-    # color_ramp.elements[1].position = 0.5
-    # color_ramp.elements[0].color = (src.shade_color.x, src.shade_color.y,
-    #                                 src.shade_color.z, 1)
-
-    # ramp_mult = factory.create('MixRGB', 500)
-    # ramp_mult.node.blend_type = 'MULTIPLY'  # type: ignore
-    # ramp_mult.set_default_value('Fac', 1)
-    # ramp_mult.connect('Color1', ramp)
-
-    # from_rgb = factory.create('Emission', 500, -200)
-    # from_rgb.connect('Color', ramp_mult)
-
-    # output = factory.create('OutputMaterial', 500, -400)
-    # output.connect('Surface', from_rgb)
-
-    # color = factory.create('MixRGB', -500)
-    # color.node.blend_type = 'MULTIPLY'  # type: ignore
-    # color.set_default_value('Fac', 1)
-    # color.set_default_value('Color1',
-    #                         (src.color[0], src.color[1], src.color[2], 1))
-    # ramp_mult.connect('Color2', color)
     if src.color_texture:
-        # color texture
         color_texture = factory.create('TexImage', -600)
         color_texture.node.label = 'BaseColorTexture'
         color_texture.set_image(
@@ -151,29 +140,30 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
         g.connect('ColorTexture', color_texture, 'Color')
         g.connect('Alpha', color_texture, 'Alpha')
 
-    # # emissive
-    # emissive = factory.create('MixRGB', -500, -600)
-    # emissive.node.blend_type = 'MULTIPLY'  # type: ignore
-    # emissive.set_default_value('Fac', 1)
-    # emissive.set_default_value('Color1',
-    #                            (src.emissive_color[0], src.emissive_color[1],
-    #                             src.emissive_color[2], 1))
-    # bsdf.connect('Emission', emissive)
-    # if src.emissive_texture:
-    #     emissive_texture = factory.create('TexImage', -800, -600)
-    #     emissive_texture.node.label = 'EmissiveTexture'
-    #     emissive_texture.set_image(
-    #         texture_importer.get_or_create_image(src.emissive_texture))
-    #     emissive.connect('Color2', emissive_texture, 'Color')
+    if src.shade_texture:
+        shade_texture = factory.create('TexImage', -600, -300)
+        shade_texture.node.label = 'ShadeColorTexture'
+        shade_texture.set_image(
+            texture_importer.get_or_create_image(src.shade_texture))
+        g.connect('ShadeColorTexture', shade_texture, 'Color')
 
-    # normal map
+    if src.emissive_texture:
+        emissive_texture = factory.create('TexImage', -600, -600)
+        emissive_texture.node.label = 'EmissiveTexture'
+        emissive_texture.set_image(
+            texture_importer.get_or_create_image(src.emissive_texture))
+        g.connect('EmissiveTexture', emissive_texture, 'Color')
+
     if src.normal_texture:
-        normal_texture = factory.create('TexImage', -600, -300)
+        normal_texture = factory.create('TexImage', -600, -900)
         normal_texture.node.label = 'NormalTexture'
         normal_texture.set_image(
             texture_importer.get_or_create_image(src.normal_texture))
         g.connect('NormalTexture', normal_texture, 'Color')
 
-    # # ToDo:
-    # # if src.occlusion_texture:
-    # #     pass
+    if src.matcap_texture:
+        matcap_texture = factory.create('TexImage', -600, -1200)
+        matcap_texture.node.label = 'Matcap'
+        matcap_texture.set_image(
+            texture_importer.get_or_create_image(src.matcap_texture))
+        g.connect('MatcapTexture', matcap_texture, 'Color')

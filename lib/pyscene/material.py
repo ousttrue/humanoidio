@@ -153,6 +153,7 @@ class MToonMaterial(UnlitMaterial):
         self.emissive_color = Float3(0, 0, 0)
         self.matcap_texture: Optional[Texture] = None
         self.shade_color = Float3(1, 1, 1)
+        self.shade_texture: Optional[Texture] = None
 
     def set_scalar(self, k: str, v: float):
         if k == '_Cutoff':
@@ -215,9 +216,10 @@ class MToonMaterial(UnlitMaterial):
             self.emissive_texture = texture
         elif k == '_SphereAdd':
             self.matcap_texture = texture
+        elif k == '_ShadeTexture':
+            self.shade_texture = texture
         elif k in [
                 # Todo
-                '_ShadeTexture',
                 '_ReceiveShadowTexture',
                 '_ShadingGradeTexture',
                 '_OutlineWidthTexture',
