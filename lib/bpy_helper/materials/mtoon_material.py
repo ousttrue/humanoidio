@@ -19,6 +19,7 @@ def _get_or_create_group() -> bpy.types.NodeTree:
 
     # create group inputs
     group_inputs = g.nodes.new('NodeGroupInput')
+    group_inputs.select = False
     group_inputs.location = (-900, 0)
     g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
     g.inputs.new('NodeSocketColor', 'ShadeColor').default_value = (1, 1, 1, 1)
@@ -30,27 +31,63 @@ def _get_or_create_group() -> bpy.types.NodeTree:
     g.inputs.new('NodeSocketFloat', 'NormalStrength').default_value = 1
     input = WrapNode(g.links, group_inputs)
 
-    multiply = factory.create('MixRGB', -600)
-    multiply.node.blend_type = 'MULTIPLY'  # type: ignore
-    multiply.set_default_value('Fac', 1)
-    multiply.connect('Color1', input, 'Color')
-    multiply.connect('Color2', input, 'ColorTexture')
+    # color x color_texture
+    mult_color = factory.create('MixRGB', -600)
+    mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
+    mult_color.set_default_value('Fac', 1)
+    mult_color.connect('Color1', input, 'Color')
+    mult_color.connect('Color2', input, 'ColorTexture')
 
     normal_map = factory.create('NormalMap', -600, -500)
+    normal_map.connect('Color', input, 'NormalTexture')
     normal_map.connect('Strength', input, 'NormalStrength')
 
     bsdf = factory.create('BsdfPrincipled', -300)
     bsdf.set_default_value('Metallic', 0)
     bsdf.set_default_value('Roughness', 1)
-    bsdf.connect('Base Color', multiply)
-    bsdf.connect('Alpha', input, 'Alpha')
     bsdf.connect('Normal', normal_map)
+
+    to_rgb = factory.create('ShaderToRGB', 0, -900)
+    to_rgb.connect('Shader', bsdf)
+
+    # toon shading
+    ramp = factory.create('ValToRGB', 0, -600)
+    ramp.connect('Fac', to_rgb)
+    color_ramp: bpy.types.ColorRamp = ramp.node.color_ramp  # type: ignore
+    color_ramp.interpolation = 'CONSTANT'
+    if len(color_ramp.elements) != 2:
+        raise Exception()
+    color_ramp.elements[1].position = 0.8
+
+    ramp_mix = factory.create('MixRGB', 0, -400)
+    ramp_mix.connect('Fac', ramp)
+    ramp_mix.connect('Color1', input, 'ShadeColor')
+    ramp_mix.set_default_value('Color2', (1, 1, 1, 1))
+
+    # color x shade
+    mult_shade = factory.create('MixRGB', 0, -200)
+    mult_shade.node.blend_type = 'MULTIPLY'  # type: ignore
+    mult_shade.set_default_value('Fac', 1)
+    mult_shade.connect('Color1', mult_color)
+    mult_shade.connect('Color2', ramp_mix)
+
+    emission = factory.create('Emission', 100)
+    emission.connect('Color', mult_shade)
+
+    transparent = factory.create('BsdfTransparent', -600, 100)
+
+    mix = factory.create('MixShader', -300, 200)
+    mix.connect('Fac', input, 'Alpha')
+    mix.connect(1, transparent)
+    mix.connect(2, emission)
 
     # create group outputs
     group_outputs = g.nodes.new('NodeGroupOutput')
+    group_outputs.select = False
+    group_outputs.location = (0, 200)
     g.outputs.new('NodeSocketFloat', 'Surface')
     output = WrapNode(g.links, group_outputs)
-    output.connect('Surface', bsdf)
+    output.connect('Surface', mix)
 
     return g
 
@@ -64,6 +101,7 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
 
     g = factory.create('Group', -300)
     g.node.node_tree = _get_or_create_group()
+    g.set_default_value('Color', (src.color.x, src.color.y, src.color.z, 1))
     g.set_default_value(
         'ShadeColor',
         (src.shade_color.x, src.shade_color.y, src.shade_color.z, 1))
@@ -75,8 +113,6 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
     # # color ramp
     # # bsdf -> to_rgb -> ramp -> ramp_mult -> from_rgb -> output
     # #
-    # to_rgb = factory.create('ShaderToRGB')
-    # to_rgb.connect('Shader', bsdf)
 
     # ramp = factory.create('ValToRGB', 200)
     # ramp.node.label = 'ShadeColor'

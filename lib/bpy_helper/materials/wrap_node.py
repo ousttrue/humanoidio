@@ -31,5 +31,7 @@ class WrapNodeFactory:
             name = "ShaderNode" + name
         node = self.node_tree.nodes.new(type=name)
         node.location = (x, y)
+        node.select = False
+
         # return node
         return WrapNode(self.node_tree.links, node)

@@ -55,7 +55,4 @@ class MaterialImporter:
             # unlit
             unlit_material.build(bl_material, material, self.texture_importer)
 
-        for n in bl_material.node_tree.nodes:
-            n.select = False
-
         return bl_material
