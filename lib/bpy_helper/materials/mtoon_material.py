@@ -74,6 +74,12 @@ class MToonGroup:
         group_inputs = g.nodes.new('NodeGroupInput')
         group_inputs.select = False
         group_inputs.location = (-900, 0)
+        # emission
+        g.inputs.new('NodeSocketColor',
+                     'Emission').default_value = (0, 0, 0, 1)
+        g.inputs.new('NodeSocketColor',
+                     'EmissiveTexture').default_value = (1, 1, 1, 1)
+
         # color shade
         g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
         g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
@@ -86,11 +92,6 @@ class MToonGroup:
                      'ShadeColorTexture').default_value = (1, 1, 1, 1)
         g.inputs.new('NodeSocketFloat', 'ShadeToony').default_value = 0.9
         g.inputs.new('NodeSocketFloat', 'ShadingShift').default_value = 0
-        # emission
-        g.inputs.new('NodeSocketColor',
-                     'Emission').default_value = (0, 0, 0, 1)
-        g.inputs.new('NodeSocketColor',
-                     'EmissiveTexture').default_value = (1, 1, 1, 1)
 
         # normal
         g.inputs.new('NodeSocketColor',
@@ -111,6 +112,16 @@ class MToonGroup:
         bsdf.set_default_value('Metallic', 0)
         bsdf.set_default_value('Roughness', 1)
         bsdf.connect('Normal', normal_map)
+
+        # emission x emission_texture
+        mult_emission = factory.create('MixRGB', -600, 300)
+        mult_emission.node.blend_type = 'MULTIPLY'  # type: ignore
+        mult_emission.set_default_value('Fac', 1)
+        mult_emission.connect('Color1', input, 'Emission')
+        mult_emission.connect('Color2', input, 'EmissiveTexture')
+
+        emission = factory.create('Emission', -300, 300)
+        emission.connect('Color', mult_emission)
 
         # color x color_texture
         mult_color = factory.create('MixRGB', -600)
@@ -154,19 +165,23 @@ class MToonGroup:
         mult_shade.connect('Color1', mult_color)
         mult_shade.connect('Color2', ramp_mix)
 
-        emission = factory.create('Emission', 0, -100)
-        emission.connect('Color', mult_shade)
+        shade_emission = factory.create('Emission', 100, -100)
+        shade_emission.connect('Color', mult_shade)
 
-        add_shader = factory.create('AddShader', 0, 100)
-        add_shader.connect(0, emission)
-        add_shader.connect(1, matcap)
+        add_shader = factory.create('AddShader', 100)
+        add_shader.connect(0, matcap)
+        add_shader.connect(1, shade_emission)
 
+        add_emission = factory.create('AddShader', 0, 100)
+        add_emission.connect(0, emission)
+        add_emission.connect(1, add_shader)
+        
         transparent = factory.create('BsdfTransparent', -400, 100)
 
         mix = factory.create('MixShader', -200, 200)
         mix.connect('Fac', input, 'Alpha')
         mix.connect(1, transparent)
-        mix.connect(2, add_shader)
+        mix.connect(2, add_emission)
 
         # create group outputs
         group_outputs = g.nodes.new('NodeGroupOutput')
@@ -194,6 +209,9 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
         (src.shade_color.x, src.shade_color.y, src.shade_color.z, 1))
     g.set_default_value('ShadeToony', src.shade_toony)
     g.set_default_value('ShadingShift', src.shading_shift)
+    g.set_default_value(
+        'Emission',
+        (src.emissive_color.x, src.emissive_color.y, src.emissive_color.z, 1))
     out = factory.create('OutputMaterial')
     out.connect('Surface', g)
 
