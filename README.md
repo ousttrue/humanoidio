@@ -59,7 +59,7 @@ for Blender-2.83
 * [ ] rename humanoid bone
 * [x] armature 一個にまとめる
 * [ ] MToon
-* [ ] 手前向きにする
+* [x] 手前向きにする
 * [ ] Import: ShapeKey の無いところは SubMesh を別オブジェクトに分割する
 
 ## 仕様

@@ -126,7 +126,7 @@ class Importer:
     '''
     bpy.types.Object, Mesh, Material, Texture を作成する
     '''
-    def __init__(self, context: bpy.types.Context):
+    def __init__(self, context: bpy.types.Context, is_vrm: bool):
         self.context = context
         view_layer = context.view_layer
         if hasattr(view_layer,
@@ -140,6 +140,11 @@ class Importer:
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
         self.skin_map: Dict[pyscene.Skin, bpy.types.Object] = {}
+        self.is_vrm = is_vrm
+        if is_vrm:
+            self.yup2zup = lambda f3: ((-f3.x, f3.z, f3.y))
+        else:
+            self.yup2zup = lambda f3: ((f3.x, -f3.z, f3.y))
 
     def _setup_skinning(self, mesh_node: pyscene.Node) -> None:
         if not isinstance(mesh_node.mesh, pyscene.SubmeshMesh):
@@ -344,7 +349,7 @@ class Importer:
                 submesh = mesh.submeshes[current[0]]
             return material_index_map[submesh.material]
 
-        bm = create_bmesh(mesh, to_material_index)
+        bm = create_bmesh(mesh, to_material_index, self.yup2zup)
         bm.to_mesh(bl_mesh)
 
         # Shapekeys
@@ -434,11 +439,11 @@ class Importer:
         if node.parent:
             node.parent.children.remove(node)
 
-    def execute(self, roots: List[pyscene.Node], is_vrm: bool):
+    def execute(self, roots: List[pyscene.Node]):
         for root in roots:
             self._create_tree(root)
 
-        if is_vrm:
+        if self.is_vrm:
             # Armature を ひとつの Humanoid にまとめる
             self._create_humanoid(roots)
         else:

@@ -19,8 +19,8 @@ class Float2(ctypes.Structure):
         if self.y != other.y: return False
         return True
 
-    def flip_uv(self) -> 'Float2':
-        return Float2(self.x, 1 - self.y)
+    def flip_uv(self) -> Tuple[float, float]:
+        return (self.x, 1 - self.y)
 
 
 class Float3(ctypes.Structure):

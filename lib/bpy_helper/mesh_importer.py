@@ -8,10 +8,9 @@ from .. import pyscene
 UV0 = 'texcoord0'
 
 
-def create_bmesh(
-        mesh: pyscene.SubmeshMesh,
-        indicesindex_to_materialindex: Callable[[int],
-                                                int]) -> bmesh.types.BMesh:
+def create_bmesh(mesh: pyscene.SubmeshMesh,
+                 indicesindex_to_materialindex: Callable[[int], int],
+                 yup2zup) -> bmesh.types.BMesh:
     logger.debug(f'create: {mesh}')
 
     bm = bmesh.new()  # create an empty BMesh
@@ -19,11 +18,11 @@ def create_bmesh(
     attributes = mesh.attributes
     for i, v in enumerate(attributes.position):
         # position
-        vert = bm.verts.new((v.x, -v.z, v.y))
+        vert = bm.verts.new(yup2zup(v))
         # normal
         if attributes.normal:
             n = attributes.normal[i]
-            vert.normal = (n.x, -n.z, n.y)
+            vert.normal = yup2zup(n)
     bm.verts.ensure_lookup_table()
     bm.verts.index_update()
 
@@ -48,7 +47,7 @@ def create_bmesh(
         for face in bm.faces:
             for loop in face.loops:
                 uv = attributes.texcoord[loop.vert.index]
-                loop[uv_layer].uv = (uv.x, 1 - uv.y)
+                loop[uv_layer].uv = uv.flip_uv()
 
     # Set morph target positions (no normals/tangents)
     for target in mesh.morphtargets:
@@ -56,7 +55,7 @@ def create_bmesh(
         layer = bm.verts.layers.shape.new(target.name)
 
         for i, vert in enumerate(bm.verts):
-            p = target.attributes.position[i].yup2zup()
-            vert[layer] = mathutils.Vector(p) + vert.co
+            p = target.attributes.position[i]
+            vert[layer] = mathutils.Vector(yup2zup(p)) + vert.co
 
     return bm
