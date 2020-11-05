@@ -147,13 +147,19 @@ class MToonMaterial(UnlitMaterial):
     def __init__(self, name: str):
         super().__init__(name)
         self.zwrite = True
+        # normal
         self.normal_texture: Optional[Texture] = None
         self.normal_scale = 1.0
+        # emissive
         self.emissive_texture: Optional[Texture] = None
         self.emissive_color = Float3(0, 0, 0)
-        self.matcap_texture: Optional[Texture] = None
+        # toon
         self.shade_color = Float3(1, 1, 1)
         self.shade_texture: Optional[Texture] = None
+        self.shade_toony = 0.9
+        self.shading_shift = 0
+        # matcap
+        self.matcap_texture: Optional[Texture] = None
 
     def set_scalar(self, k: str, v: float):
         if k == '_Cutoff':
@@ -183,12 +189,14 @@ class MToonMaterial(UnlitMaterial):
                 self.zwrite = False
             else:
                 raise NotImplementedError()
+        elif k == '_ShadeToony':
+            self.shade_toony = v
+        elif k == '_ShadeShift':
+            self.shading_shift = v
         elif k in [
                 # ToDo
                 '_ReceiveShadowRate',
                 '_ShadingGradeRate',
-                '_ShadeShift',
-                '_ShadeToony',
                 '_LightColorAttenuation',
                 '_IndirectLightIntensity',
                 '_OutlineWidth',

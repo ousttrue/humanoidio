@@ -1,4 +1,6 @@
 from logging import getLogger
+from math import radians
+import mathutils
 logger = getLogger(__name__)
 import bpy
 from .. import pyscene
@@ -29,12 +31,15 @@ def _get_or_create_group() -> bpy.types.NodeTree:
     group_inputs.location = (-900, 0)
     # color shade
     g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
-    g.inputs.new('NodeSocketColor', 'ShadeColor').default_value = (1, 1, 1, 1)
-    g.inputs.new('NodeSocketColor',
-                 'ShadeColorTexture').default_value = (1, 1, 1, 1)
     g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
     g.inputs.new('NodeSocketColor',
                  'ColorTexture').default_value = (1, 1, 1, 1)
+    # shade toon
+    g.inputs.new('NodeSocketColor', 'ShadeColor').default_value = (1, 1, 1, 1)
+    g.inputs.new('NodeSocketColor',
+                 'ShadeColorTexture').default_value = (1, 1, 1, 1)
+    g.inputs.new('NodeSocketFloat', 'ShadeToony').default_value = 0.9
+    g.inputs.new('NodeSocketFloat', 'ShadingShift').default_value = 0
     # emission
     g.inputs.new('NodeSocketColor', 'Emission').default_value = (0, 0, 0, 1)
     g.inputs.new('NodeSocketColor',
@@ -77,10 +82,12 @@ def _get_or_create_group() -> bpy.types.NodeTree:
     ramp = factory.create('ValToRGB', 0, -600)
     ramp.connect('Fac', to_rgb)
     color_ramp: bpy.types.ColorRamp = ramp.node.color_ramp  # type: ignore
-    color_ramp.interpolation = 'CONSTANT'
+    # color_ramp.interpolation = 'CONSTANT'
     if len(color_ramp.elements) != 2:
         raise Exception()
-    color_ramp.elements[1].position = 0.8
+    # ToDo: ShadeToony, ShadingShift
+    color_ramp.elements[0].position = 0.4
+    color_ramp.elements[1].position = 0.6
 
     ramp_mix = factory.create('MixRGB', 0, -400)
     ramp_mix.connect('Fac', ramp)
@@ -128,7 +135,8 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
     g.set_default_value(
         'ShadeColor',
         (src.shade_color.x, src.shade_color.y, src.shade_color.z, 1))
-
+    g.set_default_value('ShadeToony', src.shade_toony)
+    g.set_default_value('ShadingShift', src.shading_shift)
     out = factory.create('OutputMaterial')
     out.connect('Surface', g)
 
@@ -162,8 +170,27 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
         g.connect('NormalTexture', normal_texture, 'Color')
 
     if src.matcap_texture:
+        #
+        # https://dskjal.com/blender/ibl-to-uv.html
+        #
+        texture_coords = factory.create('TexCoord', -1200, -1200)
+
+        # to camera coords
+        vector_transform = factory.create('VectorTransform', -1000, -1200)
+        vector_transform.node.convert_from = 'OBJECT'
+        vector_transform.node.convert_to = 'CAMERA'
+        vector_transform.connect('Vector', texture_coords, 'Normal')
+
+        mapping = factory.create('Mapping', -800, -1200)
+        mapping.node.vector_type = 'POINT'
+        mapping.set_default_value('Location', (0.5, 0.5, 0))
+        mapping.set_default_value('Rotation', (radians(90), 0, 0))
+        mapping.connect('Vector', vector_transform)
+
         matcap_texture = factory.create('TexImage', -600, -1200)
         matcap_texture.node.label = 'Matcap'
         matcap_texture.set_image(
             texture_importer.get_or_create_image(src.matcap_texture))
+        matcap_texture.connect('Vector', mapping)
+
         g.connect('MatcapTexture', matcap_texture, 'Color')
