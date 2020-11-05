@@ -1,125 +1,182 @@
 from logging import getLogger
 from math import radians
-import mathutils
 logger = getLogger(__name__)
-import bpy
+import bpy, mathutils
 from .. import pyscene
 from .texture_importer import TextureImporter
 from .wrap_node import WrapNode, WrapNodeFactory
 
-GROUP_NAME = 'pyimpex:MToon'
 
+class MatcapUV:
+    GROUP_NAME = 'pyimpex:MatcapUV'
 
-def _get_or_create_group() -> bpy.types.NodeTree:
-    '''
-    normal -> bsdf -> to_rgb -> ramp -> mix -> mult -> out
-                                         shade   color
-    '''
-    g = bpy.data.node_groups.get(GROUP_NAME)
-    if g:
+    @classmethod
+    def get_or_create(cls):
+        g = bpy.data.node_groups.get(cls.GROUP_NAME)
+        if g:
+            return g
+
+        logger.debug(f'node group: {cls.GROUP_NAME}')
+        g = bpy.data.node_groups.new(cls.GROUP_NAME, type='ShaderNodeTree')
+        factory = WrapNodeFactory(g)
+
+        texture_coords = factory.create('TexCoord', -1500)
+
+        # to camera coords
+        vector_transform = factory.create('VectorTransform', -1200)
+        vector_transform.node.vector_type = 'NORMAL'
+        vector_transform.node.convert_from = 'OBJECT'
+        vector_transform.node.convert_to = 'CAMERA'
+        vector_transform.connect('Vector', texture_coords, 'Normal')
+
+        mapping_scale = factory.create('Mapping', -600)
+        mapping_scale.node.vector_type = 'POINT'
+        mapping_scale.set_default_value('Scale', (0.5, 0.5, 0.5))
+        mapping_scale.connect('Vector', vector_transform)
+
+        mapping_location = factory.create('Mapping', -300)
+        mapping_location.node.vector_type = 'POINT'
+        mapping_location.set_default_value('Location', (0.5, 0.5, 0))
+        mapping_location.connect('Vector', mapping_scale)
+
+        # create group outputs
+        group_outputs = g.nodes.new('NodeGroupOutput')
+        group_outputs.select = False
+        group_outputs.location = (0, 200)
+        g.outputs.new('NodeSocketVector', 'Vector')
+        output = WrapNode(g.links, group_outputs)
+        output.connect('Vector', mapping_location)
+
         return g
 
-    logger.debug(f'node group: {GROUP_NAME}')
-    g = bpy.data.node_groups.new(GROUP_NAME, type='ShaderNodeTree')
-    factory = WrapNodeFactory(g)
 
-    #
-    # inputs
-    #
-    group_inputs = g.nodes.new('NodeGroupInput')
-    group_inputs.select = False
-    group_inputs.location = (-900, 0)
-    # color shade
-    g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
-    g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
-    g.inputs.new('NodeSocketColor',
-                 'ColorTexture').default_value = (1, 1, 1, 1)
-    # shade toon
-    g.inputs.new('NodeSocketColor', 'ShadeColor').default_value = (1, 1, 1, 1)
-    g.inputs.new('NodeSocketColor',
-                 'ShadeColorTexture').default_value = (1, 1, 1, 1)
-    g.inputs.new('NodeSocketFloat', 'ShadeToony').default_value = 0.9
-    g.inputs.new('NodeSocketFloat', 'ShadingShift').default_value = 0
-    # emission
-    g.inputs.new('NodeSocketColor', 'Emission').default_value = (0, 0, 0, 1)
-    g.inputs.new('NodeSocketColor',
-                 'EmissiveTexture').default_value = (1, 1, 1, 1)
+class MToonGroup:
+    GROUP_NAME = 'pyimpex:MToon'
 
-    # normal
-    g.inputs.new('NodeSocketColor',
-                 'NormalTexture').default_value = (0.5, 0.5, 1, 1)
-    g.inputs.new('NodeSocketFloat', 'NormalStrength').default_value = 1
-    g.inputs.new('NodeSocketColor',
-                 'MatcapTexture').default_value = (0, 0, 0, 0)
-    input = WrapNode(g.links, group_inputs)
+    @classmethod
+    def get_or_create(cls) -> bpy.types.NodeTree:
+        '''
+        normal -> bsdf -> to_rgb -> ramp -> mix -> mult -> out
+                                            shade   color
+        '''
 
-    #
-    # shading
-    #
-    normal_map = factory.create('NormalMap', -600, -500)
-    normal_map.connect('Color', input, 'NormalTexture')
-    normal_map.connect('Strength', input, 'NormalStrength')
+        g = bpy.data.node_groups.get(cls.GROUP_NAME)
+        if g:
+            return g
 
-    bsdf = factory.create('BsdfPrincipled', -300)
-    bsdf.set_default_value('Metallic', 0)
-    bsdf.set_default_value('Roughness', 1)
-    bsdf.connect('Normal', normal_map)
+        logger.debug(f'node group: {cls.GROUP_NAME}')
+        g = bpy.data.node_groups.new(cls.GROUP_NAME, type='ShaderNodeTree')
+        factory = WrapNodeFactory(g)
 
-    # color x color_texture
-    mult_color = factory.create('MixRGB', -600)
-    mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
-    mult_color.set_default_value('Fac', 1)
-    mult_color.connect('Color1', input, 'Color')
-    mult_color.connect('Color2', input, 'ColorTexture')
+        #
+        # inputs
+        #
+        group_inputs = g.nodes.new('NodeGroupInput')
+        group_inputs.select = False
+        group_inputs.location = (-900, 0)
+        # color shade
+        g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
+        g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
+        g.inputs.new('NodeSocketColor',
+                     'ColorTexture').default_value = (1, 1, 1, 1)
+        # shade toon
+        g.inputs.new('NodeSocketColor',
+                     'ShadeColor').default_value = (1, 1, 1, 1)
+        g.inputs.new('NodeSocketColor',
+                     'ShadeColorTexture').default_value = (1, 1, 1, 1)
+        g.inputs.new('NodeSocketFloat', 'ShadeToony').default_value = 0.9
+        g.inputs.new('NodeSocketFloat', 'ShadingShift').default_value = 0
+        # emission
+        g.inputs.new('NodeSocketColor',
+                     'Emission').default_value = (0, 0, 0, 1)
+        g.inputs.new('NodeSocketColor',
+                     'EmissiveTexture').default_value = (1, 1, 1, 1)
 
-    #
-    # toon
-    #
-    to_rgb = factory.create('ShaderToRGB', 0, -900)
-    to_rgb.connect('Shader', bsdf)
+        # normal
+        g.inputs.new('NodeSocketColor',
+                     'NormalTexture').default_value = (0.5, 0.5, 1, 1)
+        g.inputs.new('NodeSocketFloat', 'NormalStrength').default_value = 1
+        g.inputs.new('NodeSocketColor',
+                     'MatcapTexture').default_value = (0, 0, 0, 0)
+        input = WrapNode(g.links, group_inputs)
 
-    # toon shading
-    ramp = factory.create('ValToRGB', 0, -600)
-    ramp.connect('Fac', to_rgb)
-    color_ramp: bpy.types.ColorRamp = ramp.node.color_ramp  # type: ignore
-    # color_ramp.interpolation = 'CONSTANT'
-    if len(color_ramp.elements) != 2:
-        raise Exception()
-    # ToDo: ShadeToony, ShadingShift
-    color_ramp.elements[0].position = 0.4
-    color_ramp.elements[1].position = 0.6
+        #
+        # shading
+        #
+        normal_map = factory.create('NormalMap', -600, -500)
+        normal_map.connect('Color', input, 'NormalTexture')
+        normal_map.connect('Strength', input, 'NormalStrength')
 
-    ramp_mix = factory.create('MixRGB', 0, -400)
-    ramp_mix.connect('Fac', ramp)
-    ramp_mix.connect('Color1', input, 'ShadeColor')
-    ramp_mix.set_default_value('Color2', (1, 1, 1, 1))
+        bsdf = factory.create('BsdfPrincipled', -300)
+        bsdf.set_default_value('Metallic', 0)
+        bsdf.set_default_value('Roughness', 1)
+        bsdf.connect('Normal', normal_map)
 
-    # color x shade
-    mult_shade = factory.create('MixRGB', 0, -200)
-    mult_shade.node.blend_type = 'MULTIPLY'  # type: ignore
-    mult_shade.set_default_value('Fac', 1)
-    mult_shade.connect('Color1', mult_color)
-    mult_shade.connect('Color2', ramp_mix)
+        # color x color_texture
+        mult_color = factory.create('MixRGB', -600)
+        mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
+        mult_color.set_default_value('Fac', 1)
+        mult_color.connect('Color1', input, 'Color')
+        mult_color.connect('Color2', input, 'ColorTexture')
 
-    emission = factory.create('Emission')
-    emission.connect('Color', mult_shade)
+        #
+        # matcap
+        #
+        matcap = factory.create('Emission', -600, -300)
+        matcap.connect('Color', input, 'MatcapTexture')
 
-    transparent = factory.create('BsdfTransparent', -400, 100)
+        #
+        # toon
+        #
+        to_rgb = factory.create('ShaderToRGB', 0, -900)
+        to_rgb.connect('Shader', bsdf)
 
-    mix = factory.create('MixShader', -200, 200)
-    mix.connect('Fac', input, 'Alpha')
-    mix.connect(1, transparent)
-    mix.connect(2, emission)
+        # toon shading
+        ramp = factory.create('ValToRGB', 0, -600)
+        ramp.connect('Fac', to_rgb)
+        color_ramp: bpy.types.ColorRamp = ramp.node.color_ramp  # type: ignore
+        # color_ramp.interpolation = 'CONSTANT'
+        if len(color_ramp.elements) != 2:
+            raise Exception()
+        # ToDo: ShadeToony, ShadingShift
+        color_ramp.elements[0].position = 0.4
+        color_ramp.elements[1].position = 0.6
 
-    # create group outputs
-    group_outputs = g.nodes.new('NodeGroupOutput')
-    group_outputs.select = False
-    group_outputs.location = (0, 200)
-    g.outputs.new('NodeSocketFloat', 'Surface')
-    output = WrapNode(g.links, group_outputs)
-    output.connect('Surface', mix)
+        ramp_mix = factory.create('MixRGB', 0, -400)
+        ramp_mix.connect('Fac', ramp)
+        ramp_mix.connect('Color1', input, 'ShadeColor')
+        ramp_mix.set_default_value('Color2', (1, 1, 1, 1))
 
-    return g
+        # color x shade
+        mult_shade = factory.create('MixRGB', 0, -200)
+        mult_shade.node.blend_type = 'MULTIPLY'  # type: ignore
+        mult_shade.set_default_value('Fac', 1)
+        mult_shade.connect('Color1', mult_color)
+        mult_shade.connect('Color2', ramp_mix)
+
+        emission = factory.create('Emission', 0, -100)
+        emission.connect('Color', mult_shade)
+
+        add_shader = factory.create('AddShader', 0, 100)
+        add_shader.connect(0, emission)
+        add_shader.connect(1, matcap)
+
+        transparent = factory.create('BsdfTransparent', -400, 100)
+
+        mix = factory.create('MixShader', -200, 200)
+        mix.connect('Fac', input, 'Alpha')
+        mix.connect(1, transparent)
+        mix.connect(2, add_shader)
+
+        # create group outputs
+        group_outputs = g.nodes.new('NodeGroupOutput')
+        group_outputs.select = False
+        group_outputs.location = (0, 200)
+        g.outputs.new('NodeSocketFloat', 'Surface')
+        output = WrapNode(g.links, group_outputs)
+        output.connect('Surface', mix)
+
+        return g
 
 
 def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
@@ -130,7 +187,7 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
     factory = WrapNodeFactory(bl_material.node_tree)
 
     g = factory.create('Group', -300)
-    g.node.node_tree = _get_or_create_group()
+    g.node.node_tree = MToonGroup.get_or_create()
     g.set_default_value('Color', (src.color.x, src.color.y, src.color.z, 1))
     g.set_default_value(
         'ShadeColor',
@@ -170,27 +227,13 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
         g.connect('NormalTexture', normal_texture, 'Color')
 
     if src.matcap_texture:
-        #
-        # https://dskjal.com/blender/ibl-to-uv.html
-        #
-        texture_coords = factory.create('TexCoord', -1200, -1200)
-
-        # to camera coords
-        vector_transform = factory.create('VectorTransform', -1000, -1200)
-        vector_transform.node.convert_from = 'OBJECT'
-        vector_transform.node.convert_to = 'CAMERA'
-        vector_transform.connect('Vector', texture_coords, 'Normal')
-
-        mapping = factory.create('Mapping', -800, -1200)
-        mapping.node.vector_type = 'POINT'
-        mapping.set_default_value('Location', (0.5, 0.5, 0))
-        mapping.set_default_value('Rotation', (radians(90), 0, 0))
-        mapping.connect('Vector', vector_transform)
+        matcap = factory.create('Group', -800, -1200)
+        matcap.node.node_tree = MatcapUV.get_or_create()
 
         matcap_texture = factory.create('TexImage', -600, -1200)
         matcap_texture.node.label = 'Matcap'
         matcap_texture.set_image(
             texture_importer.get_or_create_image(src.matcap_texture))
-        matcap_texture.connect('Vector', mapping)
+        matcap_texture.connect('Vector', matcap)
 
         g.connect('MatcapTexture', matcap_texture, 'Color')
