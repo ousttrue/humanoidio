@@ -108,8 +108,7 @@ class MToonGroup:
         normal_map.connect('Color', input, 'NormalTexture')
         normal_map.connect('Strength', input, 'NormalStrength')
 
-        bsdf = factory.create('BsdfPrincipled', -300)
-        bsdf.set_default_value('Metallic', 0)
+        bsdf = factory.create('BsdfDiffuse', -300, -700)
         bsdf.set_default_value('Roughness', 1)
         bsdf.connect('Normal', normal_map)
 
