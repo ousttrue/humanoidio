@@ -195,9 +195,6 @@ class MToonGroup:
 
 def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
           texture_importer: TextureImporter):
-    '''
-    BsdfPrincipled
-    '''
     factory = WrapNodeFactory(bl_material.node_tree)
 
     g = factory.create('Group', -300)
