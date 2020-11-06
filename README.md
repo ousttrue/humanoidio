@@ -44,6 +44,7 @@ for Blender-2.83
 
 * [x] humanoid
 * [ ] rename humanoid bone
+* [ ] bone group
 * [x] armature 一個にまとめる
 * [x] MToon
 * [x] 手前向きにする

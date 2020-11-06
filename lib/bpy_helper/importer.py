@@ -11,19 +11,6 @@ from .mesh_importer import create_bmesh
 from .functions import remove_mesh
 
 
-def mod_v(v):
-    return (v[0], -v[2], v[1])
-
-
-def mod_q(_q):
-    q = mathutils.Quaternion((_q.w, _q.x, _q.y, _q.z))
-    return mathutils.Quaternion(mod_v(q.axis), q.angle)
-
-
-def mod_s(s):
-    return (s[0], s[2], s[1])
-
-
 @contextmanager
 def tmp_mode(obj, tmp: str):
     mode = obj.rotation_mode
@@ -145,6 +132,13 @@ class Importer:
             self.yup2zup = lambda f3: ((-f3.x, f3.z, f3.y))
         else:
             self.yup2zup = lambda f3: ((f3.x, -f3.z, f3.y))
+
+        def mod_q(_q):
+            q = mathutils.Quaternion((_q.w, _q.x, _q.y, _q.z))
+            return mathutils.Quaternion(self.yup2zup(q.axis), q.angle)
+
+        self.yup2zup_q = mod_q
+        self.yup2zup_s = lambda f3: (f3.x, f3.z, f3.y)
 
     def _setup_skinning(self, mesh_node: pyscene.Node) -> None:
         if not isinstance(mesh_node.mesh, pyscene.SubmeshMesh):
@@ -408,10 +402,10 @@ class Importer:
             bl_obj.parent = self.obj_map.get(node.parent)
 
         # TRS
-        bl_obj.location = node.position.yup2zup()
+        bl_obj.location = self.yup2zup(node.position)
         with tmp_mode(bl_obj, 'QUATERNION'):
-            bl_obj.rotation_quaternion = mod_q(node.rotation)
-        bl_obj.scale = mod_s(node.scale)
+            bl_obj.rotation_quaternion = self.yup2zup_q(node.rotation)
+        bl_obj.scale = self.yup2zup_s(node.scale)
 
     def _create_tree(self,
                      node: pyscene.Node,
