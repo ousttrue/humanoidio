@@ -30,7 +30,7 @@ for Blender-2.83
 
 ## TODO
 
-* [ ] ShapeKeyName
+* [x] ShapeKeyName
 * [ ] remove empty VertexGroup
 
 ### Export

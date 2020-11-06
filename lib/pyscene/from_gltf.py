@@ -235,6 +235,17 @@ class Reader:
 
         has_skin = _check_has_skin(m.primitives[0])
 
+        def get_morph_name(m, p, i) -> str:
+            if p.extras and p.extras.targetNames and i < len(
+                    p.extras.targetNames):
+                return p.extras.targetNames[i]
+            elif m.extras and m.extras.targetNames and i < len(
+                    m.extras.targetNames):
+                return p.extras.targetNames[i]
+
+            # ToDo: target.position accessor/bufferView name ? see gltf sample
+            return f'{i}'
+
         if shared:
             # share vertex buffer
             shared_prim = m.primitives[0]
@@ -247,9 +258,9 @@ class Reader:
                 # TODO: each target has same vertex buffer
                 for j, t in enumerate(shared_prim.targets):
                     morphtarget = mesh.get_or_create_morphtarget(j)
+                    morphtarget.name = get_morph_name(m, shared_prim, j)
                     self.reader.read_attributes(morphtarget.attributes, 0,
                                                 data, t)
-                    # TODO: morph target name
             index_offset = 0
             for i, prim in enumerate(m.primitives):
                 # indices
@@ -276,9 +287,9 @@ class Reader:
                     if prim.targets:
                         for j, t in enumerate(prim.targets):
                             morphtarget = mesh.get_or_create_morphtarget(j)
+                            morphtarget.name = get_morph_name(m, prim, j)
                             self.reader.read_attributes(
                                 morphtarget.attributes, offset, data, t)
-                            # TODO: morph target name
 
         return mesh
 
