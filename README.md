@@ -32,6 +32,7 @@ for Blender-2.83
 
 * [x] ShapeKeyName
 * [ ] remove empty VertexGroup
+* [ ] humanoid pose
 
 ### Export
 
@@ -44,9 +45,11 @@ for Blender-2.83
 * [x] humanoid
 * [ ] rename humanoid bone
 * [x] armature 一個にまとめる
-* [ ] MToon
+* [x] MToon
 * [x] 手前向きにする
 * [ ] Import: ShapeKey の無いところは SubMesh を別オブジェクトに分割する
+* [ ] expression
+* [ ] lookat
 
 ## 仕様
 
