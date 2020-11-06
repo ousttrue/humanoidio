@@ -73,15 +73,18 @@ class MToonGroup:
         #
         group_inputs = g.nodes.new('NodeGroupInput')
         group_inputs.select = False
-        group_inputs.location = (-900, 0)
+        group_inputs.location = (-1000, 0)
         # emission
         g.inputs.new('NodeSocketColor',
                      'Emission').default_value = (0, 0, 0, 1)
         g.inputs.new('NodeSocketColor',
                      'EmissiveTexture').default_value = (1, 1, 1, 1)
 
-        # color shade
         g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
+        g.inputs.new('NodeSocketColor',
+                     'MatcapTexture').default_value = (0, 0, 0, 0)
+
+        # color shade
         g.inputs.new('NodeSocketColor', 'Color').default_value = (1, 1, 1, 1)
         g.inputs.new('NodeSocketColor',
                      'ColorTexture').default_value = (1, 1, 1, 1)
@@ -97,8 +100,8 @@ class MToonGroup:
         g.inputs.new('NodeSocketColor',
                      'NormalTexture').default_value = (0.5, 0.5, 1, 1)
         g.inputs.new('NodeSocketFloat', 'NormalStrength').default_value = 1
-        g.inputs.new('NodeSocketColor',
-                     'MatcapTexture').default_value = (0, 0, 0, 0)
+        # gamma(VRM-0.X)
+        g.inputs.new('NodeSocketFloat', 'ColorGamma').default_value = 2.2
         input = WrapNode(g.links, group_inputs)
 
         #
@@ -122,18 +125,30 @@ class MToonGroup:
         emission = factory.create('Emission', -300, 300)
         emission.connect('Color', mult_emission)
 
-        # color x color_texture
-        mult_color = factory.create('MixRGB', -600)
-        mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
-        mult_color.set_default_value('Fac', 1)
-        mult_color.connect('Color1', input, 'Color')
-        mult_color.connect('Color2', input, 'ColorTexture')
-
         #
         # matcap
         #
-        matcap = factory.create('Emission', -600, -300)
+        matcap = factory.create('Emission', -600, 50)
         matcap.connect('Color', input, 'MatcapTexture')
+
+        # color x color_texture
+        color_gamma = factory.create('Gamma', -800, -100)
+        color_gamma.connect('Gamma', input, 'ColorGamma')
+        color_gamma.connect('Color', input, 'Color')
+        mult_color = factory.create('MixRGB', -600, -100)
+        mult_color.node.blend_type = 'MULTIPLY'  # type: ignore
+        mult_color.set_default_value('Fac', 1)
+        mult_color.connect('Color1', color_gamma)
+        mult_color.connect('Color2', input, 'ColorTexture')
+
+        shade_gamma = factory.create('Gamma', -800, -200)
+        shade_gamma.connect('Gamma', input, 'ColorGamma')
+        shade_gamma.connect('Color', input, 'ShadeColor')
+        mult_shade = factory.create('MixRGB', -600, -300)
+        mult_shade.node.blend_type = 'MULTIPLY'  # type: ignore
+        mult_shade.set_default_value('Fac', 1)
+        mult_shade.connect('Color1', shade_gamma)
+        mult_shade.connect('Color2', input, 'ShadeColorTexture')
 
         #
         # toon
@@ -154,7 +169,7 @@ class MToonGroup:
 
         ramp_mix = factory.create('MixRGB', 0, -400)
         ramp_mix.connect('Fac', ramp)
-        ramp_mix.connect('Color1', input, 'ShadeColor')
+        ramp_mix.connect('Color1', mult_shade)
         ramp_mix.set_default_value('Color2', (1, 1, 1, 1))
 
         # color x shade
@@ -174,7 +189,7 @@ class MToonGroup:
         add_emission = factory.create('AddShader', 0, 100)
         add_emission.connect(0, emission)
         add_emission.connect(1, add_shader)
-        
+
         transparent = factory.create('BsdfTransparent', -400, 100)
 
         mix = factory.create('MixShader', -200, 200)
