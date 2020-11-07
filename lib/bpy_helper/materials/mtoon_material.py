@@ -151,10 +151,10 @@ class ToonShading:
         group_outputs = g.nodes.new('NodeGroupOutput')
         group_outputs.select = False
         group_outputs.location = (900, 600)
-        g.outputs.new('NodeSocketColor', 'Intensity')
+        g.outputs.new('NodeSocketColor', 'Diffuse')
         g.outputs.new('NodeSocketFloat', 'Toon')
         output = WrapNode(g.links, group_outputs)
-        output.connect('Intensity', to_rgb)
+        output.connect('Diffuse', to_rgb)
         output.connect('Toon', clamp)
 
         return g
@@ -187,7 +187,7 @@ class MToonGroup:
         group_inputs.select = False
         group_inputs.location = (-1000, 0)
         # toon
-        g.inputs.new('NodeSocketColor', 'Intensity')
+        g.inputs.new('NodeSocketColor', 'Diffuse')
         g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
         # emission
         g.inputs.new('NodeSocketColor',
@@ -322,7 +322,7 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
     mtoon.set_default_value(
         'Emission',
         (src.emissive_color.x, src.emissive_color.y, src.emissive_color.z, 1))
-    mtoon.connect('Intensity', shading, 'Intensity')
+    mtoon.connect('Diffuse', shading, 'Diffuse')
     mtoon.connect('Toon', shading, 'Toon')
 
     #
