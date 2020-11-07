@@ -30,18 +30,11 @@ for Blender-2.83
 
 ## TODO
 
-* [x] ShapeKeyName
-* [ ] remove empty VertexGroup
 * [ ] humanoid pose
 
-### Export
+### Import
 
-* [ ] unlit
-* [ ] PBR
-* [ ] MToon
-
-### VRM
-
+* [ ] remove empty VertexGroup
 * [x] humanoid
 * [ ] rename humanoid bone
 * [ ] bone group
@@ -51,6 +44,13 @@ for Blender-2.83
 * [ ] Import: ShapeKey の無いところは SubMesh を別オブジェクトに分割する
 * [ ] expression
 * [ ] lookat
+* [ ] VRM-1.0
+
+### Export
+
+* [ ] unlit
+* [ ] PBR
+* [ ] MToon
 
 ## 仕様
 
