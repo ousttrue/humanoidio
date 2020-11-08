@@ -63,6 +63,19 @@ class CullMode(Enum):
     Front = 3
 
 
+def comapare_texture(msg: str, l, r) -> bool:
+    if l and not r:
+        raise Exception(f'other.{msg} is None')
+    elif not l and r:
+        raise Exception(f'self.{msg} is None')
+    elif l and r:
+        # if not self.color_texture.compare(other.color_texture):
+        #     return False
+        return True
+    else:
+        return True
+
+
 class UnlitMaterial:
     '''
     Unlit
@@ -82,7 +95,7 @@ class UnlitMaterial:
     def __str__(self):
         return f'<Unlit {self.name}>'
 
-    def compare(self, other) -> bool:
+    def compare(self, other: 'UnlitMaterial') -> bool:
         if self.__class__ != other.__class__:
             raise Exception(f'{self.__class__} != {other.__class__}')
         if self.name != other.name:
@@ -91,20 +104,10 @@ class UnlitMaterial:
         if self.color != other.color:
             raise Exception('self.color != other.color')
 
-        if self.color_texture and not other.texture:
-            raise Exception('other.texture is None')
-        elif not self.color_texture and other.texture:
-            raise Exception('self.texture is None')
-        elif self.color_texture and other.texture:
-            if not self.color_texture.compare(other.texture):
-                return False
-
-        if not self._compare_texture(self.color_texture, other.texture):
+        if not comapare_texture('color_texture', self.color_texture,
+                            other.color_texture):
             return False
 
-        return True
-
-    def _compare_texture(self, l: Optional[Texture], r: Optional[Texture]):
         return True
 
 
