@@ -4,7 +4,7 @@ from typing import Dict, Any
 import bpy, mathutils
 from .. import pyscene
 from . import unlit_material
-from .pbr_material_importer import build_pbr
+from . import pbr_material
 from . import mtoon_material
 from .texture_importer import TextureImporter
 
@@ -49,7 +49,7 @@ class MaterialImporter:
 
         elif isinstance(material, pyscene.PBRMaterial):
             # PBR
-            build_pbr(bl_material, material, self.texture_importer)
+            pbr_material.build(bl_material, material, self.texture_importer)
 
         else:
             # unlit

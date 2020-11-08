@@ -121,8 +121,8 @@ class PBRMaterial(UnlitMaterial):
     '''
     def __init__(self, name: str):
         super().__init__(name)
-        self.metallic = 0.0
-        self.roughness = 0.0  # 1 - smoothness
+        self.metallic = 1
+        self.roughness = 1  # 1 - smoothness
         self.normal_texture: Optional[Texture] = None
         self.normal_scale = 1.0
         self.emissive_texture: Optional[Texture] = None

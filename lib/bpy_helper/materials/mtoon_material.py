@@ -1,18 +1,15 @@
 '''
 https://github.com/Santarh/MToon/blob/master/MToon/Resources/Shaders/MToonCore.cginc
-
-
 '''
 
 from logging import getLogger
-from math import radians
 logger = getLogger(__name__)
+from math import radians
 import bpy, mathutils
 from .. import pyscene
 from .texture_importer import TextureImporter
 from .wrap_node import WrapNode, WrapNodeFactory
-
-PREFIX = 'piex'
+from .prefix import PREFIX
 
 
 class MatcapUV:
@@ -32,18 +29,18 @@ class MatcapUV:
 
         # to camera coords
         vector_transform = factory.create('VectorTransform', -1200)
-        vector_transform.node.vector_type = 'NORMAL'
-        vector_transform.node.convert_from = 'OBJECT'
-        vector_transform.node.convert_to = 'CAMERA'
+        vector_transform.node.vector_type = 'NORMAL'  # type: ignore
+        vector_transform.node.convert_from = 'OBJECT'  # type: ignore
+        vector_transform.node.convert_to = 'CAMERA'  # type: ignore
         vector_transform.connect('Vector', texture_coords, 'Normal')
 
         mapping_scale = factory.create('Mapping', -600)
-        mapping_scale.node.vector_type = 'POINT'
+        mapping_scale.node.vector_type = 'POINT'  # type: ignore
         mapping_scale.set_default_value('Scale', (0.5, 0.5, 0.5))
         mapping_scale.connect('Vector', vector_transform)
 
         mapping_location = factory.create('Mapping', -300)
-        mapping_location.node.vector_type = 'POINT'
+        mapping_location.node.vector_type = 'POINT'  # type: ignore
         mapping_location.set_default_value('Location', (0.5, 0.5, 0))
         mapping_location.connect('Vector', mapping_scale)
 
@@ -284,7 +281,7 @@ class MToonGroup:
         group_outputs = g.nodes.new('NodeGroupOutput')
         group_outputs.select = False
         group_outputs.location = (400, 500)
-        g.outputs.new('NodeSocketFloat', 'Surface')
+        g.outputs.new('NodeSocketShader', 'Surface')
         output = WrapNode(g.links, group_outputs)
         output.connect('Surface', mix)
 

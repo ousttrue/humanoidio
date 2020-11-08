@@ -141,8 +141,9 @@ def scan() -> Exporter:
     return scanner
 
 
-def load(context: bpy.types.Context, roots: List[pyscene.Node],
-         vrm: Optional[formats.gltf.vrm]):
+def load(context: bpy.types.Context,
+         roots: List[pyscene.Node],
+         vrm: Optional[formats.gltf.vrm] = None):
     is_vrm = True if vrm else False
     importer = Importer(context, is_vrm)
     importer.execute(roots)
