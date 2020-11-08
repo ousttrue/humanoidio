@@ -1,14 +1,31 @@
 from logging import getLogger
 logger = getLogger(__name__)
+from typing import List
 import bpy
 from .. import pyscene
 from .wrap_node import WrapNodeFactory, WrapNode
 from .texture_importer import TextureImporter
 from .prefix import PREFIX
+from .group_input import GroupInput, nodegroup_from_inputs
 
 
 class GltfPBR:
     GROUP_NAME = f'{PREFIX}:PBR'
+
+    GROUP_INPUTS: List[GroupInput] = [
+        GroupInput('BaseColor', 'Color', (1, 1, 1, 1)),
+        GroupInput('BaseColorTexture', 'Color'),
+        GroupInput('Alpha', 'Float', 1),
+        GroupInput('MetallicRoughnessTexture', 'Color'),
+        GroupInput('Metallic', 'Float', 1),
+        GroupInput('Roughness', 'Float', 1),
+        GroupInput('OcclusionTexture', 'Color', (0, 0, 0, 1)),
+        GroupInput('OcclusionStrength', 'Float', 1),
+        GroupInput('Emission', 'Color', (0, 0, 0, 1)),
+        GroupInput('EmissiveTexture', 'Color', (0, 0, 0, 0)),
+        GroupInput('NormalScale', 'Float', 1),
+        GroupInput('NormalTexture', 'Color'),
+    ]
 
     @classmethod
     def get_or_create(cls) -> bpy.types.NodeTree:
@@ -17,7 +34,7 @@ class GltfPBR:
             return g
 
         logger.debug(f'node group: {cls.GROUP_NAME}')
-        g = bpy.data.node_groups.new(cls.GROUP_NAME, type='ShaderNodeTree')
+        g = nodegroup_from_inputs(cls.GROUP_NAME, cls.GROUP_INPUTS)
         factory = WrapNodeFactory(g)
 
         #
@@ -26,35 +43,9 @@ class GltfPBR:
         group_inputs = g.nodes.new('NodeGroupInput')
         group_inputs.select = False
         group_inputs.location = (-1000, 0)
-
-        # base color
-        g.inputs.new('NodeSocketColor',
-                     'BaseColor').default_value = (1, 1, 1, 1)
-        g.inputs.new('NodeSocketColor', 'BaseColorTexture')
-        g.inputs.new('NodeSocketFloat', 'Alpha').default_value = 1
-
-        # metallic
-        g.inputs.new('NodeSocketColor', 'MetallicRoughnessTexture')
-        g.inputs.new('NodeSocketFloat', 'Metallic').default_value = 1
-        g.inputs.new('NodeSocketFloat', 'Roughness').default_value = 1
-
-        # occlusion
-        g.inputs.new('NodeSocketColor',
-                     'OcclusionTexture').default_value = (0, 0, 0, 1)
-        g.inputs.new('NodeSocketFloat', 'OcclusionStrength').default_value = 1
-
-        # emission
-        g.inputs.new('NodeSocketColor',
-                     'Emission').default_value = (0, 0, 0, 1)
-        g.inputs.new('NodeSocketColor',
-                     'EmissiveTexture').default_value = (0, 0, 0, 0)
-
-        # normal
-        g.inputs.new('NodeSocketFloat', 'NormalScale').default_value = 1
-        g.inputs.new('NodeSocketColor', 'NormalTexture')
-
         input = WrapNode(g.links, group_inputs)
 
+        # links
         color = factory.create('MixRGB', -400, 300)
         color.node.blend_type = 'MULTIPLY'  # type: ignore
         color.set_default_value('Fac', 1)
