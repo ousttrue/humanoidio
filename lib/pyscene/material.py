@@ -129,6 +129,7 @@ class PBRMaterial(UnlitMaterial):
         self.emissive_color = Float3(0, 0, 0)
         self.metallic_roughness_texture: Optional[Texture] = None
         self.occlusion_texture: Optional[Texture] = None
+        self.occlusion_strength = 1.0
 
     def __str__(self):
         return f'<PBR {self.name}>'
