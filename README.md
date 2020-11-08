@@ -51,7 +51,7 @@ for Blender-2.83
 * [ ] Gltf, Vrm 別のエクスポーターに分ける
 * [ ] material group を作るパネル
 * [ ] unlit
-* [ ] PBR
+* [x] PBR
 * [ ] MToon
 
 ## 仕様

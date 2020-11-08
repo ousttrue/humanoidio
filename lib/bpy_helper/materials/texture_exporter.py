@@ -44,14 +44,17 @@ def get_bytes(image: bpy.types.Image) -> Optional[pyscene.Texture]:
             bpy.data.images.remove(tmp_image, do_unlink=True)
 
 
+def find_link(links: bpy.types.NodeLinks,
+              socket: bpy.types.NodeSocket) -> Optional[bpy.types.NodeLink]:
+    for l in links:
+        if l.to_socket == socket:
+            return l
+
+
 def export_texture(tree: bpy.types.NodeTree,
                    socket: bpy.types.NodeSocket) -> Optional[pyscene.Texture]:
-    def find_link() -> Optional[bpy.types.NodeLink]:
-        for l in tree.links:
-            if l.to_socket == socket:
-                return l
 
-    l = find_link()
+    l = find_link(tree.links, socket)
     if not l:
         return None
 

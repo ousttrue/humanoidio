@@ -52,7 +52,8 @@ class MaterialExporter:
             color = [src.color.x, src.color.y, src.color.z, src.color.w]
         color_texture = None
         if src.color_texture:
-            texture_index = self._get_or_create_texture(src.color_texture, buffer)
+            texture_index = self._get_or_create_texture(
+                src.color_texture, buffer)
             color_texture = formats.gltf.TextureInfo(index=texture_index)
 
         alpha_mode = formats.gltf.MaterialAlphaMode.OPAQUE
@@ -79,8 +80,24 @@ class MaterialExporter:
                 normal_texture = formats.gltf.MaterialNormalTextureInfo(
                     index=normal_texture_index)
 
-            # occlusionTexture
-            # emissiveTexture
+            occlusion_texture = None
+            if src.occlusion_texture:
+                occlusion_texture_index = self._get_or_create_texture(
+                    src.occlusion_texture, buffer)
+                occlusion_texture = formats.gltf.MaterialOcclusionTextureInfo(
+                    index=occlusion_texture_index,
+                    strength=src.occlusion_strength)
+
+            emission = [
+                src.emissive_color.x, src.emissive_color.y,
+                src.emissive_color.z
+            ]
+            emissive_texture = None
+            if src.emissive_texture:
+                emissive_texture_index = self._get_or_create_texture(
+                    src.emissive_texture, buffer)
+                emissive_texture = formats.gltf.TextureInfo(
+                    index=emissive_texture_index)
 
             gltf_material = formats.gltf.Material(
                 name=src.name,
@@ -93,9 +110,9 @@ class MaterialExporter:
                     extensions={},
                     extras={}),
                 normalTexture=normal_texture,
-                occlusionTexture=None,
-                emissiveTexture=None,
-                emissiveFactor=None,
+                occlusionTexture=occlusion_texture,
+                emissiveTexture=emissive_texture,
+                emissiveFactor=emission,
                 alphaMode=alpha_mode,
                 alphaCutoff=src.threshold,
                 doubleSided=src.double_sided,

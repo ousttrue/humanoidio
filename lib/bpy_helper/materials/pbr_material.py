@@ -1,14 +1,13 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import List, Optional
+from typing import List
 import bpy
 from ... import pyscene
-from ...struct_types import Float4
 from .wrap_node import WrapNodeFactory, WrapNode
 from .texture_importer import TextureImporter
 from .prefix import PREFIX
 from .group_input import GroupInput, nodegroup_from_inputs
-from .texture_exporter import export_texture
+from .texture_exporter import export_texture, find_link
 
 
 class GltfPBR:
@@ -187,22 +186,23 @@ def export(m: bpy.types.Material,
         elif k == 'Roughness':
             material.roughness = v
         elif k == 'MetallicRoughnessTexture':
-            pass
+            material.metallic_roughness_texture = export_texture(
+                m.node_tree, socket)
         elif k == 'OcclusionStrength':
             material.occlusion_strength = v
         elif k == 'OcclusionTexture':
-            pass
+            material.occlusion_texture = export_texture(m.node_tree, socket)
         elif k == 'Emission':
             material.emissive_color.x = v[0]
             material.emissive_color.y = v[1]
             material.emissive_color.z = v[2]
         elif k == 'EmissiveTexture':
-            pass
+            material.emissive_texture = export_texture(m.node_tree, socket)
         elif k == 'NormalScale':
             material.normal_scale = v
         elif k == 'NormalTexture':
-            pass
+            material.normal_texture = export_texture(m.node_tree, socket)
         else:
-            print(k, v)
+            raise NotImplementedError()
 
     return material
