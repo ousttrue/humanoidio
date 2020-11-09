@@ -1,7 +1,7 @@
 from typing import List, Dict
 import bpy, mathutils
 from .. import pyscene
-from . import pbr_material
+from . import pbr_material, mtoon_material
 
 
 class MaterialExporter:
@@ -20,6 +20,10 @@ class MaterialExporter:
             if isinstance(n, bpy.types.ShaderNodeGroup):
                 if n.node_tree.name == pbr_material.GltfPBR.GROUP_NAME:
                     material = pbr_material.export(m, n)
+                    break
+
+                if n.node_tree.name == mtoon_material.MToonGroup.GROUP_NAME:
+                    material = mtoon_material.export(m, n)
                     break
 
         if isinstance(material, pyscene.UnlitMaterial):

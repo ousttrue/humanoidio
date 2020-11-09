@@ -361,3 +361,12 @@ def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
         shade_texture.set_image(
             texture_importer.get_or_create_image(src.shade_texture))
         mtoon.connect('ShadeColorTexture', shade_texture, 'Color')
+
+
+def export(m: bpy.types.Material,
+           g: bpy.types.ShaderNodeGroup) -> pyscene.MToonMaterial:
+    material = pyscene.MToonMaterial(m.name)
+
+    # ToDo:
+
+    return material
