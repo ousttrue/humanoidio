@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 import bpy
+import mathutils
 from .. import pyscene, formats
 
 
@@ -17,7 +18,7 @@ class BoneConnector:
         bl_bone = self.bones[node]
         if node.parent:
             bl_parent = self.bones[node.parent]
-            tail_offset = (bl_bone.head - bl_parent.head) # type: ignore
+            tail_offset = (bl_bone.head - bl_parent.head)  # type: ignore
             bl_bone.tail = bl_bone.head + tail_offset
 
     def connect_tail(self, node: pyscene.Node, tail: pyscene.Node):
@@ -36,7 +37,11 @@ class BoneConnector:
             bl_bone = self.bones[node]
             bl_bone.parent = bl_parent
             if is_connect:
-                bl_parent.tail = bl_bone.head
+                if bl_parent.head != bl_bone.head:
+                    bl_parent.tail = bl_bone.head
+                else:
+                    bl_parent.tail = bl_bone.head + mathutils.Vector((0, 0, 1e-4))
+
                 bl_bone.use_connect = True
 
         if node.children:
