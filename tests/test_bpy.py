@@ -122,3 +122,16 @@ class BpyTests(unittest.TestCase):
         self.assertEqual(len(roots), len(exported))
         for l, r in zip(roots, exported):
             self._check_node(l, r)
+
+    def test_scene(self):
+        '''
+        scene - view_layers
+        '''
+        scene = bpy.context.scene
+        view_layer = bpy.context.view_layer
+        collection = bpy.context.collection
+
+        self.assertEqual(scene.view_layers[0], view_layer)
+
+        self.assertNotEqual(scene.collection, collection)
+        self.assertEqual(scene.collection.children[0], collection)

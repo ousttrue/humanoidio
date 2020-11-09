@@ -30,15 +30,18 @@ class Importer:
         view_layer = context.view_layer
         if hasattr(view_layer,
                    'collections') and view_layer.collections.active:
+            print('use context.view_layer.collections.active')
             self.collection = view_layer.collections.active.collection
         else:
+            print('use context.scene.collection')
             self.collection = context.scene.collection
-            # view_layer.collections.link(collection)
 
         self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
         self.skin_map: Dict[pyscene.Skin, bpy.types.Object] = {}
+
+        # coordinates
         self.is_vrm = is_vrm
         if is_vrm:
             self.yup2zup = lambda f3: ((-f3.x, f3.z, f3.y))
