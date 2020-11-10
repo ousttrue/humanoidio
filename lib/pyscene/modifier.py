@@ -1,5 +1,4 @@
 from logging import getLogger
-from tests.helper import is_unlit
 logger = getLogger(__name__)
 from typing import List, Callable, Dict
 from .node import Node, Skin

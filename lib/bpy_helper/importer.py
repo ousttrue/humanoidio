@@ -249,6 +249,8 @@ class Importer:
                 raise Exception()
             if indices_index >= submesh.vertex_count:
                 current[0] += 1
+                if current[0] >= len(mesh.submeshes):
+                    a = 0
                 submesh = mesh.submeshes[current[0]]
             return material_index_map[submesh.material]
 

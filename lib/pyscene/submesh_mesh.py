@@ -30,7 +30,7 @@ class MorphTarget:
         self.attributes = PlanarBuffer.create(vertex_count, False)
 
     def __str__(self):
-        return f'<PlanarBuffer {self.attributes.get_vertex_count()}>'
+        return f'<PlanarBuffer {len(self.attributes.position)}>'
 
 
 class SubmeshMesh:
@@ -44,17 +44,17 @@ class SubmeshMesh:
         self.submeshes: List[Submesh] = []
         # morph targets
         self.morphtargets: List[MorphTarget] = []
+        self.vertex_count = vertex_count
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        vertex_count = self.attributes.get_vertex_count()
         submeshes = [
             f'[{sm.material.__class__.__name__}]' for sm in self.submeshes
         ]
         morph = f' {len(self.morphtargets)}morph' if self.morphtargets else ''
-        return f'<SubmeshMesh: {vertex_count}verts {"".join(submeshes)}{morph}>'
+        return f'<SubmeshMesh: {self.vertex_count}verts {"".join(submeshes)}{morph}>'
 
     def compare(self, other) -> bool:
         if not isinstance(other, SubmeshMesh):
@@ -93,7 +93,7 @@ class SubmeshMesh:
         if len(self.morphtargets) != i:
             raise Exception()
 
-        morphtarget = MorphTarget(f'{i}', self.attributes.get_vertex_count())
+        morphtarget = MorphTarget(f'{i}', self.vertex_count)
         self.morphtargets.append(morphtarget)
         return morphtarget
 
@@ -101,11 +101,20 @@ class SubmeshMesh:
         submesh = self.submeshes[i]
         mesh = SubmeshMesh(f'self.name:{i}', submesh.vertex_count,
                            self.attributes.weights != None)
+
+        index_map = {}
         for i, index_index in enumerate(
                 range(submesh.offset, submesh.offset + submesh.vertex_count)):
             vertex_index = self.indices[index_index]
-            mesh.attributes.copy_vertex_from(i, self.attributes, vertex_index)
-            mesh.indices.append(i)
+            try:
+                dst_index = index_map[vertex_index]
+            except KeyError:
+                dst_index = len(index_map)
+                index_map[vertex_index] = dst_index
+                mesh.attributes.copy_vertex_from(dst_index, self.attributes,
+                                                 vertex_index)
+            mesh.indices.append(dst_index)
         mesh.submeshes.append(
             Submesh(0, submesh.vertex_count, submesh.material))
+        mesh.vertex_count = len(index_map)
         return mesh

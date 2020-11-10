@@ -16,7 +16,8 @@ def create_bmesh(mesh: pyscene.SubmeshMesh,
     bm = bmesh.new()  # create an empty BMesh
 
     attributes = mesh.attributes
-    for i, v in enumerate(attributes.position):
+    for i in range(mesh.vertex_count):
+        v = mesh.attributes.position[i]
         # position
         vert = bm.verts.new(yup2zup(v))
         # normal

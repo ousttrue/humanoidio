@@ -169,9 +169,6 @@ class PlanarBuffer(NamedTuple):
     joints: MutableSequence[UShort4]
     weights: MutableSequence[Float4]
 
-    def get_vertex_count(self) -> int:
-        return len(self.position)
-
     def set_vertex(self, i: int, pos: Float3, normal: Float3,
                    texcoord: Float2):
         self.position[i] = pos
