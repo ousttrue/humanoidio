@@ -37,7 +37,7 @@ for Blender-2.83
 * [x] remove empty VertexGroup
 * [ ] remove leaf bone without bone weight
 * [x] humanoid
-* [ ] rename humanoid bone
+* [x] rename humanoid bone
 * [x] bone group
 * [x] armature 一個にまとめる
 * [x] MToon

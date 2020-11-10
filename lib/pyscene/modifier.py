@@ -1,5 +1,6 @@
 from logging import getLogger
 logger = getLogger(__name__)
+import re
 from typing import List, Callable, Dict
 from .node import Node, Skin
 from .submesh_mesh import SubmeshMesh
@@ -27,16 +28,35 @@ def before_import(roots: List[Node], is_vrm: bool):
     '''
     import 前にシーンを修正する
     '''
-    '''
-    Submeshを分割
 
-    条件
+    # humanoid bone rename
+    BONE_NAME = re.compile(r'(left|right)?(\w+)')
 
-    * VRM
-    * morph が無い
-    * 名前に hair を含まない
-    * submesh が複数
-    '''
+    def rename(node: Node):
+        if node.humanoid_bone:
+            m = BONE_NAME.match(node.humanoid_bone.name)
+            if m:
+                if m[1] == 'left':
+                    new_name = f'{m[2]}.L'
+                elif m[1] == 'right':
+                    new_name = f'{m[2]}.R'
+                else:
+                    new_name = node.humanoid_bone.name
+                new_name = new_name[0].upper() + new_name[1:]
+                logger.debug(f'rename: {new_name} <= {node.name}')
+                node.name = new_name
+
+    for root in roots:
+        traverse(root, rename, None)
+
+    # Submeshを分割
+    #
+    # 条件
+    #
+    # * VRM
+    # * morph が無い
+    # * 名前に hair を含まない
+    # * submesh が複数
     def split_mesh(node):
         if isinstance(node.mesh, SubmeshMesh):
             if is_vrm:
@@ -47,6 +67,7 @@ def before_import(roots: List[Node], is_vrm: bool):
 
     for root in roots:
         traverse(root, split_mesh, None)
+
     # '''
     # leaf node の削除
 
