@@ -60,11 +60,6 @@ class Importer:
         bone_names = [joint.name for joint in skin.joints]
         bl_object = self.obj_map[mesh_node]
 
-        # create vertex groups
-        for bone_name in bone_names:
-            if bone_name:
-                bl_object.vertex_groups.new(name=bone_name)
-
         idx_already_done: Set[int] = set()
 
         attributes = mesh_node.mesh.attributes
@@ -96,7 +91,11 @@ class Importer:
                             # for bone index 0, if there is always 4 indices in joint_ tuple
                             bone_name = bone_names[joint_idx]
                             if bone_name:
-                                group = bl_object.vertex_groups[bone_name]
+                                try:
+                                    group = bl_object.vertex_groups[bone_name]
+                                except KeyError:
+                                    group = bl_object.vertex_groups.new(
+                                        name=bone_name)
                                 group.add([vert_idx], weight_val, 'REPLACE')
                         cpt += 1
 
@@ -333,7 +332,9 @@ class Importer:
             submesh_node = pyscene.Node(f'{node.name}:submesh:{i}')
             node.add_child(submesh_node)
             submesh_node.mesh = mesh.create_from_submesh(i)
+            submesh_node.skin = node.skin
         node.mesh = None
+        node.skin = None
 
     def _create_tree(self,
                      node: pyscene.Node,

@@ -34,7 +34,7 @@ for Blender-2.83
 
 ### Import
 
-* [ ] remove empty VertexGroup
+* [x] remove empty VertexGroup
 * [ ] remove leaf bone without bone weight
 * [x] humanoid
 * [ ] rename humanoid bone
