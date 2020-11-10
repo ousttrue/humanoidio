@@ -31,7 +31,7 @@ from bpy.props import (
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
 
-class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
+class PyImpexImporter(bpy.types.Operator, ImportHelper):
     """
     Import scene
     """
@@ -58,9 +58,12 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
 
         pyscene.modifier.before_import(roots, data.gltf.extensions != None)
 
+        collection = bpy.data.collections.new(name = path.name)
+        context.scene.collection.children.link(collection)
+
         from .lib import bpy_helper
         bpy_helper.load(
-            context.scene.collection, roots,
+            collection, roots,
             data.gltf.extensions.VRM if data.gltf.extensions else None)
 
         # color management
@@ -69,7 +72,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
+class PyImpexExporter(bpy.types.Operator, ExportHelper):
     """
     Export scene
     """
@@ -104,16 +107,16 @@ class SceneTranslatorExporter(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
-CLASSES = [SceneTranslatorImporter, SceneTranslatorExporter]
+CLASSES = [PyImpexImporter, PyImpexExporter]
 
 
 def menu_func_import(self, context):
-    self.layout.operator(SceneTranslatorImporter.bl_idname,
+    self.layout.operator(PyImpexImporter.bl_idname,
                          text=f"pyimpex (.gltf;.glb;.vrm)")
 
 
 def menu_func_export(self, context):
-    self.layout.operator(SceneTranslatorExporter.bl_idname,
+    self.layout.operator(PyImpexExporter.bl_idname,
                          text=f"pyimpex (.glb)")
 
 

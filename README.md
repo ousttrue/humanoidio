@@ -46,7 +46,7 @@ for Blender-2.83
 * [ ] expression
 * [ ] lookat
 * [ ] VRM-1.0
-* [ ] collection
+* [x] collection
 
 ### Export
 
