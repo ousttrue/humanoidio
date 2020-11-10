@@ -42,7 +42,7 @@ for Blender-2.83
 * [x] armature 一個にまとめる
 * [x] MToon
 * [x] 手前向きにする
-* [ ] Import: ShapeKey の無いところは SubMesh を別オブジェクトに分割する
+* [x] Import: ShapeKey の無いところは SubMesh を別オブジェクトに分割する
 * [ ] expression
 * [ ] lookat
 * [ ] VRM-1.0

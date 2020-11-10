@@ -312,7 +312,7 @@ class Importer:
             # empty
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, None)
             bl_obj.empty_display_size = 0.1
-            # bl_object.empty_draw_type = 'PLAIN_AXES'
+
         self.collection.objects.link(bl_obj)
         bl_obj.select_set(True)
         self.obj_map[node] = bl_obj
@@ -327,9 +327,25 @@ class Importer:
             bl_obj.rotation_quaternion = self.yup2zup_q(node.rotation)
         bl_obj.scale = self.yup2zup_s(node.scale)
 
+    def _split_submesh(self, node: pyscene.Node, mesh: pyscene.SubmeshMesh):
+        logger.debug('split_submesh')
+        for i, submesh in enumerate(mesh.submeshes):
+            submesh_node = pyscene.Node(f'{node.name}:submesh:{i}')
+            node.add_child(submesh_node)
+            submesh_node.mesh = mesh.create_from_submesh(i)
+        node.mesh = None
+
     def _create_tree(self,
                      node: pyscene.Node,
                      parent: Optional[pyscene.Node] = None):
+        if isinstance(node.mesh, pyscene.SubmeshMesh):
+            # mesh
+            if self.is_vrm:
+                if not node.mesh.morphtargets:
+                    if 'hair' not in node.mesh.name.lower():
+                        if len(node.mesh.submeshes) > 1:
+                            self._split_submesh(node, node.mesh)
+
         self._create_object(node)
         for child in node.children:
             self._create_tree(child, node)

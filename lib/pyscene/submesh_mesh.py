@@ -1,3 +1,4 @@
+import enum
 from typing import Any, List, Optional, Dict, Sequence
 import array
 from ..struct_types import PlanarBuffer
@@ -95,3 +96,16 @@ class SubmeshMesh:
         morphtarget = MorphTarget(f'{i}', self.attributes.get_vertex_count())
         self.morphtargets.append(morphtarget)
         return morphtarget
+
+    def create_from_submesh(self, i: int) -> 'SubmeshMesh':
+        submesh = self.submeshes[i]
+        mesh = SubmeshMesh(f'self.name:{i}', submesh.vertex_count,
+                           self.attributes.weights != None)
+        for i, index_index in enumerate(
+                range(submesh.offset, submesh.offset + submesh.vertex_count)):
+            vertex_index = self.indices[index_index]
+            mesh.attributes.copy_vertex_from(i, self.attributes, vertex_index)
+            mesh.indices.append(i)
+        mesh.submeshes.append(
+            Submesh(0, submesh.vertex_count, submesh.material))
+        return mesh

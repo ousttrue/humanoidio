@@ -190,6 +190,15 @@ class PlanarBuffer(NamedTuple):
 
         return True
 
+    def copy_vertex_from(self, i: int, src: 'PlanarBuffer', src_index: int):
+        self.position[i] = src.position[src_index]
+        self.normal[i] = src.normal[src_index]
+        self.texcoord[i] = src.texcoord[src_index]
+        if self.joints:
+            self.joints[i] = src.joints[src_index]
+        if self.weights:
+            self.weights[i] = src.weights[src_index]
+
     @staticmethod
     def create(vertex_count: int, has_bone_weight: bool) -> 'PlanarBuffer':
         pos = (Float3 * vertex_count)()
