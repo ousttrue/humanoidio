@@ -5,3 +5,4 @@ from .material import UnlitMaterial, PBRMaterial, MToonMaterial, Texture, BlendM
 from .from_gltf import nodes_from_gltf
 from .to_gltf import to_gltf
 from .to_submesh import facemesh_to_submesh
+from .modifier import before_import
