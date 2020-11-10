@@ -37,7 +37,7 @@ for Blender-2.83
 * [ ] remove empty VertexGroup
 * [x] humanoid
 * [ ] rename humanoid bone
-* [ ] bone group
+* [x] bone group
 * [x] armature 一個にまとめる
 * [x] MToon
 * [x] 手前向きにする

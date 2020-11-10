@@ -11,6 +11,7 @@ from .mesh_importer import create_bmesh
 from .functions import remove_mesh
 from .bone_connector import connect_bones
 
+
 @contextmanager
 def tmp_mode(obj, tmp: str):
     mode = obj.rotation_mode
@@ -27,14 +28,8 @@ class Importer:
     '''
     def __init__(self, context: bpy.types.Context, is_vrm: bool):
         self.context = context
-        view_layer = context.view_layer
-        if hasattr(view_layer,
-                   'collections') and view_layer.collections.active:
-            print('use context.view_layer.collections.active')
-            self.collection = view_layer.collections.active.collection
-        else:
-            print('use context.scene.collection')
-            self.collection = context.scene.collection
+        # use scene master collection
+        self.collection = context.scene.collection
 
         self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
@@ -75,34 +70,35 @@ class Importer:
         attributes = mesh_node.mesh.attributes
 
         # each face
-        for poly in bl_object.data.polygons:
-            # face vertex index
-            for loop_idx in range(poly.loop_start,
-                                  poly.loop_start + poly.loop_total):
-                loop = bl_object.data.loops[loop_idx]
-                vert_idx = loop.vertex_index
-                if vert_idx < 0:
-                    raise Exception()
-                if vert_idx >= len(attributes.joints):
-                    raise Exception()
+        if isinstance(bl_object.data, bpy.types.Mesh):
+            for poly in bl_object.data.polygons:
+                # face vertex index
+                for loop_idx in range(poly.loop_start,
+                                      poly.loop_start + poly.loop_total):
+                    loop = bl_object.data.loops[loop_idx]
+                    vert_idx = loop.vertex_index
+                    if vert_idx < 0:
+                        raise Exception()
+                    if vert_idx >= len(attributes.joints):
+                        raise Exception()
 
-                if vert_idx in idx_already_done:
-                    continue
-                idx_already_done.add(vert_idx)
+                    if vert_idx in idx_already_done:
+                        continue
+                    idx_already_done.add(vert_idx)
 
-                cpt = 0
-                for joint_idx in attributes.joints[vert_idx]:
-                    if cpt > 3:
-                        break
-                    weight_val = attributes.weights[vert_idx][cpt]
-                    if weight_val != 0.0:
-                        # It can be a problem to assign weights of 0
-                        # for bone index 0, if there is always 4 indices in joint_ tuple
-                        bone_name = bone_names[joint_idx]
-                        if bone_name:
-                            group = bl_object.vertex_groups[bone_name]
-                            group.add([vert_idx], weight_val, 'REPLACE')
-                    cpt += 1
+                    cpt = 0
+                    for joint_idx in attributes.joints[vert_idx]:
+                        if cpt > 3:
+                            break
+                        weight_val = attributes.weights[vert_idx][cpt]
+                        if weight_val != 0.0:
+                            # It can be a problem to assign weights of 0
+                            # for bone index 0, if there is always 4 indices in joint_ tuple
+                            bone_name = bone_names[joint_idx]
+                            if bone_name:
+                                group = bl_object.vertex_groups[bone_name]
+                                group.add([vert_idx], weight_val, 'REPLACE')
+                        cpt += 1
 
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map[skin]
@@ -192,7 +188,7 @@ class Importer:
             if node.skin
         ]
         # create new node
-        bl_skin: bpy.types.Armature = bpy.data.armatures.new('Humanoid')
+        bl_skin = bpy.data.armatures.new('Humanoid')
         # bl_skin.show_names = True
         bl_skin.display_type = 'STICK'
         bl_obj = bpy.data.objects.new('Humanoid', bl_skin)
@@ -219,6 +215,15 @@ class Importer:
 
         # 2nd pass: tail, connect
         connect_bones(bones)
+
+        # set bone group
+        bpy.ops.object.mode_set(mode='POSE', toggle=False)
+        bone_group = bl_obj.pose.bone_groups.new(name='humanoid')
+        bone_group.color_set = 'THEME01'
+        for k, v in bones.items():
+            if k.humanoid_bone:
+                b = bl_obj.pose.bones[k.name]
+                b.bone_group = bone_group
 
         # exit edit mode
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
