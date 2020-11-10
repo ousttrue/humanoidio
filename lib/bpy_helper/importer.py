@@ -25,11 +25,8 @@ class Importer:
     '''
     bpy.types.Object, Mesh, Material, Texture を作成する
     '''
-    def __init__(self, context: bpy.types.Context, is_vrm: bool):
-        self.context = context
-        # use scene master collection
-        self.collection = context.scene.collection
-
+    def __init__(self, collection: bpy.types.Collection, is_vrm: bool):
+        self.collection = collection
         self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
@@ -158,7 +155,7 @@ class Importer:
         # if skin.parent_space:
         #     bl_obj.parent = self.obj_map.get(skin.parent_space)
 
-        self.context.view_layer.objects.active = bl_obj
+        bpy.context.view_layer.objects.active = bl_obj
         bl_obj.select_set(True)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
@@ -185,7 +182,7 @@ class Importer:
         self.collection.objects.link(bl_obj)
 
         # enter edit mode
-        self.context.view_layer.objects.active = bl_obj
+        bpy.context.view_layer.objects.active = bl_obj
         bl_obj.select_set(True)
         bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 

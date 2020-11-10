@@ -58,7 +58,7 @@ class BpyTests(unittest.TestCase):
         self.assertEqual(roots[0].children[0].mesh.attributes.position[0],
                          Float3(-0.5, -0.5, 0.5))
 
-        bpy_helper.load(bpy.context, roots)
+        bpy_helper.load(bpy.context.scene.collection, roots)
         scanner = bpy_helper.scan()
         self.assertEqual(scanner.nodes[1].mesh.positions[0],
                          Float3(-0.5, -0.5, -0.5))
@@ -77,7 +77,7 @@ class BpyTests(unittest.TestCase):
         self.assertEqual(roots[0].children[0].mesh.attributes.position[0],
                          Float3(-0.5, -0.5, 0.5))
 
-        bpy_helper.load(bpy.context, roots)
+        bpy_helper.load(bpy.context.scene.collection, roots)
         scanner = bpy_helper.scan()
         self.assertEqual(scanner.nodes[1].mesh.positions[0],
                          Float3(-0.5, -0.5, -0.5))
@@ -97,7 +97,7 @@ class BpyTests(unittest.TestCase):
             roots[0].mesh.attributes.position[0],
             Float3(-0.009999999776482582, 0.009999998845160007,
                    0.009999999776482582))
-        bpy_helper.load(bpy.context, roots)
+        bpy_helper.load(bpy.context.scene.collection, roots)
         scanner = bpy_helper.scan()
         self.assertEqual(
             scanner.nodes[0].mesh.positions[0],
@@ -115,7 +115,7 @@ class BpyTests(unittest.TestCase):
 
         data = formats.parse_gltf(path)
         roots = pyscene.nodes_from_gltf(data)
-        bpy_helper.load(bpy.context, roots)
+        bpy_helper.load(bpy.context.scene.collection, roots)
         scanner = bpy_helper.scan()
 
         exported = [node for node in scanner.nodes if not node.parent]

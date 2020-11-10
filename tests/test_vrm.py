@@ -22,4 +22,4 @@ class VrmTests(unittest.TestCase):
         self.assertEqual(len(roots), 5)
 
         # laod
-        bpy_helper.load(bpy.context, roots, data.gltf.extensions.VRM)
+        bpy_helper.load(bpy.context.scene.collection, roots, data.gltf.extensions.VRM)

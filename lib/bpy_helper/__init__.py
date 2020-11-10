@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Collection, List, Optional
 from contextlib import contextmanager
 import bpy, mathutils
 from .. import pyscene
@@ -141,11 +141,10 @@ def scan() -> Exporter:
     return scanner
 
 
-def load(context: bpy.types.Context,
+def load(collection: bpy.types.Collection,
          roots: List[pyscene.Node],
          vrm: Optional[formats.gltf.vrm] = None):
-    is_vrm = True if vrm else False
-    importer = Importer(context, is_vrm)
+    importer = Importer(collection, vrm != None)
     importer.execute(roots)
 
 

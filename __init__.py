@@ -45,7 +45,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
         options={'HIDDEN'},
     )
 
-    def execute(self, context):
+    def execute(self, context: bpy.types.Context):
         logger.debug('#### start ####')
 
         path = pathlib.Path(self.filepath).absolute()  # type: ignore
@@ -60,7 +60,7 @@ class SceneTranslatorImporter(bpy.types.Operator, ImportHelper):
 
         from .lib import bpy_helper
         bpy_helper.load(
-            context, roots,
+            context.scene.collection, roots,
             data.gltf.extensions.VRM if data.gltf.extensions else None)
 
         # color management
