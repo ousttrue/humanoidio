@@ -104,15 +104,6 @@ class Importer:
 
     def _create_bones(self, armature: bpy.types.Armature, m: mathutils.Matrix,
                       skin_node: pyscene.Node, skin: pyscene.Skin) -> None:
-        '''
-        ボーンを作る
-
-        tail を決める
-
-        * child が 0。親からまっすぐに伸ばす
-        * child が ひとつ。それ
-        * chidl が 2つ以上。どれか選べ
-        '''
         # pass1: create and head postiion
         bones: Dict[pyscene.Node, bpy.types.EditBone] = {}
         for node in skin.joints:

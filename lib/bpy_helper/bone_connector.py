@@ -7,6 +7,12 @@ from .. import pyscene, formats
 class BoneConnector:
     '''
     ボーンを適当に接続したり、しない場合でも tail を設定してやる
+
+    tail を決める
+
+    * child が 0。親からまっすぐに伸ばす
+    * child が ひとつ。それ
+    * child が 2つ以上。どれか選べ(同じざひょうのときは少しずらす。head と tail が同じボーンは消滅するので)
     '''
     def __init__(self, bones: Dict[pyscene.Node, bpy.types.EditBone]):
         self.bones = bones
@@ -40,7 +46,8 @@ class BoneConnector:
                 if bl_parent.head != bl_bone.head:
                     bl_parent.tail = bl_bone.head
                 else:
-                    bl_parent.tail = bl_bone.head + mathutils.Vector((0, 0, 1e-4))
+                    bl_parent.tail = bl_bone.head + mathutils.Vector(
+                        (0, 0, 1e-4))
 
                 bl_bone.use_connect = True
 
