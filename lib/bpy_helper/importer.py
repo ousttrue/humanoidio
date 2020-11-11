@@ -192,7 +192,10 @@ class Importer:
             for node in skin.joints:
                 if node in bones:
                     continue
-                bl_object = self.obj_map[node]
+                bl_object = self.obj_map.get(node)
+                if not bl_object:
+                    # maybe removed as empty leaf
+                    continue
                 bl_bone = bl_skin.edit_bones.new(node.name)
                 # get armature local matrix
                 bl_bone.head = bl_object.matrix_world.translation
