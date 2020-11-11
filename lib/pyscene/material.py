@@ -105,7 +105,7 @@ class UnlitMaterial:
             raise Exception('self.color != other.color')
 
         if not comapare_texture('color_texture', self.color_texture,
-                            other.color_texture):
+                                other.color_texture):
             return False
 
         return True
@@ -176,6 +176,8 @@ class MToonMaterial(UnlitMaterial):
             elif v == 1:
                 self.blend_mode = BlendMode.Mask
             elif v == 2:
+                self.blend_mode = BlendMode.AlphaBlend
+            elif v == 3:
                 self.blend_mode = BlendMode.AlphaBlend
             else:
                 raise NotImplementedError()
