@@ -28,11 +28,27 @@ for Blender-2.83
 
 * addons/io_scene_gltf2
 
+## 座標系
+
+``` 
+T-Pose手前向き     => T-Pose奥向き
+
+Z          Y               Y
+^          ^               ^
+|  + Y     |               |  + Z
+| /        |               | /
+|/         |               |/
++----> X   +----> X X <----+
+Blender   /GLTF            rotate 180 degrees by Y axis
+         /
+        L Z
+```
+
 ## TODO
 
 * [ ] humanoid pose
 
-### Import
+## Import
 
 * [x] remove empty VertexGroup
 * [x] remove leaf bone without bone weight
@@ -48,30 +64,38 @@ for Blender-2.83
 * [ ] VRM-1.0
 * [x] collection
 
-### Export
+### VRM
+
+元のツリー構成の維持には拘らない。
+
+* Armature(Humanoid)
+    * Mesh-0
+    * Mesh-1
+    * Mesh-2
+    * Mesh-3...
+
+という Ojbect 構成を強制する。
+
+## bpy.props
+
+https://docs.blender.org/api/2.83/bpy.props.html
+
+root にカスタムのプロパティを定義する
+
+#### Meta
+#### BlendShape
+#### LookAt
+#### FirstPerson
+#### SpringBone
+
+## Rigify の補助
+
+[ ] Meta-rig を生成する補助
+
+## Export
 
 * [ ] Gltf, Vrm 別のエクスポーターに分ける
 * [ ] material group を作るパネル
 * [ ] unlit
 * [x] PBR
 * [ ] MToon
-
-## 仕様
-
-Blender側でVRMの追加情報をどのように保持するかなど
-
-### 座標系
-
-``` 
-T-Pose手前向き     => T-Pose奥向き
-
-Z          Y               Y
-^          ^               ^
-|  + Y     |               |  + Z
-| /        |               | /
-|/         |               |/
-+----> X   +----> X X <----+
-Blender   /GLTF            rotate 180 degrees by Y axis
-         /
-        L Z
-```
