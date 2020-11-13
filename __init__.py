@@ -31,13 +31,9 @@ from bpy.props import (
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
 
-class Expression(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="Preset", default="Unknown")
-
-
 class ExpressionPanel(bpy.types.Panel):
     bl_idname = "OBJECT_PT_pyimex_expression"
-    bl_label = "Expressions"
+    bl_label = "VRM Expressions"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -50,7 +46,7 @@ class ExpressionPanel(bpy.types.Panel):
 
     def draw_header(self, context):
         layout: bpy.types.UILayout = self.layout
-        layout.label(text="VRM Expressions")
+        layout.label(text="pyimpex Expressions")
 
     def draw(self, context):
         for e in context.object.pyimpex_expressions:
@@ -74,23 +70,29 @@ class PyImpexImporter(bpy.types.Operator, ImportHelper):
     def execute(self, context: bpy.types.Context):
         logger.debug('#### start ####')
 
+        #
+        # read data
+        #
         path = pathlib.Path(self.filepath).absolute()  # type: ignore
 
         from .lib import formats
         data = formats.parse_gltf(path)
 
         from .lib import pyscene
-        roots = pyscene.nodes_from_gltf(data)
+        index_map = pyscene.load(data)
+        roots = index_map.get_roots(data.gltf)
+        vrm = pyscene.load_vrm(index_map, data.gltf)
 
         pyscene.modifier.before_import(roots, data.gltf.extensions != None)
 
+        #
+        # import to blender
+        #
         collection = bpy.data.collections.new(name=path.name)
         context.scene.collection.children.link(collection)
 
         from .lib import bpy_helper
-        bpy_helper.load(
-            collection, roots,
-            data.gltf.extensions.VRM if data.gltf.extensions else None)
+        bpy_helper.load(collection, roots, vrm)
 
         # color management
         bpy.context.scene.view_settings.view_transform = 'Standard'
@@ -146,10 +148,11 @@ def menu_func_export(self, context):
 
 
 def register():
+    from .lib.bpy_helper import custom_rna
     # props
-    bpy.utils.register_class(Expression)
+    bpy.utils.register_class(custom_rna.Expression)
     bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(
-        type=Expression)
+        type=custom_rna.Expression)
     bpy.utils.register_class(ExpressionPanel)
     # operators
     for c in CLASSES:

@@ -9,6 +9,7 @@ from .materials import MaterialImporter
 from .mesh_importer import create_bmesh
 from .functions import remove_mesh
 from .bone_connector import connect_bones
+from . import custom_rna
 
 
 @contextmanager
@@ -25,7 +26,7 @@ class Importer:
     '''
     bpy.types.Object, Mesh, Material, Texture を作成する
     '''
-    def __init__(self, collection: bpy.types.Collection, is_vrm: bool):
+    def __init__(self, collection: bpy.types.Collection, vrm: pyscene.Vrm):
         self.collection = collection
         self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
@@ -33,8 +34,8 @@ class Importer:
         self.skin_map: Dict[pyscene.Skin, bpy.types.Object] = {}
 
         # coordinates
-        self.is_vrm = is_vrm
-        if is_vrm:
+        self.vrm = vrm
+        if self.vrm:
             self.yup2zup = lambda f3: ((-f3.x, f3.z, f3.y))
         else:
             self.yup2zup = lambda f3: ((f3.x, -f3.z, f3.y))
@@ -344,13 +345,23 @@ class Importer:
         if node.parent:
             node.parent.children.remove(node)
 
+    def _load_expressions(self, bl_obj: bpy.types.Object,
+                          expressions: List[pyscene.VrmExpression]):
+        for e in expressions:
+            expression: custom_rna.Expression = bl_obj.pyimpex_expressions.add(
+            )
+            expression.preset = e.preset.value
+            expression.name = e.name
+
     def execute(self, roots: List[pyscene.Node]):
         for root in roots:
             self._create_tree(root)
 
-        if self.is_vrm:
+        if self.vrm:
             # Armature を ひとつの Humanoid にまとめる
-            self._create_humanoid(roots)
+            bl_obj = self._create_humanoid(roots)
+            # プロパティロード
+            self._load_expressions(bl_obj, self.vrm.expressions)
         else:
             # skinning
             for root in roots:

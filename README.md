@@ -78,8 +78,9 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 
 ## bpy.props
 
-プロパティを定義して
+RNAプロパティを定義して
 
+* https://dskjal.com/blender/rna-vs-id-property.html
 * https://docs.blender.org/api/2.83/bpy.props.html
 
 UI(Panel)で表示する

@@ -143,8 +143,8 @@ def scan() -> Exporter:
 
 def load(collection: bpy.types.Collection,
          roots: List[pyscene.Node],
-         vrm: Optional[formats.gltf.vrm] = None):
-    importer = Importer(collection, vrm != None)
+         vrm: Optional[pyscene.Vrm] = None):
+    importer = Importer(collection, vrm)
     importer.execute(roots)
 
 

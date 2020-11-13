@@ -7,6 +7,7 @@ from .. import formats
 from .node import Node, Skin
 from .material import UnlitMaterial, PBRMaterial, MToonMaterial, Texture, TextureUsage, BlendMode
 from .submesh_mesh import SubmeshMesh, Submesh
+from .index_map import IndexMap
 
 
 def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
@@ -30,26 +31,6 @@ def _check_has_skin(prim: formats.gltf.MeshPrimitive) -> bool:
     if not prim.attributes.get('WEIGHTS_0'):
         return False
     return True
-
-
-class IndexMap(NamedTuple):
-    texture: Dict[int, Texture]
-    material: Dict[int, UnlitMaterial]
-    mesh: Dict[int, SubmeshMesh]
-    node: Dict[int, Node]
-
-    @staticmethod
-    def create():
-        return IndexMap({}, {}, {}, {})
-
-    def get_nodes(self, indices: List[int]) -> List[Node]:
-        return [self.node[i] for i in indices]
-
-    def get_roots(self, gltf: formats.gltf.glTF) -> List[Node]:
-        scene = gltf.scenes[gltf.scene if gltf.scene else 0]
-        if not scene.nodes:
-            return []
-        return self.get_nodes(scene.nodes)
 
 
 class Reader:
@@ -319,7 +300,7 @@ class Reader:
         return mesh
 
 
-def deserialize(data: formats.GltfContext) -> IndexMap:
+def load(data: formats.GltfContext) -> IndexMap:
     '''
     glTFを中間形式のSubmesh形式に変換する
     '''
@@ -409,4 +390,4 @@ def deserialize(data: formats.GltfContext) -> IndexMap:
 
 
 def nodes_from_gltf(data: formats.GltfContext) -> List[Node]:
-    return deserialize(data).get_roots(data.gltf)
+    return load(data).get_roots(data.gltf)
