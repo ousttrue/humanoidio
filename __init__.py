@@ -31,7 +31,7 @@ from bpy.props import (
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
 
-class ExpressionPanel(bpy.types.Panel):
+class PyImpexExpressionPanel(bpy.types.Panel):
     bl_idname = "OBJECT_PT_pyimex_expression"
     bl_label = "VRM Expressions"
     bl_space_type = 'PROPERTIES'
@@ -153,7 +153,7 @@ def register():
     bpy.utils.register_class(custom_rna.Expression)
     bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(
         type=custom_rna.Expression)
-    bpy.utils.register_class(ExpressionPanel)
+    bpy.utils.register_class(PyImpexExpressionPanel)
     # operators
     for c in CLASSES:
         bpy.utils.register_class(c)
