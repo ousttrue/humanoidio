@@ -1,20 +1,22 @@
 from ctypes import c_ulong
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import Dict, Optional, List
+from typing import Dict, NamedTuple, Optional, List, Any
 import bpy, mathutils
 from .. import formats
-from .. import pyscene
+from .node import Node, Skin
+from .material import UnlitMaterial, PBRMaterial, MToonMaterial, Texture, TextureUsage, BlendMode
+from .submesh_mesh import SubmeshMesh, Submesh
 
 
 def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
-                    nodes: List[pyscene.Node]) -> pyscene.Skin:
+                    nodes: List[Node]) -> Skin:
     gl_skin = data.gltf.skins[skin_index]
 
     name = gl_skin.name
     if not name:
         name = f'skin{skin_index}'
-    skin = pyscene.Skin(name)
+    skin = Skin(name)
     # if isinstance(gl_skin.skeleton, int):
     #     skin.parent_space = nodes[gl_skin.skeleton]
     skin.joints = [nodes[j] for j in gl_skin.joints]
@@ -30,20 +32,38 @@ def _check_has_skin(prim: formats.gltf.MeshPrimitive) -> bool:
     return True
 
 
+class IndexMap(NamedTuple):
+    texture: Dict[int, Texture]
+    material: Dict[int, UnlitMaterial]
+    mesh: Dict[int, SubmeshMesh]
+    node: Dict[int, Node]
+
+    @staticmethod
+    def create():
+        return IndexMap({}, {}, {}, {})
+
+    def get_nodes(self, indices: List[int]) -> List[Node]:
+        return [self.node[i] for i in indices]
+
+    def get_roots(self, gltf: formats.gltf.glTF) -> List[Node]:
+        scene = gltf.scenes[gltf.scene if gltf.scene else 0]
+        if not scene.nodes:
+            return []
+        return self.get_nodes(scene.nodes)
+
+
 class Reader:
     def __init__(self, data: formats.GltfContext):
         self.data = data
         self.reader = formats.BytesReader(data)
-        # gltf の url 参照の外部ファイルバッファをキャッシュする
-        self._material_map: Dict[int, pyscene.UnlitMaterial] = {}
-        self._texture_map: Dict[int, pyscene.Texture] = {}
+        self.index_map = IndexMap.create()
 
     def get_vrm(self) -> Optional[formats.gltf.vrm]:
         if self.data.gltf.extensions:
             return self.data.gltf.extensions.VRM
 
-    def _get_or_create_texture(self, image_index: int) -> pyscene.Texture:
-        texture = self._texture_map.get(image_index)
+    def _get_or_create_texture(self, image_index: int) -> Texture:
+        texture = self.index_map.texture.get(image_index)
         if texture:
             return texture
 
@@ -58,24 +78,24 @@ class Reader:
 
         if isinstance(gl_image.bufferView, int):
             texture_bytes = self.reader.get_view_bytes(gl_image.bufferView)
-            texture = pyscene.Texture(name, texture_bytes)
+            texture = Texture(name, texture_bytes)
         elif gl_image.uri:
-            texture = pyscene.Texture(name, self.data.dir / gl_image.uri)
+            texture = Texture(name, self.data.dir / gl_image.uri)
         else:
             raise Exception('invalid gl_image')
 
-        self._texture_map[image_index] = texture
+        self.index_map.texture[image_index] = texture
         return texture
 
     def _get_or_create_material(
-            self, material_index: Optional[int]) -> pyscene.UnlitMaterial:
+            self, material_index: Optional[int]) -> UnlitMaterial:
         if not isinstance(material_index, int):
-            return pyscene.UnlitMaterial(f'default')
-        material = self._material_map.get(material_index)
+            return UnlitMaterial(f'default')
+        material = self.index_map.material.get(material_index)
         if material:
             return material
 
-        def load_common_porperties(matrial: pyscene.UnlitMaterial,
+        def load_common_porperties(matrial: UnlitMaterial,
                                    gl_material: formats.gltf.Material):
             # color
             if gl_material.pbrMetallicRoughness.baseColorFactor:
@@ -91,18 +111,18 @@ class Reader:
             if gl_material.pbrMetallicRoughness.baseColorTexture:
                 image_index = gl_material.pbrMetallicRoughness.baseColorTexture.index
                 texture = self._get_or_create_texture(image_index)
-                texture.set_usage(pyscene.TextureUsage.Color)
+                texture.set_usage(TextureUsage.Color)
                 material.color_texture = texture
 
             # alpha blending
             if isinstance(gl_material.alphaMode,
                           formats.gltf.MaterialAlphaMode):
                 if gl_material.alphaMode == formats.gltf.MaterialAlphaMode.OPAQUE:
-                    material.blend_mode = pyscene.BlendMode.Opaque
+                    material.blend_mode = BlendMode.Opaque
                 elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.BLEND:
-                    material.blend_mode = pyscene.BlendMode.AlphaBlend
+                    material.blend_mode = BlendMode.AlphaBlend
                 elif gl_material.alphaMode == formats.gltf.MaterialAlphaMode.MASK:
-                    material.blend_mode = pyscene.BlendMode.Mask
+                    material.blend_mode = BlendMode.Mask
                     if isinstance(gl_material.alphaCutoff, float):
                         material.threshold = gl_material.alphaCutoff
                 else:
@@ -126,7 +146,7 @@ class Reader:
             #
             # MToon
             #
-            material = pyscene.MToonMaterial(name)
+            material = MToonMaterial(name)
             load_common_porperties(material, gl_material)
             for k, v in vrm_material.tagMap.items():
                 if k == 'RenderType':
@@ -148,28 +168,27 @@ class Reader:
                 material.set_vector4(k, v)
 
         elif gl_material.extensions and gl_material.extensions.KHR_materials_unlit:
-            material = pyscene.UnlitMaterial(name)
+            material = UnlitMaterial(name)
             load_common_porperties(material, gl_material)
-            
+
         else:
             #
             # PBR
             #
-            material = pyscene.PBRMaterial(name)
+            material = PBRMaterial(name)
             load_common_porperties(material, gl_material)
             # normal map
             if gl_material.normalTexture:
                 material.normal_texture = self._get_or_create_texture(
                     gl_material.normalTexture.index)
-                material.normal_texture.set_usage(
-                    pyscene.TextureUsage.NormalMap)
+                material.normal_texture.set_usage(TextureUsage.NormalMap)
 
             # emissive
             if gl_material.emissiveTexture:
                 material.emissive_texture = self._get_or_create_texture(
                     gl_material.emissiveTexture.index)
                 material.emissive_texture.set_usage(
-                    pyscene.TextureUsage.EmissiveTexture)
+                    TextureUsage.EmissiveTexture)
             if gl_material.emissiveFactor:
                 material.emissive_color.x = gl_material.emissiveFactor[0]
                 material.emissive_color.y = gl_material.emissiveFactor[1]
@@ -181,21 +200,25 @@ class Reader:
                     gl_material.pbrMetallicRoughness.metallicRoughnessTexture.
                     index)
                 material.metallic_roughness_texture.set_usage(
-                    pyscene.TextureUsage.MetallicRoughnessTexture)
+                    TextureUsage.MetallicRoughnessTexture)
 
             # oculusion
             if gl_material.occlusionTexture:
                 material.occlusion_texture = self._get_or_create_texture(
                     gl_material.occlusionTexture.index)
                 material.occlusion_texture.set_usage(
-                    pyscene.TextureUsage.OcclusionTexture)
+                    TextureUsage.OcclusionTexture)
 
-        self._material_map[material_index] = material
+        self.index_map.material[material_index] = material
 
         return material
 
     def load_submesh(self, data: formats.GltfContext,
-                     mesh_index: int) -> pyscene.SubmeshMesh:
+                     mesh_index: int) -> SubmeshMesh:
+        mesh = self.index_map.mesh.get(mesh_index)
+        if mesh:
+            return mesh
+
         m = data.gltf.meshes[mesh_index]
         name = m.name if m.name else f'mesh {mesh_index}'
 
@@ -220,17 +243,16 @@ class Reader:
                 return 0
             return data.gltf.accessors[prim.indices].count
 
-        def add_indices(sm: pyscene.SubmeshMesh,
-                        prim: formats.gltf.MeshPrimitive, index_offset: int):
+        def add_indices(sm: SubmeshMesh, prim: formats.gltf.MeshPrimitive,
+                        index_offset: int):
             # indices
             if not isinstance(prim.indices, int):
                 raise Exception()
             mesh.indices.extend(self.reader.get_bytes(prim.indices))
             # submesh
             index_count = prim_index_count(prim)
-            submesh = pyscene.Submesh(
-                index_offset, index_count,
-                self._get_or_create_material(prim.material))
+            submesh = Submesh(index_offset, index_count,
+                              self._get_or_create_material(prim.material))
             mesh.submeshes.append(submesh)
             return index_count
 
@@ -251,7 +273,7 @@ class Reader:
             # share vertex buffer
             shared_prim = m.primitives[0]
             vertex_count = position_count(shared_prim)
-            mesh = pyscene.SubmeshMesh(name, vertex_count, has_skin)
+            mesh = SubmeshMesh(name, vertex_count, has_skin)
             self.reader.read_attributes(mesh.attributes, 0, data,
                                         shared_prim.attributes)
             # morph target
@@ -271,7 +293,7 @@ class Reader:
             # merge vertex buffer
             vertex_count = sum((position_count(prim) for prim in m.primitives),
                                0)
-            mesh = pyscene.SubmeshMesh(name, vertex_count, has_skin)
+            mesh = SubmeshMesh(name, vertex_count, has_skin)
 
             offset = 0
             index_offset = 0
@@ -292,10 +314,12 @@ class Reader:
                             self.reader.read_attributes(
                                 morphtarget.attributes, offset, data, t)
 
+        self.index_map.mesh[mesh_index] = mesh
+
         return mesh
 
 
-def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
+def deserialize(data: formats.GltfContext) -> IndexMap:
     '''
     glTFを中間形式のSubmesh形式に変換する
     '''
@@ -315,18 +339,19 @@ def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
                 return getattr(formats.HumanoidBones, humanoid_bone.bone)
 
     # mesh
-    meshes: List[pyscene.SubmeshMesh] = []
+    meshes: List[SubmeshMesh] = []
     if data.gltf.meshes:
         for i, m in enumerate(data.gltf.meshes):
             mesh = deserializer.load_submesh(data, i)
             meshes.append(mesh)
 
     # node
-    nodes: List[pyscene.Node] = []
+    nodes: List[Node] = []
     if data.gltf.nodes:
         for i, n in enumerate(data.gltf.nodes):
             name = n.name if n.name else f'node {i}'
-            node = pyscene.Node(name)
+            node = Node(name)
+            deserializer.index_map.node[i] = node
 
             node.humanoid_bone = get_humanoid_bone(i)
 
@@ -380,8 +405,8 @@ def nodes_from_gltf(data: formats.GltfContext) -> List[pyscene.Node]:
                 skin = _skin_from_gltf(data, n.skin, nodes)
                 nodes[i].skin = skin
 
-    # scene
-    scene = data.gltf.scenes[data.gltf.scene if data.gltf.scene else 0]
-    if not scene.nodes:
-        return []
-    return [nodes[root] for root in scene.nodes]
+    return deserializer.index_map
+
+
+def nodes_from_gltf(data: formats.GltfContext) -> List[Node]:
+    return deserialize(data).get_roots(data.gltf)

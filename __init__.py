@@ -31,6 +31,32 @@ from bpy.props import (
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
 
+class Expression(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(name="Preset", default="Unknown")
+
+
+class ExpressionPanel(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_pyimex_expression"
+    bl_label = "Expressions"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    @classmethod
+    def poll(cls, context):
+        if context.object is None:
+            return False
+        return True
+
+    def draw_header(self, context):
+        layout: bpy.types.UILayout = self.layout
+        layout.label(text="VRM Expressions")
+
+    def draw(self, context):
+        for e in context.object.pyimpex_expressions:
+            self.layout.label(text=e.name)
+
+
 class PyImpexImporter(bpy.types.Operator, ImportHelper):
     """
     Import scene
@@ -58,7 +84,7 @@ class PyImpexImporter(bpy.types.Operator, ImportHelper):
 
         pyscene.modifier.before_import(roots, data.gltf.extensions != None)
 
-        collection = bpy.data.collections.new(name = path.name)
+        collection = bpy.data.collections.new(name=path.name)
         context.scene.collection.children.link(collection)
 
         from .lib import bpy_helper
@@ -116,11 +142,16 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
-    self.layout.operator(PyImpexExporter.bl_idname,
-                         text=f"pyimpex (.glb)")
+    self.layout.operator(PyImpexExporter.bl_idname, text=f"pyimpex (.glb)")
 
 
 def register():
+    # props
+    bpy.utils.register_class(Expression)
+    bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(
+        type=Expression)
+    bpy.utils.register_class(ExpressionPanel)
+    # operators
     for c in CLASSES:
         bpy.utils.register_class(c)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)  # type: ignore

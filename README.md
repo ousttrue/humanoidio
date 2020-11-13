@@ -78,9 +78,14 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 
 ## bpy.props
 
-https://docs.blender.org/api/2.83/bpy.props.html
+プロパティを定義して
 
-root にカスタムのプロパティを定義する
+* https://docs.blender.org/api/2.83/bpy.props.html
+
+UI(Panel)で表示する
+
+* https://docs.blender.org/api/2.83/info_quickstart.html?highlight=panel#example-panel
+* https://docs.blender.org/api/2.83/bpy.types.Panel.html?highlight=layout#bpy.types.Panel.layout
 
 #### Meta
 #### BlendShape
