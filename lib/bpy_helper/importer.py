@@ -32,6 +32,7 @@ class Importer:
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
         self.material_importer = MaterialImporter()
         self.skin_map: Dict[pyscene.Skin, bpy.types.Object] = {}
+        self.mesh_obj_list: List[bpy.types.Object] = []
 
         # coordinates
         self.vrm = vrm
@@ -298,7 +299,7 @@ class Importer:
         '''
         # create object
         if isinstance(node.mesh, pyscene.SubmeshMesh):
-            bl_mesh = self._get_or_create_mesh(node.mesh)
+            bl_mesh = self._get_or_create_mesh(node.mesh)            
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
         else:
             # empty
@@ -357,11 +358,20 @@ class Importer:
         for root in roots:
             self._create_tree(root)
 
+        bl_humanoid_obj = None
         if self.vrm:
             # Armature を ひとつの Humanoid にまとめる
-            bl_obj = self._create_humanoid(roots)
+            bl_humanoid_obj = self._create_humanoid(roots)
+
+            # Mesh を Armature の子にする
+            for bl_obj in self.mesh_obj_list:
+                if isinstance(bl_obj.data, bpy.types.Mesh):
+                    bl_obj.parent = bl_humanoid_obj
+                else:
+                    bpy.data.objects.remove(bl_obj, do_unlink=True)
+
             # プロパティロード
-            self._load_expressions(bl_obj, self.vrm.expressions)
+            # self._load_expressions(bl_obj, self.vrm.expressions)
         else:
             # skinning
             for root in roots:
@@ -376,3 +386,11 @@ class Importer:
         # remove empties
         for root in roots:
             self._remove_empty(root)
+
+        if bl_humanoid_obj:
+            for bl_obj in self.collection.objects:
+                if isinstance(bl_obj.data, bpy.types.Mesh):
+                    bl_obj.parent = bl_humanoid_obj
+            for bl_obj in self.collection.objects:
+                if not bl_obj.data and not bl_obj.parent and not bl_obj.children:
+                    bpy.data.objects.remove(bl_obj, do_unlink=True)
