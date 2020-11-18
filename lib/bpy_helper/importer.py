@@ -349,7 +349,7 @@ class Importer:
     def _load_expressions(self, bl_obj: bpy.types.Object,
                           expressions: List[pyscene.VrmExpression]):
         for e in expressions:
-            expression: custom_rna.Expression = bl_obj.pyimpex_expressions.add(
+            expression: custom_rna.PYIMPEX_Expression = bl_obj.pyimpex_expressions.add(
             )
             expression.preset = e.preset.value
             expression.name = e.name
