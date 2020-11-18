@@ -354,39 +354,8 @@ class Importer:
             expression.preset = e.preset.value
             expression.name = e.name
 
-    def execute(self, roots: List[pyscene.Node]):
-        for root in roots:
-            self._create_tree(root)
-
-        bl_humanoid_obj = None
-        if self.vrm:
-            # Armature を ひとつの Humanoid にまとめる
-            bl_humanoid_obj = self._create_humanoid(roots)
-
-            # Mesh を Armature の子にする
-            for bl_obj in self.mesh_obj_list:
-                if isinstance(bl_obj.data, bpy.types.Mesh):
-                    bl_obj.parent = bl_humanoid_obj
-                else:
-                    bpy.data.objects.remove(bl_obj, do_unlink=True)
-
-            # プロパティロード
-            # self._load_expressions(bl_obj, self.vrm.expressions)
-        else:
-            # skinning
-            for root in roots:
-                for bl_obj in root.traverse():
-                    if bl_obj.skin:
-                        self._create_armature(bl_obj)
-
-        for n, o in self.obj_map.items():
-            if o.type == 'MESH' and n.skin:
-                self._setup_skinning(n)
-
-        # remove empties
-        for root in roots:
-            self._remove_empty(root)
-
+    def _load_expression_bone_driverse(self,
+                                       bl_humanoid_obj: bpy.types.Object):
         if self.vrm and bl_humanoid_obj:
             # vrm
             for bl_obj in self.collection.objects:
@@ -412,7 +381,7 @@ class Importer:
                     bl_bone.tail = (x, y + 0.1, z)
                     z += 0.02
 
-            # morph            
+            # morph
             for expression in self.vrm.expressions:
                 for i, morph_bind in enumerate(expression.morph_bindings):
                     # create driver
@@ -441,3 +410,40 @@ class Importer:
                     t.transform_type = 'LOC_X'
                     d.driver.type = 'SCRIPTED'
                     d.driver.expression = "var/0.1"
+
+    def execute(self, roots: List[pyscene.Node]):
+        for root in roots:
+            self._create_tree(root)
+
+        bl_humanoid_obj = None
+        if self.vrm:
+            # Armature を ひとつの Humanoid にまとめる
+            bl_humanoid_obj = self._create_humanoid(roots)
+
+            # Mesh を Armature の子にする
+            for bl_obj in self.mesh_obj_list:
+                if isinstance(bl_obj.data, bpy.types.Mesh):
+                    bl_obj.parent = bl_humanoid_obj
+                else:
+                    bpy.data.objects.remove(bl_obj, do_unlink=True)
+
+            # プロパティロード
+            self._load_expressions(bl_humanoid_obj, self.vrm.expressions)
+        else:
+            # skinning
+            for root in roots:
+                for bl_obj in root.traverse():
+                    if bl_obj.skin:
+                        self._create_armature(bl_obj)
+
+        for n, o in self.obj_map.items():
+            if o.type == 'MESH' and n.skin:
+                self._setup_skinning(n)
+
+        # remove empties
+        for root in roots:
+            self._remove_empty(root)
+
+        utils.enter_mode('OBJECT')
+        for bl_obj in self.collection.objects:
+            bl_obj.select_set(False)

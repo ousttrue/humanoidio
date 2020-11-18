@@ -31,28 +31,6 @@ from bpy.props import (
 from bpy_extras.io_utils import (ImportHelper, ExportHelper)
 
 
-class PyImpexExpressionPanel(bpy.types.Panel):
-    bl_idname = "OBJECT_PT_pyimex_expression"
-    bl_label = "VRM Expressions"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "object"
-
-    @classmethod
-    def poll(cls, context):
-        if context.object is None:
-            return False
-        return True
-
-    def draw_header(self, context):
-        layout: bpy.types.UILayout = self.layout
-        layout.label(text="pyimpex Expressions")
-
-    def draw(self, context):
-        for e in context.object.pyimpex_expressions:
-            self.layout.label(text=e.name)
-
-
 class PyImpexImporter(bpy.types.Operator, ImportHelper):
     """
     Import scene
@@ -149,11 +127,7 @@ def menu_func_export(self, context):
 
 def register():
     from .lib.bpy_helper import custom_rna
-    # props
-    bpy.utils.register_class(custom_rna.Expression)
-    bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(
-        type=custom_rna.Expression)
-    bpy.utils.register_class(PyImpexExpressionPanel)
+    custom_rna.register()
     # operators
     for c in CLASSES:
         bpy.utils.register_class(c)
