@@ -1,7 +1,10 @@
-from typing import Optional
+from typing import NamedTuple, Optional, List
 from enum import Enum
+
+import bpy
 from .. import formats
 from .index_map import IndexMap
+from .node import Node
 
 
 class VrmExpressionPreset(Enum):
@@ -25,11 +28,18 @@ class VrmExpressionPreset(Enum):
     blink_r = "blink_r"
 
 
+class VrmMorphBinding(NamedTuple):
+    node: Node
+    name: str
+    weight: float
+
+
 class VrmExpression:
     def __init__(self, preset: VrmExpressionPreset,
                  name: Optional[str]) -> None:
         self.preset = preset
         self.name = name
+        self.morph_bindings: List[VrmMorphBinding] = []
 
     def __str__(self) -> str:
         if self.preset == VrmExpressionPreset.unknown:
@@ -46,7 +56,7 @@ class VrmExpression:
 
 class Vrm:
     def __init__(self) -> None:
-        self.expressions = []
+        self.expressions: List[VrmExpression] = []
 
 
 def load_vrm(index_map: IndexMap, gltf: formats.gltf.glTF) -> Optional[Vrm]:
@@ -64,4 +74,20 @@ def load_vrm(index_map: IndexMap, gltf: formats.gltf.glTF) -> Optional[Vrm]:
         expression = VrmExpression(VrmExpressionPreset(blendshape.presetName),
                                    blendshape.name)
         vrm.expressions.append(expression)
+
+        for b in blendshape.binds:
+            if not isinstance(b.mesh, int):
+                raise Exception()
+            if not isinstance(b.index, int):
+                raise Exception()
+            mesh = index_map.mesh[b.mesh]
+            node = index_map.node_from_mesh(mesh)
+            if not node:
+                raise Exception()
+
+            name = mesh.morphtargets[b.index].name
+
+            expression.morph_bindings.append(
+                VrmMorphBinding(node, name, b.weight * 0.01))
+
     return vrm

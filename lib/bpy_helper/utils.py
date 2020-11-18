@@ -29,10 +29,12 @@ mode_map = {
 
 
 @contextmanager
-def disposable_mode(mode='OBJECT'):
+def disposable_mode(bl_obj: bpy.types.Object, mode='OBJECT'):
     '''
     モードを変更して元のモードに戻る
     '''
+    bpy.context.view_layer.objects.active = bl_obj
+
     restore = mode_map[bpy.context.mode]
     try:
         if restore != mode:

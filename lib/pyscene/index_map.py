@@ -1,4 +1,4 @@
-from typing import NamedTuple, Dict, List
+from typing import NamedTuple, Dict, List, Optional
 from .material import UnlitMaterial, Texture
 from .submesh_mesh import SubmeshMesh
 from .node import Node
@@ -23,3 +23,8 @@ class IndexMap(NamedTuple):
         if not scene.nodes:
             return []
         return self.get_nodes(scene.nodes)
+
+    def node_from_mesh(self, mesh: SubmeshMesh) -> Optional[Node]:
+        for node in self.node.values():
+            if node.mesh == mesh:
+                return node

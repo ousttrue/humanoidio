@@ -1,4 +1,7 @@
 from logging import getLogger
+from math import exp
+
+from bpy.types import Armature
 logger = getLogger(__name__)
 from contextlib import contextmanager
 from typing import List, Optional, Dict, Set
@@ -8,6 +11,7 @@ from .materials import MaterialImporter
 from .mesh_importer import create_bmesh
 from .bone_connector import connect_bones
 from . import custom_rna
+from . import utils
 
 
 @contextmanager
@@ -207,16 +211,13 @@ class Importer:
         connect_bones(bones)
 
         # set bone group
-        bpy.ops.object.mode_set(mode='POSE', toggle=False)
-        bone_group = bl_obj.pose.bone_groups.new(name='humanoid')
-        bone_group.color_set = 'THEME01'
-        for k, v in bones.items():
-            if k.humanoid_bone:
-                b = bl_obj.pose.bones[k.name]
-                b.bone_group = bone_group
-
-        # exit edit mode
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        with utils.disposable_mode(bl_obj, 'POSE'):
+            bone_group = bl_obj.pose.bone_groups.new(name='humanoid')
+            bone_group.color_set = 'THEME01'
+            for k, v in bones.items():
+                if k.humanoid_bone:
+                    b = bl_obj.pose.bones[k.name]
+                    b.bone_group = bone_group
 
         for skin in skins:
             self.skin_map[skin] = bl_obj
@@ -374,9 +375,9 @@ class Importer:
         else:
             # skinning
             for root in roots:
-                for node in root.traverse():
-                    if node.skin:
-                        self._create_armature(node)
+                for bl_obj in root.traverse():
+                    if bl_obj.skin:
+                        self._create_armature(bl_obj)
 
         for n, o in self.obj_map.items():
             if o.type == 'MESH' and n.skin:
@@ -396,6 +397,47 @@ class Importer:
                     bpy.data.objects.remove(bl_obj, do_unlink=True)
 
             # expression driver
-            bpy.ops.object.mode_set(mode='POSE', toggle=False)
+            armature = bl_humanoid_obj.data
+            if not isinstance(armature, bpy.types.Armature):
+                raise Exception()
 
-            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+            with utils.disposable_mode(bl_humanoid_obj, 'EDIT'):
+                x = 0.2
+                y = 0
+                z = 1.5
+                for expression in self.vrm.expressions:
+                    bl_bone = armature.edit_bones.new(str(expression))
+
+                    bl_bone.head = (x, y, z)
+                    bl_bone.tail = (x, y + 0.1, z)
+                    z += 0.02
+
+            # morph            
+            for expression in self.vrm.expressions:
+                for i, morph_bind in enumerate(expression.morph_bindings):
+                    # create driver
+                    bl_obj = self.obj_map[morph_bind.node]
+                    mesh = bl_obj.data
+                    if not isinstance(mesh, bpy.types.Mesh):
+                        raise Exception()
+
+                    bpy.context.view_layer.objects.active = bl_obj
+
+                    shape_key = mesh.shape_keys.key_blocks[morph_bind.name]
+
+                    #
+                    # https://sourcecodequery.com/example-method/bpy.ops.object.text_add
+                    #
+                    d: bpy.types.FCurve = shape_key.driver_add('value')
+                    var = d.driver.variables.new()
+                    var.name = 'var'
+                    var.type = 'TRANSFORMS'
+                    t = var.targets[0]
+                    # t.id_type = 'ARMATURE'
+                    # t.id = bl_humanoid_obj.data
+                    t.id = bl_humanoid_obj
+                    t.bone_target = str(expression)
+                    t.transform_space = 'LOCAL_SPACE'
+                    t.transform_type = 'LOC_X'
+                    d.driver.type = 'SCRIPTED'
+                    d.driver.expression = "var/0.1"

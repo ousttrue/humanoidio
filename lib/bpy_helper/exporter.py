@@ -137,8 +137,7 @@ class Exporter:
         skin = pyscene.Skin(name)
         self._skin_map[armature_object] = skin
 
-        bpy.context.view_layer.objects.active = armature_object
-        with utils.disposable_mode('POSE'):
+        with utils.disposable_mode(armature_object, 'POSE'):
 
             armature = armature_object.data
             if not isinstance(armature, bpy.types.Armature):

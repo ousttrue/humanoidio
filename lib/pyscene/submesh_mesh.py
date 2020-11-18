@@ -30,7 +30,10 @@ class MorphTarget:
         self.attributes = PlanarBuffer.create(vertex_count, False)
 
     def __str__(self):
-        return f'<PlanarBuffer {len(self.attributes.position)}>'
+        return f'{self.name}: <PlanarBuffer {len(self.attributes.position)}>'
+
+    def __repr__(self):
+        return str(self)
 
 
 class SubmeshMesh:
