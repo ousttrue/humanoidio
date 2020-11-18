@@ -2,6 +2,9 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import NamedTuple, MutableSequence, Dict, Tuple, Iterable, List
 import ctypes
+import math
+
+EPSILON = 1e-5
 
 
 class Float2(ctypes.Structure):
@@ -181,9 +184,12 @@ class PlanarBuffer(NamedTuple):
 
         if memoryview(self.position).tobytes() != memoryview(
                 other.position).tobytes():
-            l = [(p.x, p.y, p.z) for p in self.position]
-            r = [(p.x, p.y, p.z) for p in other.position]
-            raise Exception('position is not same')
+            if len(self.position) != len(other.position):
+                raise Exception()
+            for l, r in zip(self.position, other.position):
+                if math.fabs(l.x - r.x) > EPSILON: raise Exception()
+                if math.fabs(l.y - r.y) > EPSILON: raise Exception()
+                if math.fabs(l.z - r.z) > EPSILON: raise Exception()
 
         return True
 

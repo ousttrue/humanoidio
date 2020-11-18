@@ -47,7 +47,7 @@ class BpyTests(unittest.TestCase):
             self._check_node(l, r)
 
     def setUp(self):
-        bpy_helper.clear()
+        bpy_helper.utils.clear()
 
     def test_box_textured_glb(self):
         path = GLTF_SAMPLE_DIR / '2.0/BoxTextured/glTF-Binary/BoxTextured.glb'

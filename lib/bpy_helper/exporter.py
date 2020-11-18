@@ -2,7 +2,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Iterator, Dict, Any, Sequence
 import bpy, mathutils
-from .. import bpy_helper
+from . import utils
 from .. import pyscene
 from ..struct_types import Float3
 from .materials import MaterialExporter
@@ -138,9 +138,11 @@ class Exporter:
         self._skin_map[armature_object] = skin
 
         bpy.context.view_layer.objects.active = armature_object
-        with bpy_helper.disposable_mode('POSE'):
+        with utils.disposable_mode('POSE'):
 
             armature = armature_object.data
+            if not isinstance(armature, bpy.types.Armature):
+                raise Exception()
             for b in armature.bones:
                 if not b.parent:
                     # root bone
@@ -151,9 +153,11 @@ class Exporter:
     def _export_mesh(self, o: bpy.types.Object, mesh: bpy.types.Mesh,
                      node: pyscene.Node) -> pyscene.FaceMesh:
         # copy
-        new_obj = bpy_helper.clone(o)
-        with bpy_helper.disposable(new_obj):
-            new_mesh: bpy.types.Mesh = new_obj.data
+        new_obj = utils.clone(o)
+        with utils.disposable(new_obj):
+            new_mesh = new_obj.data
+            if not isinstance(new_mesh, bpy.types.Mesh):
+                raise Exception()
 
             # clear shape key
             new_obj.shape_key_clear()
@@ -168,14 +172,11 @@ class Exporter:
                         break
 
             # apply modifiers
-            bpy_helper.apply_modifiers(new_obj)
+            utils.apply_modifiers(new_obj)
 
             # メッシュの三角形化
-            if bpy.app.version[1] > 80:
-                new_mesh.calc_loop_triangles()
-                new_mesh.update()
-            else:
-                new_mesh.update(calc_loop_triangles=True)
+            new_mesh.calc_loop_triangles()
+            new_mesh.update()
             triangles = [i for i in new_mesh.loop_triangles]
 
             def get_texture_layer(layers):

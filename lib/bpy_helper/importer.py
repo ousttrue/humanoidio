@@ -4,10 +4,8 @@ from contextlib import contextmanager
 from typing import List, Optional, Dict, Set
 import bpy, mathutils
 from .. import pyscene
-from .. import formats
 from .materials import MaterialImporter
 from .mesh_importer import create_bmesh
-from .functions import remove_mesh
 from .bone_connector import connect_bones
 from . import custom_rna
 
@@ -26,7 +24,8 @@ class Importer:
     '''
     bpy.types.Object, Mesh, Material, Texture を作成する
     '''
-    def __init__(self, collection: bpy.types.Collection, vrm: pyscene.Vrm):
+    def __init__(self, collection: bpy.types.Collection,
+                 vrm: Optional[pyscene.Vrm]):
         self.collection = collection
         self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
@@ -299,7 +298,7 @@ class Importer:
         '''
         # create object
         if isinstance(node.mesh, pyscene.SubmeshMesh):
-            bl_mesh = self._get_or_create_mesh(node.mesh)            
+            bl_mesh = self._get_or_create_mesh(node.mesh)
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
         else:
             # empty
@@ -387,10 +386,16 @@ class Importer:
         for root in roots:
             self._remove_empty(root)
 
-        if bl_humanoid_obj:
+        if self.vrm and bl_humanoid_obj:
+            # vrm
             for bl_obj in self.collection.objects:
                 if isinstance(bl_obj.data, bpy.types.Mesh):
                     bl_obj.parent = bl_humanoid_obj
             for bl_obj in self.collection.objects:
                 if not bl_obj.data and not bl_obj.parent and not bl_obj.children:
                     bpy.data.objects.remove(bl_obj, do_unlink=True)
+
+            # expression driver
+            bpy.ops.object.mode_set(mode='POSE', toggle=False)
+
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)

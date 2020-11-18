@@ -34,7 +34,7 @@ DST_FILE = HERE / 'tmp.glb'
 
 # clear scene
 logger.debug('clear scene')
-bpy_helper.clear()
+bpy_helper.utils.clear()
 
 bpy.ops.pyimpex.importer(filepath=str(SRC_FILE))  # type: ignore
 bpy.ops.pyimpex.exporter(filepath=str(DST_FILE))  # type: ignore
