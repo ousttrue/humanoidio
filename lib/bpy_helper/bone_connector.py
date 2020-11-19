@@ -40,7 +40,11 @@ class BoneConnector:
         if parent:
             # print(f'connect {parent} => {node}')
             bl_parent = self.bones[parent]
-            bl_bone = self.bones[node]
+            bl_bone = self.bones.get(node)
+            if not bl_bone:
+                # not in skin
+                return
+
             bl_bone.parent = bl_parent
             if is_connect:
                 if bl_parent.head != bl_bone.head:
@@ -92,6 +96,7 @@ def connect_bones(bones: Dict[pyscene.Node, bpy.types.EditBone]):
 
     nodes = bones.keys()
     roots = []
+
     for node in nodes:
         if not node.parent:
             roots.append(node)

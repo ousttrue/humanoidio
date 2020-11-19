@@ -375,7 +375,7 @@ class Importer:
                 var.type = 'SINGLE_PROP'
                 t = var.targets[0]
                 t.id = bl_obj
-                t.data_path = f'pyimpex_expressions[{i}].weight'               
+                t.data_path = f'pyimpex_expressions[{i}].weight'
                 d.driver.type = 'SCRIPTED'
                 d.driver.expression = "var"
 

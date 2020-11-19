@@ -214,6 +214,10 @@ class MToonMaterial(UnlitMaterial):
                 '_RimLightingMix',
                 '_RimFresnelPower',
                 '_RimLift',
+                '_UvAnimScrollX',
+                '_UvAnimScrollY',
+                '_UvAnimRotation',
+                '_MToonVersion',
                 #
                 '_SrcBlend',
                 '_DstBlend',
@@ -261,6 +265,8 @@ class MToonMaterial(UnlitMaterial):
             self.shade_color.x = v[0]
             self.shade_color.y = v[1]
             self.shade_color.z = v[2]
+        elif k == '_RimColor':
+            pass
         elif k in [
                 # Todo
                 '_MainTex',
@@ -271,6 +277,8 @@ class MToonMaterial(UnlitMaterial):
                 '_SphereAdd',
                 '_EmissionMap',
                 '_OutlineWidthTexture',
+                '_RimTexture',
+                '_UvAnimMaskTexture',
         ]:
             pass
         else:

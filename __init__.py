@@ -24,12 +24,15 @@ import pathlib
 def reload():
     print('reload')
     import importlib
+
     from .lib import formats
     importlib.reload(formats)
 
     from .lib import pyscene
-    importlib.reload(pyscene)
     pyscene.reload()
+
+    from .lib import bpy_helper
+    bpy_helper.reload()
 
 
 if "bpy" in locals():
