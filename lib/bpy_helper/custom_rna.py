@@ -92,3 +92,9 @@ def register():
     )
 
     bpy.utils.register_class(PYIMPEX_ExpressionPanel)
+
+
+def unregister():
+    bpy.utils.unregister_class(PYIMPEX_ExpressionPanel)
+    bpy.utils.unregister_class(PYIMPEX_UL_ExpressionTemplate)
+    bpy.utils.unregister_class(PYIMPEX_Expression)

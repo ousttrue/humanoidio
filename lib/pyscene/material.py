@@ -211,6 +211,9 @@ class MToonMaterial(UnlitMaterial):
                 '_OutlineWidthMode',
                 '_OutlineColorMode',
                 '_OutlineCullMode',
+                '_RimLightingMix',
+                '_RimFresnelPower',
+                '_RimLift',
                 #
                 '_SrcBlend',
                 '_DstBlend',

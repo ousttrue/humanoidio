@@ -20,6 +20,21 @@ logger = getLogger(__name__)
 import json
 import pathlib
 
+
+def reload():
+    print('reload')
+    import importlib
+    from .lib import formats
+    importlib.reload(formats)
+
+    from .lib import pyscene
+    importlib.reload(pyscene)
+    pyscene.reload()
+
+
+if "bpy" in locals():
+    reload()
+
 #
 import bpy
 from bpy.props import (
@@ -143,6 +158,10 @@ def unregister():
         bpy.utils.unregister_class(c)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)  # type: ignore
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)  # type: ignore
+
+    #
+    from .lib.bpy_helper import custom_rna
+    custom_rna.unregister()
 
 
 if __name__ == "__main__":
