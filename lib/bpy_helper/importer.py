@@ -346,70 +346,87 @@ class Importer:
         if node.parent:
             node.parent.children.remove(node)
 
+    def _get_shape_key(self, morph_bind):
+        bl_obj = self.obj_map[morph_bind.node]
+        mesh = bl_obj.data
+        if not isinstance(mesh, bpy.types.Mesh):
+            raise Exception()
+
+        # bpy.context.view_layer.objects.active = bl_obj
+        return mesh.shape_keys.key_blocks[morph_bind.name]
+
     def _load_expressions(self, bl_obj: bpy.types.Object,
                           expressions: List[pyscene.VrmExpression]):
-        for e in expressions:
-            expression: custom_rna.PYIMPEX_Expression = bl_obj.pyimpex_expressions.add(
-            )
-            expression.preset = e.preset.value
-            expression.name = e.name
+
+        with utils.disposable_mode(bl_obj, 'OBJECT'):
+            for i, e in enumerate(expressions):
+                expression: custom_rna.PYIMPEX_Expression = bl_obj.pyimpex_expressions.add(
+                )
+                expression.preset = e.preset.value
+                expression.name = e.name
+
+        for i, e in enumerate(expressions):
+            for morph_bind in e.morph_bindings:
+                shape_key = self._get_shape_key(morph_bind)
+
+                d: bpy.types.FCurve = shape_key.driver_add('value')
+                var = d.driver.variables.new()
+                var.name = 'var'
+                var.type = 'SINGLE_PROP'
+                t = var.targets[0]
+                t.id = bl_obj
+                t.data_path = f'pyimpex_expressions[{i}].weight'               
+                d.driver.type = 'SCRIPTED'
+                d.driver.expression = "var"
 
     def _load_expression_bone_driverse(self,
                                        bl_humanoid_obj: bpy.types.Object):
-        if self.vrm and bl_humanoid_obj:
-            # vrm
-            for bl_obj in self.collection.objects:
-                if isinstance(bl_obj.data, bpy.types.Mesh):
-                    bl_obj.parent = bl_humanoid_obj
-            for bl_obj in self.collection.objects:
-                if not bl_obj.data and not bl_obj.parent and not bl_obj.children:
-                    bpy.data.objects.remove(bl_obj, do_unlink=True)
 
-            # expression driver
-            armature = bl_humanoid_obj.data
-            if not isinstance(armature, bpy.types.Armature):
-                raise Exception()
+        # expression driver
+        armature = bl_humanoid_obj.data
+        if not isinstance(armature, bpy.types.Armature):
+            raise Exception()
 
-            with utils.disposable_mode(bl_humanoid_obj, 'EDIT'):
-                x = 0.2
-                y = 0
-                z = 1.5
-                for expression in self.vrm.expressions:
-                    bl_bone = armature.edit_bones.new(str(expression))
-
-                    bl_bone.head = (x, y, z)
-                    bl_bone.tail = (x, y + 0.1, z)
-                    z += 0.02
-
-            # morph
+        with utils.disposable_mode(bl_humanoid_obj, 'EDIT'):
+            x = 0.2
+            y = 0
+            z = 1.5
             for expression in self.vrm.expressions:
-                for i, morph_bind in enumerate(expression.morph_bindings):
-                    # create driver
-                    bl_obj = self.obj_map[morph_bind.node]
-                    mesh = bl_obj.data
-                    if not isinstance(mesh, bpy.types.Mesh):
-                        raise Exception()
+                bl_bone = armature.edit_bones.new(str(expression))
 
-                    bpy.context.view_layer.objects.active = bl_obj
+                bl_bone.head = (x, y, z)
+                bl_bone.tail = (x, y + 0.1, z)
+                z += 0.02
 
-                    shape_key = mesh.shape_keys.key_blocks[morph_bind.name]
+        # morph
+        for expression in self.vrm.expressions:
+            for i, morph_bind in enumerate(expression.morph_bindings):
+                # create driver
+                bl_obj = self.obj_map[morph_bind.node]
+                mesh = bl_obj.data
+                if not isinstance(mesh, bpy.types.Mesh):
+                    raise Exception()
 
-                    #
-                    # https://sourcecodequery.com/example-method/bpy.ops.object.text_add
-                    #
-                    d: bpy.types.FCurve = shape_key.driver_add('value')
-                    var = d.driver.variables.new()
-                    var.name = 'var'
-                    var.type = 'TRANSFORMS'
-                    t = var.targets[0]
-                    # t.id_type = 'ARMATURE'
-                    # t.id = bl_humanoid_obj.data
-                    t.id = bl_humanoid_obj
-                    t.bone_target = str(expression)
-                    t.transform_space = 'LOCAL_SPACE'
-                    t.transform_type = 'LOC_X'
-                    d.driver.type = 'SCRIPTED'
-                    d.driver.expression = "var/0.1"
+                bpy.context.view_layer.objects.active = bl_obj
+
+                shape_key = mesh.shape_keys.key_blocks[morph_bind.name]
+
+                #
+                # https://sourcecodequery.com/example-method/bpy.ops.object.text_add
+                #
+                d: bpy.types.FCurve = shape_key.driver_add('value')
+                var = d.driver.variables.new()
+                var.name = 'var'
+                var.type = 'TRANSFORMS'
+                t = var.targets[0]
+                # t.id_type = 'ARMATURE'
+                # t.id = bl_humanoid_obj.data
+                t.id = bl_humanoid_obj
+                t.bone_target = str(expression)
+                t.transform_space = 'LOCAL_SPACE'
+                t.transform_type = 'LOC_X'
+                d.driver.type = 'SCRIPTED'
+                d.driver.expression = "var/0.1"
 
     def execute(self, roots: List[pyscene.Node]):
         for root in roots:
@@ -443,6 +460,15 @@ class Importer:
         # remove empties
         for root in roots:
             self._remove_empty(root)
+
+        if self.vrm and bl_humanoid_obj:
+            # reparent vrm mesh
+            for bl_obj in self.collection.objects:
+                if isinstance(bl_obj.data, bpy.types.Mesh):
+                    bl_obj.parent = bl_humanoid_obj
+            for bl_obj in self.collection.objects:
+                if not bl_obj.data and not bl_obj.parent and not bl_obj.children:
+                    bpy.data.objects.remove(bl_obj, do_unlink=True)
 
         utils.enter_mode('OBJECT')
         for bl_obj in self.collection.objects:

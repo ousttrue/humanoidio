@@ -31,13 +31,16 @@ class PYIMPEX_Expression(bpy.types.PropertyGroup):
                                    description="VRM Expression preset",
                                    items=presets)
     name: bpy.props.StringProperty(name="Preset", default="Unknown")
+    weight: bpy.props.FloatProperty(name="Weight", default=0, min=0, max=1)
 
 
 class PYIMPEX_UL_ExpressionTemplate(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data,
                   active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon_value=icon)
+            layout.prop(item, "preset", text="", emboss=False, icon_value=icon)
+            layout.prop(item, "name", text="", emboss=False)
+            layout.prop(item, "weight", text="", emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
@@ -52,8 +55,11 @@ class PYIMPEX_ExpressionPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.object is None:
+        if not context.object:
             return False
+        if not isinstance(context.object.data, bpy.types.Armature):
+            return False
+
         return True
 
     def draw_header(self, context):
@@ -64,12 +70,10 @@ class PYIMPEX_ExpressionPanel(bpy.types.Panel):
         layout = self.layout
         obj = context.object
 
-        # template_list now takes two new args.
-        # The first one is the identifier of the registered UIList to use (if you want only the default list,
-        # with no custom draw code, use "UI_UL_list").
-        layout.template_list(
+        row = layout.row()
+        row.template_list(
             "PYIMPEX_UL_ExpressionTemplate",
-            "",
+            "Expresssions",
             # list
             obj,
             "pyimpex_expressions",
