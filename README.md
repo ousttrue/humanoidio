@@ -44,9 +44,16 @@ Blender   /GLTF            rotate 180 degrees by Y axis
         L Z
 ```
 
-## TODO
+## VRM Object構成
 
-* [ ] humanoid pose
+元のツリー構成の維持には拘らない。
+単一の Armature に複数の Mesh が乗る。
+
+* Armature(Humanoid)
+    * Mesh-0
+    * Mesh-1
+    * Mesh-2
+    * Mesh-3...
 
 ## Import
 
@@ -59,49 +66,24 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 * [x] MToon
 * [x] 手前向きにする
 * [x] Import: ShapeKey の無いところは SubMesh を別オブジェクトに分割する
-* [ ] expression
+* [x] expression
 * [ ] lookat
 * [ ] VRM-1.0
 * [x] collection
-
-### VRM
-
-元のツリー構成の維持には拘らない。
-
-* Armature(Humanoid)
-    * Mesh-0
-    * Mesh-1
-    * Mesh-2
-    * Mesh-3...
-
-という Ojbect 構成を強制する。
-
-## bpy.props
-
-RNAプロパティを定義して
-
-* https://dskjal.com/blender/rna-vs-id-property.html
-* https://docs.blender.org/api/2.83/bpy.props.html
-
-UI(Panel)で表示する
-
-* https://docs.blender.org/api/2.83/info_quickstart.html?highlight=panel#example-panel
-* https://docs.blender.org/api/2.83/bpy.types.Panel.html?highlight=layout#bpy.types.Panel.layout
-
-#### Meta
-#### BlendShape
-#### LookAt
-#### FirstPerson
-#### SpringBone
-
-## Rigify の補助
-
-[ ] Meta-rig を生成する補助
+* [ ] meta
+* [ ] firstperson
+* [ ] springbone
+* [ ] rigify 自動生成
+* [ ] humanoid pose
 
 ## Export
 
 * [ ] Gltf, Vrm 別のエクスポーターに分ける
-* [ ] material group を作るパネル
 * [ ] unlit
 * [x] PBR
 * [ ] MToon
+
+## VRMの新規作成
+
+* [ ] material group
+* [ ] modifier を適用せずにエクスポートする
