@@ -466,6 +466,7 @@ class Importer:
             for bl_obj in self.collection.objects:
                 if isinstance(bl_obj.data, bpy.types.Mesh):
                     bl_obj.parent = bl_humanoid_obj
+                    bl_obj.location = (0, 0, 0) # without BindMatcies ?
             for bl_obj in self.collection.objects:
                 if not bl_obj.data and not bl_obj.parent and not bl_obj.children:
                     bpy.data.objects.remove(bl_obj, do_unlink=True)
