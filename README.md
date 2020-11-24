@@ -75,6 +75,7 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 * [ ] springbone
 * [ ] rigify 自動生成
 * [ ] humanoid pose
+* [ ] 名前のマッピング。.001等がついて違う名前になったときの対応
 
 ## Export
 
@@ -83,7 +84,8 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 * [x] PBR
 * [ ] MToon
 
-## VRMの新規作成
+## VRMの新規作成/memo
 
 * [ ] material group
 * [ ] modifier を適用せずにエクスポートする
+* [ ] view位置をbookmarkする

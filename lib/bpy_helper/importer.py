@@ -348,9 +348,11 @@ class Importer:
 
     def _get_shape_key(self, morph_bind):
         bl_obj = self.obj_map[morph_bind.node]
+        if not bl_obj.data:
+            raise Exception(f'{morph_bind.node}.data is None')
         mesh = bl_obj.data
         if not isinstance(mesh, bpy.types.Mesh):
-            raise Exception()
+            raise Exception(f'{morph_bind.node}.data is not bpy.types.Mesh')
 
         # bpy.context.view_layer.objects.active = bl_obj
         return mesh.shape_keys.key_blocks[morph_bind.name]
@@ -466,7 +468,7 @@ class Importer:
             for bl_obj in self.collection.objects:
                 if isinstance(bl_obj.data, bpy.types.Mesh):
                     bl_obj.parent = bl_humanoid_obj
-                    bl_obj.location = (0, 0, 0) # without BindMatcies ?
+                    # bl_obj.location = (0, 0, 0) # without BindMatcies ?
             for bl_obj in self.collection.objects:
                 if not bl_obj.data and not bl_obj.parent and not bl_obj.children:
                     bpy.data.objects.remove(bl_obj, do_unlink=True)

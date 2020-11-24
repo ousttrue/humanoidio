@@ -23,9 +23,12 @@ class BoneConnector:
         '''
         bl_bone = self.bones[node]
         if node.parent:
-            bl_parent = self.bones[node.parent]
-            tail_offset = (bl_bone.head - bl_parent.head)  # type: ignore
-            bl_bone.tail = bl_bone.head + tail_offset
+            try:
+                bl_parent = self.bones[node.parent]
+                tail_offset = (bl_bone.head - bl_parent.head)  # type: ignore
+                bl_bone.tail = bl_bone.head + tail_offset
+            except KeyError:
+                print(f'{node}.parent not found')
 
     def connect_tail(self, node: pyscene.Node, tail: pyscene.Node):
         bl_bone = self.bones[node]

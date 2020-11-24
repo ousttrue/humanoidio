@@ -8,9 +8,9 @@ from . import utils
 
 def reload():
     print(f'reload {__file__}')
-    from . import exporter, importer, utils
+    from . import exporter, importer, utils, bone_connector
     import importlib
-    for m in [exporter, importer, utils]:
+    for m in [exporter, importer, utils, bone_connector]:
         importlib.reload(m)
 
 
