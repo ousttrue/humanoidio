@@ -76,6 +76,12 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 * [ ] rigify 自動生成
 * [ ] humanoid pose
 * [ ] 名前のマッピング。.001等がついて違う名前になったときの対応
+* [ ] node の削除条件
+  * 使われていない
+    * 自分か子孫に
+      * joint で無い(weight の無い joint は除去できるがめんどくさい)
+      * mesh が無い
+      * humanoid bone でない
 
 ## Export
 
