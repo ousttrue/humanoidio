@@ -99,6 +99,9 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 
 ## Rigify
 
+* [ ] knee axis
+* [ ] finger axis
+
 ```py
 import bpy
 

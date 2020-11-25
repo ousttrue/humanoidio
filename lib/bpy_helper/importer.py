@@ -70,6 +70,8 @@ def tmp_mode(obj, tmp: str):
 METALIG_MAP = {
     formats.HumanoidBones.hips:
     'spines.basic_spine',
+    formats.HumanoidBones.neck:
+    'spines.super_head',
     formats.HumanoidBones.leftUpperLeg:
     'limbs.leg',
     formats.HumanoidBones.rightUpperLeg:
@@ -80,11 +82,16 @@ METALIG_MAP = {
     formats.HumanoidBones.leftUpperArm:
     'limbs.arm',
     # formats.HumanoidBones.leftHand: 'limbs.super_palm',
-    # formats.HumanoidBones.leftThumbProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.leftIndexProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.leftMiddleProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.leftRingProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.leftLittleProximal: 'limbs.super_finger',
+    formats.HumanoidBones.leftThumbProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.leftIndexProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.leftMiddleProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.leftRingProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.leftLittleProximal:
+    'limbs.super_finger',
 
     # right arm
     formats.HumanoidBones.rightShoulder:
@@ -92,11 +99,16 @@ METALIG_MAP = {
     formats.HumanoidBones.rightUpperArm:
     'limbs.arm',
     # formats.HumanoidBones.rightHand: 'limbs.super_palm',
-    # formats.HumanoidBones.rightThumbProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.rightIndexProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.rightMiddleProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.rightRingProximal: 'limbs.super_finger',
-    # formats.HumanoidBones.rightLittleProximal: 'limbs.super_finger',
+    formats.HumanoidBones.rightThumbProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.rightIndexProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.rightMiddleProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.rightRingProximal:
+    'limbs.super_finger',
+    formats.HumanoidBones.rightLittleProximal:
+    'limbs.super_finger',
 }
 
 
