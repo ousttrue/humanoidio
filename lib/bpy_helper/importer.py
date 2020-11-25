@@ -14,6 +14,48 @@ from . import custom_rna
 from . import utils
 from .. import formats
 
+BIND_RIGIFY = '''
+# object mode で 生成した rig をアクティブにして実行する
+print()
+print('### start ###')
+
+import bpy
+
+armature_obj = bpy.context.view_layer.objects.active
+armature = armature_obj.data
+print(armature)
+
+# edit_bones にアクセスするのに必要
+bpy.ops.object.mode_set(mode='EDIT')
+
+# DEF- を消す
+defs = [b for b in armature.edit_bones if b.name.startswith('DEF-')]
+print(defs)
+for b in defs:
+    armature.edit_bones.remove(b)
+
+# ORG- の deform を有効にする
+for b in armature.edit_bones:
+    if b.name.startswith('ORG-'):
+        b.use_deform = True
+
+bpy.ops.object.mode_set(mode='OBJECT')
+
+# シーンのオブジェクトを列挙
+for o in bpy.data.objects:
+    # armature を生成した rig に設定
+    for m in  o.modifiers:
+        if m.type != 'ARMATURE':
+            continue            
+        m.object = armature_obj
+
+    # vertex group の名前を変える
+    for vg in o.vertex_groups:
+        if vg.name.startswith('ORG-'):
+            continue
+        vg.name = 'ORG-' + vg.name
+'''
+
 
 @contextmanager
 def tmp_mode(obj, tmp: str):
@@ -26,12 +68,17 @@ def tmp_mode(obj, tmp: str):
 
 
 METALIG_MAP = {
-    formats.HumanoidBones.hips: 'spines.basic_spine',
-    formats.HumanoidBones.leftUpperLeg: 'limbs.leg',
-    formats.HumanoidBones.rightUpperLeg: 'limbs.leg',
+    formats.HumanoidBones.hips:
+    'spines.basic_spine',
+    formats.HumanoidBones.leftUpperLeg:
+    'limbs.leg',
+    formats.HumanoidBones.rightUpperLeg:
+    'limbs.leg',
     # left arm
-    formats.HumanoidBones.leftShoulder: 'basic.super_copy',
-    formats.HumanoidBones.leftUpperArm: 'limbs.arm',
+    formats.HumanoidBones.leftShoulder:
+    'basic.super_copy',
+    formats.HumanoidBones.leftUpperArm:
+    'limbs.arm',
     # formats.HumanoidBones.leftHand: 'limbs.super_palm',
     # formats.HumanoidBones.leftThumbProximal: 'limbs.super_finger',
     # formats.HumanoidBones.leftIndexProximal: 'limbs.super_finger',
@@ -40,8 +87,10 @@ METALIG_MAP = {
     # formats.HumanoidBones.leftLittleProximal: 'limbs.super_finger',
 
     # right arm
-    formats.HumanoidBones.rightShoulder: 'basic.super_copy',
-    formats.HumanoidBones.rightUpperArm: 'limbs.arm',
+    formats.HumanoidBones.rightShoulder:
+    'basic.super_copy',
+    formats.HumanoidBones.rightUpperArm:
+    'limbs.arm',
     # formats.HumanoidBones.rightHand: 'limbs.super_palm',
     # formats.HumanoidBones.rightThumbProximal: 'limbs.super_finger',
     # formats.HumanoidBones.rightIndexProximal: 'limbs.super_finger',
@@ -254,8 +303,9 @@ class Importer:
         for skin in skins:
             self.skin_map[skin] = bl_obj
 
-        # set rigify
-
+        #
+        # set metarig
+        #
         with utils.disposable_mode(bl_obj, 'EDIT'):
             # add heel
             def create_heel(bl_armature: bpy.types.Armature, name: str,
@@ -289,6 +339,9 @@ class Importer:
                     except Exception as ex:
                         print(ex)
                         break
+
+        text: bpy.types.Text = bpy.data.texts.new('bind_rigify.py')
+        text.from_string(BIND_RIGIFY)
 
         return bl_obj
 
