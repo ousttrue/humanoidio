@@ -3,6 +3,30 @@ import bpy
 import mathutils
 from .. import pyscene, formats
 
+EXCLUDE_HUMANOIDS = [
+    formats.HumanoidBones.hips,
+    formats.HumanoidBones.leftUpperLeg,
+    formats.HumanoidBones.rightUpperLeg,
+    formats.HumanoidBones.leftShoulder,
+    formats.HumanoidBones.rightShoulder,
+    formats.HumanoidBones.leftEye,
+    formats.HumanoidBones.rightEye,
+    #
+    formats.HumanoidBones.leftThumbProximal,
+    formats.HumanoidBones.leftIndexProximal,
+    formats.HumanoidBones.leftMiddleProximal,
+    formats.HumanoidBones.leftRingProximal,
+    formats.HumanoidBones.leftLittleProximal,
+    #
+    formats.HumanoidBones.rightThumbProximal,
+    formats.HumanoidBones.rightIndexProximal,
+    formats.HumanoidBones.rightMiddleProximal,
+    formats.HumanoidBones.rightRingProximal,
+    formats.HumanoidBones.rightLittleProximal,
+]
+
+EXCLUDE_OTHERS = ['J_Adj_L_FaceEyeSet', 'J_Adj_R_FaceEyeSet']
+
 
 class BoneConnector:
     '''
@@ -56,7 +80,14 @@ class BoneConnector:
                     bl_parent.tail = bl_bone.head + mathutils.Vector(
                         (0, 0, 1e-4))
 
-                bl_bone.use_connect = True
+                if parent and (parent.humanoid_bone
+                               == formats.HumanoidBones.leftShoulder
+                               or parent.humanoid_bone
+                               == formats.HumanoidBones.rightShoulder):
+                    # https://blenderartists.org/t/rigify-error-generation-has-thrown-an-exception-but-theres-no-exception-message/1228840
+                    pass
+                else:
+                    bl_bone.use_connect = True
 
         if node.children:
             # recursive
@@ -65,23 +96,13 @@ class BoneConnector:
                 # humanioid
                 for i, child in enumerate(node.children):
                     if child.humanoid_bone:
-                        if child.humanoid_bone in [
-                                formats.HumanoidBones.hips,
-                                formats.HumanoidBones.leftUpperLeg,
-                                formats.HumanoidBones.rightUpperLeg,
-                                formats.HumanoidBones.leftShoulder,
-                                formats.HumanoidBones.rightShoulder,
-                                formats.HumanoidBones.leftEye,
-                                formats.HumanoidBones.rightEye,
-                        ]:
+                        if child.humanoid_bone in EXCLUDE_HUMANOIDS:
                             continue
                         connect_child_index = i
                         break
             else:
                 for i, child in enumerate(node.children):
-                    if child.name in [
-                            'J_Adj_L_FaceEyeSet', 'J_Adj_R_FaceEyeSet'
-                    ]:
+                    if child.name in EXCLUDE_OTHERS:
                         continue
                     # とりあえず
                     connect_child_index = i

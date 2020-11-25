@@ -12,6 +12,7 @@ from .mesh_importer import create_bmesh
 from .bone_connector import connect_bones
 from . import custom_rna
 from . import utils
+from .. import formats
 
 
 @contextmanager
@@ -22,6 +23,32 @@ def tmp_mode(obj, tmp: str):
         yield
     finally:
         obj.rotation_mode = mode
+
+
+METALIG_MAP = {
+    formats.HumanoidBones.hips: 'spines.basic_spine',
+    formats.HumanoidBones.leftUpperLeg: 'limbs.leg',
+    formats.HumanoidBones.rightUpperLeg: 'limbs.leg',
+    # left arm
+    formats.HumanoidBones.leftShoulder: 'basic.super_copy',
+    formats.HumanoidBones.leftUpperArm: 'limbs.arm',
+    # formats.HumanoidBones.leftHand: 'limbs.super_palm',
+    # formats.HumanoidBones.leftThumbProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.leftIndexProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.leftMiddleProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.leftRingProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.leftLittleProximal: 'limbs.super_finger',
+
+    # right arm
+    formats.HumanoidBones.rightShoulder: 'basic.super_copy',
+    formats.HumanoidBones.rightUpperArm: 'limbs.arm',
+    # formats.HumanoidBones.rightHand: 'limbs.super_palm',
+    # formats.HumanoidBones.rightThumbProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.rightIndexProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.rightMiddleProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.rightRingProximal: 'limbs.super_finger',
+    # formats.HumanoidBones.rightLittleProximal: 'limbs.super_finger',
+}
 
 
 class Importer:
@@ -180,6 +207,7 @@ class Importer:
         ]
         # create new node
         bl_skin = bpy.data.armatures.new('Humanoid')
+        bl_skin.use_mirror_x = True
         # bl_skin.show_names = True
         bl_skin.display_type = 'STICK'
         bl_obj = bpy.data.objects.new('Humanoid', bl_skin)
@@ -210,17 +238,57 @@ class Importer:
         # 2nd pass: tail, connect
         connect_bones(bones)
 
+        humaniod_map: Dict[formats.HumanoidBones, pyscene.Node] = {}
+        for k, v in bones.items():
+            if k.humanoid_bone:
+                humaniod_map[k.humanoid_bone] = k
+
         # set bone group
         with utils.disposable_mode(bl_obj, 'POSE'):
             bone_group = bl_obj.pose.bone_groups.new(name='humanoid')
             bone_group.color_set = 'THEME01'
-            for k, v in bones.items():
-                if k.humanoid_bone:
-                    b = bl_obj.pose.bones[k.name]
-                    b.bone_group = bone_group
+            for node in humaniod_map.values():
+                b = bl_obj.pose.bones[node.name]
+                b.bone_group = bone_group
 
         for skin in skins:
             self.skin_map[skin] = bl_obj
+
+        # set rigify
+
+        with utils.disposable_mode(bl_obj, 'EDIT'):
+            # add heel
+            def create_heel(bl_armature: bpy.types.Armature, name: str,
+                            bl_parent: bpy.types.EditBone, tail_offset):
+                bl_heel_l = bl_armature.edit_bones.new(name)
+                bl_heel_l.use_connect = False
+                # print(bl_parent)
+                bl_heel_l.parent = bl_parent
+                y = 0.1
+                bl_heel_l.head = (bl_parent.head.x, y, 0)
+                bl_heel_l.tail = (bl_parent.head.x + tail_offset, y, 0)
+
+            bl_armature = bl_obj.data
+            if isinstance(bl_armature, bpy.types.Armature):
+                left_foot_node = humaniod_map[formats.HumanoidBones.leftFoot]
+                create_heel(bl_armature, 'heel.L',
+                            bl_armature.edit_bones[left_foot_node.name], 0.1)
+                right_foot_node = humaniod_map[formats.HumanoidBones.rightFoot]
+                create_heel(bl_armature, 'heel.R',
+                            bl_armature.edit_bones[right_foot_node.name], -0.1)
+        with utils.disposable_mode(bl_obj, 'POSE'):
+            for k, v in bones.items():
+                if k.humanoid_bone:
+                    b = bl_obj.pose.bones[k.name]
+                    try:
+                        rigify_type = METALIG_MAP.get(k.humanoid_bone)
+                        if rigify_type:
+                            b.rigify_type = rigify_type
+                        else:
+                            print(k.humanoid_bone)
+                    except Exception as ex:
+                        print(ex)
+                        break
 
         return bl_obj
 

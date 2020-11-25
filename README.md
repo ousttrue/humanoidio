@@ -95,3 +95,62 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 * [ ] material group
 * [ ] modifier を適用せずにエクスポートする
 * [ ] view位置をbookmarkする
+
+
+## Rigify
+
+```py
+import bpy
+
+
+def traverse(bl_bone: bpy.types.PoseBone, level=0):
+    indent = '  ' * level
+
+    if bl_bone.rigify_type:
+        print(f'{indent}{bl_bone} => {bl_bone.rigify_type}')
+
+    for child in bl_bone.children:
+        traverse(child, level + 1)
+
+
+def process(bl_obj: bpy.types.Object):
+    # bl_armature = bl_obj.data
+    print(bl_obj)
+    for b in bl_obj.pose.bones:
+        if not b.parent:
+            traverse(b)
+
+
+active = bpy.context.object
+# active = bpy.context.view_layer.objects.active
+
+process(active)
+```
+
+```
+<bpy_struct, PoseBone("spine")> => spines.basic_spine
+        <bpy_struct, PoseBone("spine.004")> => spines.super_head
+              <bpy_struct, PoseBone("face")> => faces.super_face
+        <bpy_struct, PoseBone("shoulder.L")> => basic.super_copy
+          <bpy_struct, PoseBone("upper_arm.L")> => limbs.super_limb
+                <bpy_struct, PoseBone("palm.01.L")> => limbs.super_palm
+                  <bpy_struct, PoseBone("f_index.01.L")> => limbs.super_finger
+                  <bpy_struct, PoseBone("thumb.01.L")> => limbs.super_finger
+                  <bpy_struct, PoseBone("f_middle.01.L")> => limbs.super_finger
+                  <bpy_struct, PoseBone("f_ring.01.L")> => limbs.super_finger
+                  <bpy_struct, PoseBone("f_pinky.01.L")> => limbs.super_finger
+        <bpy_struct, PoseBone("shoulder.R")> => basic.super_copy
+          <bpy_struct, PoseBone("upper_arm.R")> => limbs.super_limb
+                <bpy_struct, PoseBone("palm.01.R")> => limbs.super_palm
+                  <bpy_struct, PoseBone("f_index.01.R")> => limbs.super_finger
+                  <bpy_struct, PoseBone("thumb.01.R")> => limbs.super_finger
+                  <bpy_struct, PoseBone("f_middle.01.R")> => limbs.super_finger
+                  <bpy_struct, PoseBone("f_ring.01.R")> => limbs.super_finger
+                  <bpy_struct, PoseBone("f_pinky.01.R")> => limbs.super_finger
+        <bpy_struct, PoseBone("breast.L")> => basic.super_copy
+        <bpy_struct, PoseBone("breast.R")> => basic.super_copy
+  <bpy_struct, PoseBone("pelvis.L")> => basic.super_copy
+  <bpy_struct, PoseBone("pelvis.R")> => basic.super_copy
+  <bpy_struct, PoseBone("thigh.L")> => limbs.super_limb
+  <bpy_struct, PoseBone("thigh.R")> => limbs.super_limb
+```
