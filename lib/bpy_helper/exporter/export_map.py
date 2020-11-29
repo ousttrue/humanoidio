@@ -1,7 +1,6 @@
 from typing import List, Dict, Any, Iterator, Optional
 import bpy
 from ... import pyscene
-# from ... import formats
 
 
 class ExportMap:
@@ -12,6 +11,7 @@ class ExportMap:
         self._skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
         self.materials: List[pyscene.UnlitMaterial] = []
         self._material_map: Dict[bpy.types.Material, int] = {}
+        self.vrm = pyscene.Vrm()
 
     def add_node(self, obj: Any, node: pyscene.Node):
         self.nodes.append(node)

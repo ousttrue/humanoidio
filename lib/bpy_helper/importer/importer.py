@@ -564,6 +564,22 @@ class Importer:
                 d.driver.type = 'SCRIPTED'
                 d.driver.expression = "var/0.1"
 
+    def _import_vrm(self, bl_obj: bpy.types.Object):
+        bl_obj['vrm_version'] = self.vrm.version
+        bl_obj['vrm_meta_title'] = self.vrm.meta.title
+        bl_obj['vrm_meta_author'] = self.vrm.meta.author
+        bl_obj['vrm_meta_version'] = self.vrm.meta.version
+        # self.vrm.meta.violentUssageName
+        # self.vrm.meta.allowedUserName
+        # self.vrm.meta.commercialUssageName
+        # self.vrm.meta.contactInformation
+        # self.vrm.meta.licenseName
+        # self.vrm.meta.otherLicenseUrl
+        # self.vrm.meta.otherPermissionUrl
+        # self.vrm.meta.reference
+        # self.vrm.meta.sexualUssageName
+        # self.vrm.meta.texture
+
     def execute(self, roots: List[pyscene.Node]):
         for root in roots:
             self._create_tree(root)
@@ -582,6 +598,9 @@ class Importer:
 
             # プロパティロード
             self._load_expressions(bl_humanoid_obj, self.vrm.expressions)
+
+            # meta
+            self._import_vrm(bl_humanoid_obj)
         else:
             # skinning
             for root in roots:

@@ -55,39 +55,45 @@ class VrmExpression:
 
 
 class Vrm:
-    def __init__(self) -> None:
+    def __init__(self, vrm: Optional[formats.gltf.vrm] = None) -> None:
         self.expressions: List[VrmExpression] = []
+        self.version = '1'
+        if vrm:
+            self.version = vrm.exporterVersion
+            self.meta = vrm.meta
 
+    @staticmethod
+    def load(index_map: IndexMap, gltf: formats.gltf.glTF) -> Optional['Vrm']:
+        if not gltf.extensions:
+            return None
+        if not gltf.extensions.VRM:
+            return None
 
-def load_vrm(index_map: IndexMap, gltf: formats.gltf.glTF) -> Optional[Vrm]:
-    if not gltf.extensions:
-        return None
-    if not gltf.extensions.VRM:
-        return None
+        vrm = Vrm(gltf.extensions.VRM)
 
-    vrm = Vrm()
-    for blendshape in gltf.extensions.VRM.blendShapeMaster.blendShapeGroups:
-        if not isinstance(blendshape.name, str):
-            raise Exception()
-        if not blendshape.presetName:
-            raise Exception()
-        expression = VrmExpression(VrmExpressionPreset(blendshape.presetName),
-                                   blendshape.name)
-        vrm.expressions.append(expression)
-
-        for b in blendshape.binds:
-            if not isinstance(b.mesh, int):
+        # expressions
+        for blendshape in gltf.extensions.VRM.blendShapeMaster.blendShapeGroups:
+            if not isinstance(blendshape.name, str):
                 raise Exception()
-            if not isinstance(b.index, int):
+            if not blendshape.presetName:
                 raise Exception()
-            mesh = index_map.mesh[b.mesh]
-            node = index_map.node_from_mesh(mesh)
-            if not node:
-                raise Exception()
+            expression = VrmExpression(
+                VrmExpressionPreset(blendshape.presetName), blendshape.name)
+            vrm.expressions.append(expression)
 
-            name = mesh.morphtargets[b.index].name
+            for b in blendshape.binds:
+                if not isinstance(b.mesh, int):
+                    raise Exception()
+                if not isinstance(b.index, int):
+                    raise Exception()
+                mesh = index_map.mesh[b.mesh]
+                node = index_map.node_from_mesh(mesh)
+                if not node:
+                    raise Exception()
 
-            expression.morph_bindings.append(
-                VrmMorphBinding(node, name, b.weight * 0.01))
+                name = mesh.morphtargets[b.index].name
 
-    return vrm
+                expression.morph_bindings.append(
+                    VrmMorphBinding(node, name, b.weight * 0.01))
+
+        return vrm

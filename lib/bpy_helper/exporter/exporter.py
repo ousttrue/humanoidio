@@ -8,17 +8,10 @@ from .. import utils
 from .material_exporter import MaterialExporter
 from .export_map import ExportMap
 
-# class Vrm:
-#     def __init__(self):
-#         self.title = ''
-#         self.author = ''
-#         self.version = '1'
-
 
 class Exporter:
     def __init__(self) -> None:
         self.export_map = ExportMap()
-        # self.vrm = Vrm()
         self.material_exporter = MaterialExporter(self.export_map)
 
     def _export_bone(self,
@@ -173,7 +166,7 @@ class Exporter:
         if parent:
             parent.add_child(node)
 
-        if o.type == 'MESH':
+        if isinstance(o.data, bpy.types.Mesh):
             if not o.hide_viewport:
                 mesh = self._export_mesh(o, o.data, node)
                 self.export_map.meshes.append(mesh)

@@ -77,7 +77,7 @@ class PyImpexImporter(bpy.types.Operator, ImportHelper):
         from .lib import pyscene
         index_map = pyscene.load(data)
         roots = index_map.get_roots(data.gltf)
-        vrm = pyscene.load_vrm(index_map, data.gltf)
+        vrm = pyscene.Vrm.load(index_map, data.gltf)
 
         pyscene.modifier.before_import(roots, data.gltf.extensions != None)
 

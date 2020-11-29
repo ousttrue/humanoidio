@@ -7,7 +7,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Tuple, Any, Iterator, Dict, Union
 import bpy, mathutils
-from .. import formats
+from .. import formats, pyscene
 from ..struct_types import Float3, Mat4
 from .submesh_mesh import SubmeshMesh
 from .facemesh import FaceMesh
@@ -409,6 +409,10 @@ class GltfExporter:
         for child in node.children:
             self._push_node_recursive(child)
 
+    def export_vrm(self,
+                   nodes: List[pyscene.Node]) -> Optional[formats.gltf.vrm]:
+        pass
+
     def export(self) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
         # 情報を蓄える
         for node in self.nodes:
@@ -419,10 +423,9 @@ class GltfExporter:
         # 出力する
         extensionsUsed = ['KHR_materials_unlit']
 
-        # vrm = self.export_vrm(nodes, scanner.vrm.version,
-        #                       scanner.vrm.title, scanner.vrm.author)
-        # if vrm:
-        #     extensionsUsed.append('VRM')
+        vrm = self.export_vrm(self.nodes)
+        if vrm:
+            extensionsUsed.append('VRM')
 
         data = formats.gltf.glTF(
             asset=formats.gltf.Asset(generator=GENERATOR_NAME,

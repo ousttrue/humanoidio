@@ -6,7 +6,7 @@ from .from_gltf import nodes_from_gltf, load
 from .to_gltf import to_gltf
 from .to_submesh import facemesh_to_submesh
 from .modifier import before_import
-from .vrm_loader import load_vrm, Vrm, VrmExpression, VrmExpressionPreset
+from .vrm_loader import Vrm, VrmExpression, VrmExpressionPreset
 
 
 def reload():
