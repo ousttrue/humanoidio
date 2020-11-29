@@ -1,34 +1,32 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import Dict, Any
 import bpy, mathutils
 from .. import pyscene
 from . import unlit_material
 from . import pbr_material
 from . import mtoon_material
 from .texture_importer import TextureImporter
+from ..import_map import ImportMap
 
 
 class MaterialImporter:
-    def __init__(self):
-        self.material_map: Dict[pyscene.UnlitMaterial, bpy.types.Material] = {}
-        self.texture_importer = TextureImporter()
+    def __init__(self, import_map: ImportMap):
+        self.texture_importer = TextureImporter(import_map)
+        self.import_map = import_map
 
     def get_or_create_material(
             self, material: pyscene.UnlitMaterial) -> bpy.types.Material:
-        if material in self.material_map:
-            return self.material_map[material]
+        if material in self.import_map.material:
+            return self.import_map.material[material]
 
         # base color
         logger.debug(f'create: {material}')
 
         bl_material: bpy.types.Material = bpy.data.materials.new(material.name)
-        bl_material.diffuse_color = (
-            material.color.x,
-            material.color.y,  # type: ignore
-            material.color.z,
-            material.color.w)
-        self.material_map[material] = bl_material
+        bl_material.diffuse_color = mathutils.Vector(
+            (material.color.x, material.color.y, material.color.z,
+             material.color.w))
+        self.import_map.material[material] = bl_material
         bl_material.use_backface_culling = not material.double_sided
 
         # alpha blend

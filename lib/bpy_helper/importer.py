@@ -13,6 +13,7 @@ from .bone_connector import connect_bones
 from . import custom_rna
 from . import utils
 from .. import formats
+from .import_map import ImportMap
 
 BIND_RIGIFY = '''
 # object mode で 生成した rig をアクティブにして実行する
@@ -119,10 +120,8 @@ class Importer:
     def __init__(self, collection: bpy.types.Collection,
                  vrm: Optional[pyscene.Vrm]):
         self.collection = collection
-        self.obj_map: Dict[pyscene.Node, bpy.types.Object] = {}
-        self.mesh_map: Dict[pyscene.SubmeshMesh, bpy.types.Mesh] = {}
-        self.material_importer = MaterialImporter()
-        self.skin_map: Dict[pyscene.Skin, bpy.types.Object] = {}
+        self.import_map = ImportMap()
+        self.material_importer = MaterialImporter(self.import_map)
         self.mesh_obj_list: List[bpy.types.Object] = []
 
         # coordinates
@@ -147,7 +146,7 @@ class Importer:
 
         skin = mesh_node.skin
         bone_names = [joint.name for joint in skin.joints]
-        bl_object = self.obj_map[mesh_node]
+        bl_object = self.import_map.obj[mesh_node]
 
         idx_already_done: Set[int] = set()
 
@@ -189,14 +188,14 @@ class Importer:
                         cpt += 1
 
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
-        modifier.object = self.skin_map[skin]
+        modifier.object = self.import_map.skin[skin]
 
     def _create_bones(self, armature: bpy.types.Armature, m: mathutils.Matrix,
                       skin_node: pyscene.Node, skin: pyscene.Skin) -> None:
         # pass1: create and head postiion
         bones: Dict[pyscene.Node, bpy.types.EditBone] = {}
         for node in skin.joints:
-            bl_object = self.obj_map[node]
+            bl_object = self.import_map.obj[node]
             bl_bone = armature.edit_bones.new(node.name)
             # get armature local matrix
             world_to_local = m @ bl_object.matrix_world
@@ -221,12 +220,12 @@ class Importer:
 
         if skin_node.contains(skin.joints) and not skin_node.mesh:
             # replace node by armature
-            bl_node = self.obj_map[skin_node]
+            bl_node = self.import_map.obj[skin_node]
             bl_node.name = 'tmp'
 
             bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
             bl_obj = bpy.data.objects.new(skin.name, bl_skin)
-            self.skin_map[skin] = bl_obj
+            self.import_map.skin[skin] = bl_obj
             bl_obj.matrix_world = bl_node.matrix_world
 
             bl_obj.parent = bl_node.parent
@@ -234,13 +233,13 @@ class Importer:
                 bl_child.parent = bl_obj
             if bl_node.data:
                 raise Exception()
-            self.obj_map[skin_node] = bl_obj
+            self.import_map.obj[skin_node] = bl_obj
             bpy.data.objects.remove(bl_node)
         else:
             # create new node
             bl_skin: bpy.types.Armature = bpy.data.armatures.new(skin.name)
             bl_obj = bpy.data.objects.new(skin.name, bl_skin)
-            self.skin_map[skin] = bl_obj
+            self.import_map.skin[skin] = bl_obj
 
         bl_obj.show_in_front = True
         self.collection.objects.link(bl_obj)
@@ -286,7 +285,7 @@ class Importer:
             for node in skin.joints:
                 if node in bones:
                     continue
-                bl_object = self.obj_map.get(node)
+                bl_object = self.import_map.obj.get(node)
                 if not bl_object:
                     # maybe removed as empty leaf
                     continue
@@ -315,7 +314,7 @@ class Importer:
                 b.pyimpex_humanoid_bone = node.humanoid_bone.name
 
         for skin in skins:
-            self.skin_map[skin] = bl_obj
+            self.import_map.skin[skin] = bl_obj
 
         #
         # set metarig
@@ -360,12 +359,12 @@ class Importer:
         return bl_obj
 
     def _get_or_create_mesh(self, mesh: pyscene.SubmeshMesh) -> bpy.types.Mesh:
-        bl_mesh = self.mesh_map.get(mesh)
+        bl_mesh = self.import_map.mesh.get(mesh)
         if bl_mesh:
             return bl_mesh
 
         bl_mesh = bpy.data.meshes.new(mesh.name)
-        self.mesh_map[mesh] = bl_mesh
+        self.import_map.mesh[mesh] = bl_mesh
 
         material_index_map: Dict[pyscene.UnlitMaterial, int] = {}
         material_index = 0
@@ -443,11 +442,11 @@ class Importer:
 
         self.collection.objects.link(bl_obj)
         bl_obj.select_set(True)
-        self.obj_map[node] = bl_obj
+        self.import_map.obj[node] = bl_obj
 
         # parent
         if node.parent:
-            bl_obj.parent = self.obj_map.get(node.parent)
+            bl_obj.parent = self.import_map.obj.get(node.parent)
 
         # TRS
         bl_obj.location = self.yup2zup(node.position)
@@ -476,13 +475,13 @@ class Importer:
             return
 
         # remove empty
-        bl_obj = self.obj_map[node]
+        bl_obj = self.import_map.obj[node]
         bpy.data.objects.remove(bl_obj, do_unlink=True)
         if node.parent:
             node.parent.children.remove(node)
 
     def _get_shape_key(self, morph_bind):
-        bl_obj = self.obj_map[morph_bind.node]
+        bl_obj = self.import_map.obj[morph_bind.node]
         if not bl_obj.data:
             raise Exception(f'{morph_bind.node}.data is None')
         mesh = bl_obj.data
@@ -539,7 +538,7 @@ class Importer:
         for expression in self.vrm.expressions:
             for i, morph_bind in enumerate(expression.morph_bindings):
                 # create driver
-                bl_obj = self.obj_map[morph_bind.node]
+                bl_obj = self.import_map.obj[morph_bind.node]
                 mesh = bl_obj.data
                 if not isinstance(mesh, bpy.types.Mesh):
                     raise Exception()
@@ -590,7 +589,7 @@ class Importer:
                     if bl_obj.skin:
                         self._create_armature(bl_obj)
 
-        for n, o in self.obj_map.items():
+        for n, o in self.import_map.obj.items():
             if o.type == 'MESH' and n.skin:
                 self._setup_skinning(n)
 

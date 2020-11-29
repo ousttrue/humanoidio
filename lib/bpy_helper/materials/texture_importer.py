@@ -5,14 +5,15 @@ import pathlib
 import tempfile
 import bpy
 from .. import pyscene
+from ..import_map import ImportMap
 
 
 class TextureImporter:
-    def __init__(self):
-        self.image_map: Dict[pyscene.Texture, bpy.types.Image] = {}
+    def __init__(self, import_map: ImportMap):
+        self.import_map = import_map
 
     def get_or_create_image(self, texture: pyscene.Texture) -> bpy.types.Image:
-        bl_image = self.image_map.get(texture)
+        bl_image = self.import_map.image.get(texture)
         if bl_image:
             return bl_image
 
@@ -42,5 +43,5 @@ class TextureImporter:
         bl_image.colorspace_settings.is_data = texture.is_data
         bl_image.name = texture.name
 
-        self.image_map[texture] = bl_image
+        self.import_map.image[texture] = bl_image
         return bl_image
