@@ -2,10 +2,10 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Iterator, Dict, Any, Sequence
 import bpy, mathutils
-from . import utils
-from .. import pyscene
-from ..struct_types import Float3
-from .materials import MaterialExporter
+from ... import pyscene
+from ...struct_types import Float3
+from .. import utils
+from .material_exporter import MaterialExporter
 
 
 class Vrm:

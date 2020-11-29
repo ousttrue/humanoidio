@@ -1,12 +1,10 @@
 from logging import getLogger
 logger = getLogger(__name__)
 import bpy, mathutils
-from .. import pyscene
-from . import unlit_material
-from . import pbr_material
-from . import mtoon_material
+from ... import pyscene
+from ..materials import unlit_material, pbr_material, mtoon_material
 from .texture_importer import TextureImporter
-from ..import_map import ImportMap
+from .import_map import ImportMap
 
 
 class MaterialImporter:

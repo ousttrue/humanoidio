@@ -6,13 +6,13 @@ logger = getLogger(__name__)
 from contextlib import contextmanager
 from typing import List, Optional, Dict, Set
 import bpy, mathutils
-from .. import pyscene
-from .materials import MaterialImporter
+from ... import pyscene
+from ... import formats
+from .. import custom_rna
+from .. import utils
+from .material_importer import MaterialImporter
 from .mesh_importer import create_bmesh
 from .bone_connector import connect_bones
-from . import custom_rna
-from . import utils
-from .. import formats
 from .import_map import ImportMap
 
 BIND_RIGIFY = '''

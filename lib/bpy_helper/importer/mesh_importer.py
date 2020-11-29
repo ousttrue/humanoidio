@@ -3,7 +3,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import Dict, List, Callable
 import bpy, mathutils, bmesh
-from .. import pyscene
+from ... import pyscene
 
 UV0 = 'texcoord0'
 

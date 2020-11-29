@@ -1,22 +1,20 @@
 from typing import List, Optional
 import bpy, mathutils
 from .. import pyscene
-from .exporter import Exporter
-from .importer import Importer
-from . import utils
+from . import utils, importer, exporter
 
 
 def reload():
     print(f'reload {__file__}')
-    from . import exporter, importer, utils, bone_connector
+    from . import exporter, importer, utils
     import importlib
-    for m in [exporter, importer, utils, bone_connector]:
+    for m in [exporter, importer, utils]:
         importlib.reload(m)
 
 
-def scan() -> Exporter:
+def scan() -> exporter.Exporter:
     targets = utils.objects_selected_or_roots()
-    scanner = Exporter()
+    scanner = exporter.Exporter()
     scanner.scan(targets)
     return scanner
 
@@ -24,5 +22,5 @@ def scan() -> Exporter:
 def load(collection: bpy.types.Collection,
          roots: List[pyscene.Node],
          vrm: Optional[pyscene.Vrm] = None):
-    importer = Importer(collection, vrm)
-    importer.execute(roots)
+    imp = importer.Importer(collection, vrm)
+    imp.execute(roots)

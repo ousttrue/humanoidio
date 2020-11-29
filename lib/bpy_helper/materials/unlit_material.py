@@ -1,9 +1,9 @@
 from logging import getLogger
 logger = getLogger(__name__)
 import bpy
-from .. import pyscene
+from ... import pyscene
+from .. import importer
 from .wrap_node import WrapNode, WrapNodeFactory
-from .texture_importer import TextureImporter
 
 GROUP_NAME = 'pyimpex:Unlit'
 
@@ -55,7 +55,7 @@ def _get_or_create_group() -> bpy.types.NodeTree:
 
 
 def build(bl_material: bpy.types.Material, src: pyscene.UnlitMaterial,
-                texture_importer: TextureImporter):
+          texture_importer: importer.TextureImporter):
     '''
     out -> mix Fac-> alpha ------------>|
                Sahder1 -> transparent   | TexImage

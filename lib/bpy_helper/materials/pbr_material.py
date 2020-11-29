@@ -4,10 +4,9 @@ from typing import List
 import bpy
 from ... import pyscene
 from .wrap_node import WrapNodeFactory, WrapNode
-from .texture_importer import TextureImporter
 from .prefix import PREFIX
 from .group_input import GroupInput, nodegroup_from_inputs
-from .texture_exporter import export_texture, find_link
+from .. import importer, exporter
 
 
 class GltfPBR:
@@ -100,7 +99,7 @@ class GltfPBR:
 
 
 def build(bl_material: bpy.types.Material, src: pyscene.PBRMaterial,
-          texture_importer: TextureImporter):
+          texture_importer: importer.TextureImporter):
     '''
     BsdfPrincipled
     '''
@@ -178,7 +177,7 @@ def export(m: bpy.types.Material,
             material.color.y = v[1]
             material.color.z = v[2]
         elif k == 'BaseColorTexture':
-            material.color_texture = export_texture(m.node_tree, socket)
+            material.color_texture = exporter.export_texture(m.node_tree, socket)
         elif k == 'Alpha':
             material.color.w = v
         elif k == 'Metallic':
@@ -186,22 +185,22 @@ def export(m: bpy.types.Material,
         elif k == 'Roughness':
             material.roughness = v
         elif k == 'MetallicRoughnessTexture':
-            material.metallic_roughness_texture = export_texture(
+            material.metallic_roughness_texture = exporter.export_texture(
                 m.node_tree, socket)
         elif k == 'OcclusionStrength':
             material.occlusion_strength = v
         elif k == 'OcclusionTexture':
-            material.occlusion_texture = export_texture(m.node_tree, socket)
+            material.occlusion_texture = exporter.export_texture(m.node_tree, socket)
         elif k == 'Emission':
             material.emissive_color.x = v[0]
             material.emissive_color.y = v[1]
             material.emissive_color.z = v[2]
         elif k == 'EmissiveTexture':
-            material.emissive_texture = export_texture(m.node_tree, socket)
+            material.emissive_texture = exporter.export_texture(m.node_tree, socket)
         elif k == 'NormalScale':
             material.normal_scale = v
         elif k == 'NormalTexture':
-            material.normal_texture = export_texture(m.node_tree, socket)
+            material.normal_texture = exporter.export_texture(m.node_tree, socket)
         else:
             raise NotImplementedError()
 

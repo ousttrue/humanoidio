@@ -6,8 +6,8 @@ from logging import getLogger
 logger = getLogger(__name__)
 from math import radians
 import bpy, mathutils
-from .. import pyscene
-from .texture_importer import TextureImporter
+from ... import pyscene
+from .. import importer
 from .wrap_node import WrapNode, WrapNodeFactory
 from .prefix import PREFIX
 
@@ -289,7 +289,7 @@ class MToonGroup:
 
 
 def build(bl_material: bpy.types.Material, src: pyscene.MToonMaterial,
-          texture_importer: TextureImporter):
+          texture_importer: importer.TextureImporter):
     factory = WrapNodeFactory(bl_material.node_tree)
 
     #

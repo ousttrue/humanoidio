@@ -9,7 +9,7 @@ def get_bytes(image: bpy.types.Image) -> Optional[pyscene.Texture]:
     io_scene_gltf2/blender/exp/gltf2_blender_image.py
     '''
     if image.source == 'FILE' and not image.is_dirty:
-        data = None
+        data: Optional[bytes] = None
         if image.packed_file is not None:
             data = image.packed_file.data
         else:

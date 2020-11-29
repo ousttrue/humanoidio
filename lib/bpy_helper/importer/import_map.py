@@ -1,6 +1,6 @@
 from typing import Dict
 import bpy
-from .. import pyscene
+from ... import pyscene
 
 
 class ImportMap:

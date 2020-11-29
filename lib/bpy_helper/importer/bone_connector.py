@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 import bpy
 import mathutils
-from .. import pyscene, formats
+from ... import pyscene, formats
 
 EXCLUDE_HUMANOID_PARENT = [formats.HumanoidBones.head]
 

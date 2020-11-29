@@ -1,7 +1,7 @@
 from typing import List, Dict
 import bpy, mathutils
-from .. import pyscene
-from . import pbr_material, mtoon_material
+from ... import pyscene
+from ..materials import pbr_material, mtoon_material
 
 
 class MaterialExporter:

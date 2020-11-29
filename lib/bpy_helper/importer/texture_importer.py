@@ -4,8 +4,8 @@ from typing import Dict
 import pathlib
 import tempfile
 import bpy
-from .. import pyscene
-from ..import_map import ImportMap
+from ... import pyscene
+from .import_map import ImportMap
 
 
 class TextureImporter:
