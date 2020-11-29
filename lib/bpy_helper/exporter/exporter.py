@@ -1,100 +1,25 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import List, Optional, Iterator, Dict, Any, Sequence
+from typing import List, Optional
 import bpy, mathutils
 from ... import pyscene
 from ...struct_types import Float3
 from .. import utils
 from .material_exporter import MaterialExporter
+from .export_map import ExportMap
 
-
-class Vrm:
-    def __init__(self):
-        self.title = ''
-        self.author = ''
-        self.version = '1'
+# class Vrm:
+#     def __init__(self):
+#         self.title = ''
+#         self.author = ''
+#         self.version = '1'
 
 
 class Exporter:
     def __init__(self) -> None:
-        self.nodes: List[pyscene.Node] = []
-        self.meshes: List[pyscene.FaceMesh] = []
-        self._node_map: Dict[bpy.types.Object, pyscene.Node] = {}
-        self._skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
-        self.vrm = Vrm()
-        self.material_exporter = MaterialExporter()
-
-    def _add_node(self, obj: Any, node: pyscene.Node):
-        self.nodes.append(node)
-        self._node_map[obj] = node
-
-    def _get_root_nodes(self) -> Iterator[pyscene.Node]:
-        for node in self.nodes:
-            if not node.parent:
-                yield node
-
-    def _remove_node(self, node: pyscene.Node):
-        # _node_map
-        keys = []
-        for k, v in self._node_map.items():
-            if v == node:
-                keys.append(k)
-        for k in keys:
-            del self._node_map[k]
-
-        # _nodes
-        self.nodes.remove(node)
-
-        # children
-        if node.parent:
-            node.parent.remove_child(node)
-
-    def _get_node_for_skin(self, skin: pyscene.Skin) -> Optional[pyscene.Node]:
-        for node in self.nodes:
-            if node.skin == skin:
-                return node
-
-    def _remove_empty_leaf_nodes(self) -> bool:
-        bones: List[pyscene.Node] = []
-        for skin in self._skin_map.values():
-            skin_node = self._get_node_for_skin(skin)
-            if not skin_node:
-                raise Exception()
-            for bone in skin_node.traverse():
-                if bone not in bones:
-                    bones.append(bone)
-
-        def is_empty_leaf(node: pyscene.Node) -> bool:
-            if node.humanoid_bone:
-                return False
-            if node.children:
-                return False
-            if node.mesh:
-                return False
-            if node in bones:
-                return False
-            return True
-
-        remove_list = []
-        for root in self._get_root_nodes():
-            for node in root.traverse():
-                if is_empty_leaf(node):
-                    remove_list.append(node)
-
-        if not remove_list:
-            return False
-
-        for remove in remove_list:
-            self._remove_node(remove)
-
-        return True
-
-    # def _mesh_node_under_empty(self):
-    #     mesh_node = pyscene.Node('Mesh')
-    #     for node in self.nodes:
-    #         if node.mesh:
-    #             mesh_node.add_child(node)
-    #     self.nodes.append(mesh_node)
+        self.export_map = ExportMap()
+        # self.vrm = Vrm()
+        self.material_exporter = MaterialExporter(self.export_map)
 
     def _export_bone(self,
                      skin: pyscene.Skin,
@@ -104,16 +29,6 @@ class Exporter:
         node = pyscene.Node(bone.name)
         h = bone.head_local
         node.position = Float3(h.x, h.y, h.z)
-        # if hasattr(bone, 'humanoid_bone'):
-        #     humanoid_bone = bone.humanoid_bone
-        #     if humanoid_bone:
-        #         try:
-        #             parsed = HumanoidBones[humanoid_bone]
-        #             if parsed != HumanoidBones.unknown:
-        #                 node.humanoid_bone = parsed
-        #         except Exception:
-        #             # unknown
-        #             pass
 
         if parent:
             parent.add_child(node)
@@ -128,14 +43,14 @@ class Exporter:
         Armature -> pyscene.Skin
         Bone[] -> pyscene.Skin.joints: List[pyscene.Node]
         '''
-        if armature_object in self._skin_map:
-            return self._skin_map[armature_object]
+        if armature_object in self.export_map._skin_map:
+            return self.export_map._skin_map[armature_object]
 
         name = armature_object.name
         if not name:
             name = 'skin'
         skin = pyscene.Skin(name)
-        self._skin_map[armature_object] = skin
+        self.export_map._skin_map[armature_object] = skin
 
         with utils.disposable_mode(armature_object, 'POSE'):
 
@@ -254,14 +169,14 @@ class Exporter:
         # if o.parent:
         #     location -= o.parent.location
         node = pyscene.Node(o.name)
-        self._add_node(o, node)
+        self.export_map.add_node(o, node)
         if parent:
             parent.add_child(node)
 
         if o.type == 'MESH':
             if not o.hide_viewport:
                 mesh = self._export_mesh(o, o.data, node)
-                self.meshes.append(mesh)
+                self.export_map.meshes.append(mesh)
                 node.mesh = mesh
 
         for child in o.children:
@@ -275,7 +190,7 @@ class Exporter:
 
         # self._mesh_node_under_empty()
         while True:
-            if not self._remove_empty_leaf_nodes():
+            if not self.export_map.remove_empty_leaf_nodes():
                 break
 
         # # get vrm meta

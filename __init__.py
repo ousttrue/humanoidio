@@ -116,10 +116,10 @@ class PyImpexExporter(bpy.types.Operator, ExportHelper):
         logger.debug('#### start ####')
 
         from .lib import bpy_helper
-        scanner = bpy_helper.scan()
+        exporter = bpy_helper.scan()
 
         from .lib import pyscene
-        data = pyscene.to_gltf(scanner.nodes)
+        data = pyscene.to_gltf(exporter.export_map.nodes)
         d = data.gltf.to_dict()
 
         from .lib.formats.glb import Glb

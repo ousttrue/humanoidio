@@ -2,18 +2,18 @@ from typing import List, Dict
 import bpy, mathutils
 from ... import pyscene
 from ..materials import pbr_material, mtoon_material
+from .export_map import ExportMap
 
 
 class MaterialExporter:
-    def __init__(self):
-        self.materials: List[pyscene.UnlitMaterial] = []
-        self._material_map: Dict[bpy.types.Material, int] = {}
+    def __init__(self, export_map: ExportMap):
+        self.export_map = export_map
 
     def get_or_create_material(self,
                                m: bpy.types.Material) -> pyscene.UnlitMaterial:
-        material_index = self._material_map.get(m)
+        material_index = self.export_map._material_map.get(m)
         if isinstance(material_index, int):
-            return self.materials[material_index]
+            return self.export_map.materials[material_index]
 
         material = None
         for n in m.node_tree.nodes:
@@ -28,9 +28,9 @@ class MaterialExporter:
 
         if isinstance(material, pyscene.UnlitMaterial):
 
-            material_index = len(self.materials)
-            self.materials.append(material)
-            self._material_map[m] = material_index
+            material_index = len(self.export_map.materials)
+            self.export_map.materials.append(material)
+            self.export_map._material_map[m] = material_index
             return material
 
         raise NotImplementedError()
