@@ -145,7 +145,10 @@ def menu_func_export(self, context):
 
 def register():
     from .lib.bpy_helper import custom_rna
+    import importlib
+    importlib.reload(custom_rna)
     custom_rna.register()
+
     # operators
     for c in CLASSES:
         bpy.utils.register_class(c)

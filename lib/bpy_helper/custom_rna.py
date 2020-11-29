@@ -3,6 +3,10 @@ custom RNA property definitions
 '''
 
 import bpy
+from bpy import types
+
+from pyimpex import CLASSES
+from .. import formats
 
 presets = (
     ('unknown', 'unknown', ''),
@@ -82,19 +86,21 @@ class PYIMPEX_ExpressionPanel(bpy.types.Panel):
             "pyimpex_expressions_active")
 
 
+CLASSES = [
+    PYIMPEX_Expression, PYIMPEX_UL_ExpressionTemplate, PYIMPEX_ExpressionPanel
+]
+
+
 def register():
-    bpy.utils.register_class(PYIMPEX_Expression)
-    bpy.utils.register_class(PYIMPEX_UL_ExpressionTemplate)
+    for c in CLASSES:
+        bpy.utils.register_class(c)
 
     bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(  # type: ignore
         type=PYIMPEX_Expression)
     bpy.types.Object.pyimpex_expressions_active = bpy.props.IntProperty(  # type: ignore
     )
 
-    bpy.utils.register_class(PYIMPEX_ExpressionPanel)
-
 
 def unregister():
-    bpy.utils.unregister_class(PYIMPEX_ExpressionPanel)
-    bpy.utils.unregister_class(PYIMPEX_UL_ExpressionTemplate)
-    bpy.utils.unregister_class(PYIMPEX_Expression)
+    for c in CLASSES:
+        bpy.utils.unregister_class(c)
