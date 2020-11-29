@@ -311,6 +311,8 @@ class Importer:
             for node in humaniod_map.values():
                 b = bl_obj.pose.bones[node.name]
                 b.bone_group = bone_group
+                # property
+                b.pyimpex_humanoid_bone = node.humanoid_bone.name
 
         for skin in skins:
             self.skin_map[skin] = bl_obj

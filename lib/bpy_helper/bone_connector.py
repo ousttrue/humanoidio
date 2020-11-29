@@ -3,7 +3,9 @@ import bpy
 import mathutils
 from .. import pyscene, formats
 
-EXCLUDE_HUMANOIDS = [
+EXCLUDE_HUMANOID_PARENT = [formats.HumanoidBones.head]
+
+EXCLUDE_HUMANOID_CHILDREN = [
     formats.HumanoidBones.hips,
     formats.HumanoidBones.leftUpperLeg,
     formats.HumanoidBones.rightUpperLeg,
@@ -92,11 +94,13 @@ class BoneConnector:
         if node.children:
             # recursive
             connect_child_index = None
-            if any(child.humanoid_bone for child in node.children):
+            if node.humanoid_bone in EXCLUDE_HUMANOID_PARENT:
+                pass
+            elif any(child.humanoid_bone for child in node.children):
                 # humanioid
                 for i, child in enumerate(node.children):
                     if child.humanoid_bone:
-                        if child.humanoid_bone in EXCLUDE_HUMANOIDS:
+                        if child.humanoid_bone in EXCLUDE_HUMANOID_CHILDREN:
                             continue
                         connect_child_index = i
                         break
