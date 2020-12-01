@@ -58,6 +58,7 @@ class Vrm:
     def __init__(self, vrm: Optional[formats.gltf.vrm] = None) -> None:
         self.expressions: List[VrmExpression] = []
         self.version = '1'
+        self.meta: Optional[formats.gltf.vrmMeta] = None
         if vrm:
             self.version = vrm.exporterVersion
             self.meta = vrm.meta

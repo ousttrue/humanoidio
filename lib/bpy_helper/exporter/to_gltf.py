@@ -361,28 +361,13 @@ class GltfExporter:
         ]
         if humanoid_bones:
             vrm = self.export_map.vrm
-            meta = {
-                'version': vrm.meta.version,
-                'title': vrm.meta.title,
-                'author': vrm.meta.author,
-                'contactInformation': '',
-                'reference': '',
-                'texture': -1,
-                'allowedUserName': 'OnlyAuthor',
-                'violentUssageName': 'Disallow',
-                'sexualUssageName': 'Disallow',
-                'commercialUssageName': 'Disallow',
-                'otherPermissionUrl': '',
-                'licenseName': 'Redistribution_Prohibited',
-                'otherLicenseUrl': '',
-            }
             VRM = {
                 'exporterVersion':
                 'bl_vrm-0.1',
                 'specVersion':
                 '0.0',
                 'meta':
-                meta,
+                vrm.meta.to_dict() if vrm.meta else {},
                 'humanoid': {
                     'humanBones': [{
                         'bone': node.humanoid_bone.name,
@@ -404,7 +389,7 @@ class GltfExporter:
                     'tagMap': {}
                 } for material in self.export_map.materials]
             }
-            return formats.gltf.vrm(**VRM)
+            return formats.gltf.vrm.from_dict(VRM)
 
     def _push_node_recursive(self, node: pyscene.Node):
         self._get_or_create_node(node)

@@ -1,6 +1,7 @@
-from logging import getLogger
+from lib.formats.vrm0x import HumanoidBones
+from logging import currentframe, getLogger
 logger = getLogger(__name__)
-from typing import List, Optional
+from typing import List, Optional, Dict
 import bpy, mathutils
 from ... import pyscene
 from ...struct_types import Float3
@@ -166,11 +167,38 @@ class Exporter:
         if parent:
             parent.add_child(node)
 
-        if isinstance(o.data, bpy.types.Mesh):
-            if not o.hide_viewport:
+        if not o.hide_viewport:
+            if isinstance(o.data, bpy.types.Mesh):
                 mesh = self._export_mesh(o, o.data, node)
                 self.export_map.meshes.append(mesh)
                 node.mesh = mesh
+
+            if isinstance(o.data, bpy.types.Armature):
+                with utils.disposable_mode(o, 'POSE'):
+                    bones: Dict[str, pyscene.Node] = {}
+                    for bone in o.pose.bones:
+                        node = pyscene.Node(bone.name)
+                        self.export_map.nodes.append(node)
+                        bones[bone.name] = node
+
+                    def traverse_bone(bone: bpy.types.PoseBone, parent_name: Optional[str] = None):
+                        print(bone)
+
+                        node = bones[bone.name]
+                        if parent_name:
+                            bones[parent_name].add_child(node)
+
+                        # custom property
+                        humanoid_bone = bone.pyimpex_humanoid_bone
+                        if humanoid_bone:
+                            node.humanoid_bone = HumanoidBones[humanoid_bone]
+
+                        for child in bone.children:
+                            traverse_bone(child, bone.name)
+
+                    for bone in o.pose.bones:
+                        if not bone.parent:
+                            traverse_bone(bone)
 
         for child in o.children:
             self._export_object(child, node)

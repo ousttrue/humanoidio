@@ -81,6 +81,7 @@ Blender   /GLTF            rotate 180 degrees by Y axis
       * joint で無い(weight の無い joint は除去できるがめんどくさい)
       * mesh が無い
       * humanoid bone でない
+* [ ] vrm meta thumbnail
 
 ## Export
 
@@ -88,6 +89,9 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 * [ ] unlit
 * [x] PBR
 * [ ] MToon
+* [ ] skinning
+* [ ] vrm humanoid
+* [ ] vrm meta
 
 ## VRMの新規作成
 
