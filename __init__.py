@@ -88,7 +88,7 @@ class PyImpexImporter(bpy.types.Operator, ImportHelper):
         context.scene.collection.children.link(collection)
 
         from .lib import bpy_helper
-        bpy_helper.load(collection, roots, vrm)
+        bpy_helper.importer.load(collection, roots, vrm)
 
         # color management
         bpy.context.scene.view_settings.view_transform = 'Standard'
@@ -116,10 +116,8 @@ class PyImpexExporter(bpy.types.Operator, ExportHelper):
         logger.debug('#### start ####')
 
         from .lib import bpy_helper
-        exporter = bpy_helper.scan()
-
-        from .lib import pyscene
-        data = pyscene.to_gltf(exporter.export_map.nodes)
+        exporter = bpy_helper.exporter.scan()
+        data = bpy_helper.exporter.to_gltf(exporter.export_map)
         d = data.gltf.to_dict()
 
         from .lib.formats.glb import Glb

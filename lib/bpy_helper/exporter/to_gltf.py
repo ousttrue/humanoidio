@@ -7,13 +7,10 @@ from logging import getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Tuple, Any, Iterator, Dict, Union
 import bpy, mathutils
-from .. import formats, pyscene
-from ..struct_types import Float3, Mat4
-from .submesh_mesh import SubmeshMesh
-from .facemesh import FaceMesh
-from .to_submesh import facemesh_to_submesh
-from .node import Node, Skin
-from .material import BlendMode, UnlitMaterial, PBRMaterial, Texture
+from ... import formats, pyscene
+from ...pyscene.material import BlendMode, UnlitMaterial, PBRMaterial, Texture
+from ...struct_types import Float3, Mat4
+from .export_map import ExportMap
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
@@ -204,8 +201,8 @@ def get_min_max3(buffer: memoryview) -> Tuple[List[float], List[float]]:
 
 
 class GltfExporter:
-    def __init__(self, nodes: List[Node]):
-        self.nodes = nodes
+    def __init__(self, export_map: ExportMap):
+        self.export_map = export_map
         self.buffer = formats.BufferManager()
         self.buffers = [self.buffer]
         self.material_exporter = MaterialExporter()
@@ -214,10 +211,11 @@ class GltfExporter:
         self.gltf_meshes: List[formats.gltf.Mesh] = []
         self.gltf_skins: List[formats.gltf.Skin] = []
         self.gltf_roots: List[int] = []
-        self._mesh_index_map: Dict[Union[SubmeshMesh, FaceMesh], int] = {}
-        self._skin_index_map: Dict[Skin, int] = {}
+        self._mesh_index_map: Dict[Union[pyscene.SubmeshMesh,
+                                         pyscene.FaceMesh], int] = {}
+        self._skin_index_map: Dict[pyscene.Skin, int] = {}
 
-    def _get_or_create_node(self, node: Node):
+    def _get_or_create_node(self, node: pyscene.Node):
 
         p = node.get_local_position()
         name = node.name
@@ -227,16 +225,18 @@ class GltfExporter:
         mesh_index = self._get_or_create_mesh(node)
         skin_index = self._get_or_create_skin(node)
 
-        gltf_node = formats.gltf.Node(
-            name=name,
-            children=[self.nodes.index(child) for child in node.children],
-            translation=[p.x, p.y, p.z],
-            mesh=mesh_index,
-            skin=skin_index)
+        gltf_node = formats.gltf.Node(name=name,
+                                      children=[
+                                          self.export_map.nodes.index(child)
+                                          for child in node.children
+                                      ],
+                                      translation=[p.x, p.y, p.z],
+                                      mesh=mesh_index,
+                                      skin=skin_index)
 
         self.gltf_nodes.append(gltf_node)
 
-    def _get_or_create_mesh(self, node: Node) -> Optional[int]:
+    def _get_or_create_mesh(self, node: pyscene.Node) -> Optional[int]:
         '''
         UniVRM compatible shared attributes and targets
         '''
@@ -246,9 +246,9 @@ class GltfExporter:
         if isinstance(mesh_index, int):
             return mesh_index
 
-        if isinstance(node.mesh, FaceMesh):
-            mesh = facemesh_to_submesh(node)
-        elif isinstance(node.mesh, SubmeshMesh):
+        if isinstance(node.mesh, pyscene.FaceMesh):
+            mesh = pyscene.facemesh_to_submesh(node)
+        elif isinstance(node.mesh, pyscene.SubmeshMesh):
             mesh = node.mesh
         else:
             raise Exception()
@@ -329,7 +329,7 @@ class GltfExporter:
         self._mesh_index_map[node.mesh] = mesh_index
         return mesh_index
 
-    def _get_or_create_skin(self, node: Node) -> Optional[int]:
+    def _get_or_create_skin(self, node: pyscene.Node) -> Optional[int]:
         if not node.skin:
             return None
 
@@ -355,14 +355,16 @@ class GltfExporter:
 
         return None
 
-    def _export_vrm(self, nodes: List[Node], version: str, title: str,
-                    author: str):
-        humanoid_bones = [node for node in nodes if node.humanoid_bone]
+    def export_vrm(self) -> Optional[formats.gltf.vrm]:
+        humanoid_bones = [
+            node for node in self.export_map.nodes if node.humanoid_bone
+        ]
         if humanoid_bones:
+            vrm = self.export_map.vrm
             meta = {
-                'version': version,
-                'title': title,
-                'author': author,
+                'version': vrm.meta.version,
+                'title': vrm.meta.title,
+                'author': vrm.meta.author,
                 'contactInformation': '',
                 'reference': '',
                 'texture': -1,
@@ -384,7 +386,7 @@ class GltfExporter:
                 'humanoid': {
                     'humanBones': [{
                         'bone': node.humanoid_bone.name,
-                        'node': nodes.index(node)
+                        'node': self.export_map.nodes.index(node)
                     } for node in humanoid_bones]
                 },
                 'firstPerson': {},
@@ -400,33 +402,30 @@ class GltfExporter:
                     'textureProperties': {},
                     'keywordMap': {},
                     'tagMap': {}
-                } for material in self.material_exporter.materials]
+                } for material in self.export_map.materials]
             }
-            return VRM
+            return formats.gltf.vrm(**VRM)
 
-    def _push_node_recursive(self, node: Node):
+    def _push_node_recursive(self, node: pyscene.Node):
         self._get_or_create_node(node)
         for child in node.children:
             self._push_node_recursive(child)
 
-    def export_vrm(self,
-                   nodes: List[pyscene.Node]) -> Optional[formats.gltf.vrm]:
-        pass
-
     def export(self) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
         # 情報を蓄える
-        for node in self.nodes:
+        for node in self.export_map.nodes:
             if not node.parent:
                 self._push_node_recursive(node)
-                self.gltf_roots.append(self.nodes.index(node))
+                self.gltf_roots.append(self.export_map.nodes.index(node))
 
-        # 出力する
+        # extensions
         extensionsUsed = ['KHR_materials_unlit']
-
-        vrm = self.export_vrm(self.nodes)
+        vrm = self.export_vrm()
+        extensions = formats.gltf.Extension(vrm)
         if vrm:
             extensionsUsed.append('VRM')
 
+        # 出力する
         data = formats.gltf.glTF(
             asset=formats.gltf.Asset(generator=GENERATOR_NAME,
                                      version=GLTF_VERSION),
@@ -444,14 +443,12 @@ class GltfExporter:
             skins=self.gltf_skins,
             scenes=[formats.gltf.Scene(name='main', nodes=self.gltf_roots)],
             extensionsUsed=extensionsUsed,
-            # extensions={'VRM': vrm}
-        )
-
+            extensions=extensions)
         return data, self.buffers
 
 
-def to_gltf(nodes: List[Node]) -> formats.GltfContext:
-    exporter = GltfExporter(nodes)
+def to_gltf(export_map: ExportMap) -> formats.GltfContext:
+    exporter = GltfExporter(export_map)
     exported, bins = exporter.export()
     return formats.GltfContext(exported, bytes(bins[0].buffer.data),
                                pathlib.Path())

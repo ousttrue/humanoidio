@@ -192,3 +192,10 @@ class Exporter:
         # self.vrm.author = armature_object.get('vrm_author')
         # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
         # # self.vrm.reference = armature_object['vrm_reference']
+
+
+def scan() -> Exporter:
+    targets = utils.objects_selected_or_roots()
+    scanner = Exporter()
+    scanner.scan(targets)
+    return scanner

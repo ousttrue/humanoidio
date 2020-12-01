@@ -629,3 +629,10 @@ class Importer:
         utils.enter_mode('OBJECT')
         for bl_obj in self.collection.objects:
             bl_obj.select_set(False)
+
+
+def load(collection: bpy.types.Collection,
+         roots: List[pyscene.Node],
+         vrm: Optional[pyscene.Vrm] = None):
+    imp = Importer(collection, vrm)
+    imp.execute(roots)
