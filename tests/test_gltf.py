@@ -1,3 +1,5 @@
+from lib.bpy_helper.exporter.export_map import ExportMap
+from lib import bpy_helper
 import unittest
 import os
 from typing import List
@@ -37,7 +39,7 @@ class GltfTests(unittest.TestCase):
 
         # export
         nodes = [node for root in roots for node in root.traverse()]
-        exported = pyscene.to_gltf(nodes)
+        exported = bpy_helper.exporter.export_nodes(nodes)
         self.assertTrue(helper.check_gltf(data, exported))
 
     def test_box_glb(self):
@@ -107,7 +109,7 @@ class GltfTests(unittest.TestCase):
 
         # export
         nodes = [node for root in roots for node in root.traverse()]
-        exported = pyscene.to_gltf(nodes)
+        exported = bpy_helper.exporter.export_nodes(nodes)
         self.assertTrue(helper.check_gltf(data, exported))
 
     def test_box_textured_glb(self):
@@ -119,7 +121,7 @@ class GltfTests(unittest.TestCase):
 
         # export
         nodes = [node for root in roots for node in root.traverse()]
-        exported = pyscene.to_gltf(nodes)
+        exported = bpy_helper.exporter.export_nodes(nodes)
         self.assertTrue(helper.check_gltf(data, exported))
 
     def test_unlit_gltf(self):

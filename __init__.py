@@ -76,10 +76,6 @@ class PyImpexImporter(bpy.types.Operator, ImportHelper):
 
         from .lib import pyscene
         index_map = pyscene.load(data)
-        roots = index_map.get_roots(data.gltf)
-        vrm = pyscene.Vrm.load(index_map, data.gltf)
-
-        pyscene.modifier.before_import(roots, data.gltf.extensions != None)
 
         #
         # import to blender
@@ -88,7 +84,7 @@ class PyImpexImporter(bpy.types.Operator, ImportHelper):
         context.scene.collection.children.link(collection)
 
         from .lib import bpy_helper
-        bpy_helper.importer.load(collection, roots, vrm)
+        bpy_helper.importer.load(collection, index_map)
 
         # color management
         bpy.context.scene.view_settings.view_transform = 'Standard'

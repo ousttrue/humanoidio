@@ -13,13 +13,16 @@ from lib import bpy_helper
 
 
 class VrmTests(unittest.TestCase):
+    def setUp(self):    
+        import pyimpex
+        pyimpex.register()
+
     def test_vivi(self):
         path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
         self.assertTrue(path.exists())
 
         data = formats.parse_gltf(path)
-        roots = pyscene.nodes_from_gltf(data)
-        self.assertEqual(len(roots), 5)
+        index_map = pyscene.load(data)
 
-        # laod
-        bpy_helper.load(bpy.context.scene.collection, roots, data.gltf.extensions.VRM)
+        # load
+        bpy_helper.importer.load(bpy.context.scene.collection, index_map)

@@ -1,3 +1,4 @@
+from .. import formats
 from .facemesh import FaceMesh
 from .submesh_mesh import SubmeshMesh, Submesh
 from .node import Node, Skin
@@ -6,7 +7,7 @@ from .from_gltf import nodes_from_gltf, load
 from .to_submesh import facemesh_to_submesh
 from .modifier import before_import
 from .vrm_loader import Vrm, VrmExpression, VrmExpressionPreset
-
+from .index_map import IndexMap
 
 def reload():
     print(f'reload {__file__}')

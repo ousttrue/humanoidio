@@ -1,7 +1,5 @@
 from typing import NamedTuple, Optional, List
 from enum import Enum
-
-import bpy
 from .. import formats
 from .index_map import IndexMap
 from .node import Node

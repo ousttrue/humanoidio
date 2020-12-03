@@ -1,4 +1,5 @@
-from . import utils, exporter
+from .. import pyscene
+from . import utils, exporter, importer
 
 def reload():
     print(f'reload {__file__}')

@@ -8,6 +8,7 @@ from .node import Node, Skin
 from .material import UnlitMaterial, PBRMaterial, MToonMaterial, Texture, TextureUsage, BlendMode
 from .submesh_mesh import SubmeshMesh, Submesh
 from .index_map import IndexMap
+from .modifier import before_import
 
 
 def _skin_from_gltf(data: formats.GltfContext, skin_index: int,
@@ -37,7 +38,7 @@ class Reader:
     def __init__(self, data: formats.GltfContext):
         self.data = data
         self.reader = formats.BytesReader(data)
-        self.index_map = IndexMap.create()
+        self.index_map = IndexMap(data.gltf)
 
     def get_vrm(self) -> Optional[formats.gltf.vrm]:
         if self.data.gltf.extensions:
@@ -386,8 +387,13 @@ def load(data: formats.GltfContext) -> IndexMap:
                 skin = _skin_from_gltf(data, n.skin, nodes)
                 nodes[i].skin = skin
 
+    # prefix
+    roots = deserializer.index_map.get_roots()
+    before_import(roots, data.gltf.extensions != None)
+    deserializer.index_map.load_vrm()
+
     return deserializer.index_map
 
 
 def nodes_from_gltf(data: formats.GltfContext) -> List[Node]:
-    return load(data).get_roots(data.gltf)
+    return load(data).get_roots()

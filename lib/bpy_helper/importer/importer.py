@@ -631,8 +631,6 @@ class Importer:
             bl_obj.select_set(False)
 
 
-def load(collection: bpy.types.Collection,
-         roots: List[pyscene.Node],
-         vrm: Optional[pyscene.Vrm] = None):
-    imp = Importer(collection, vrm)
-    imp.execute(roots)
+def load(collection: bpy.types.Collection, index_map: pyscene.IndexMap):
+    imp = Importer(collection, index_map.vrm)
+    imp.execute(index_map.get_roots())

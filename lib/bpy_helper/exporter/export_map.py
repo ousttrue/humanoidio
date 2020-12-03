@@ -1,11 +1,14 @@
+from lib.pyscene import node
 from typing import List, Dict, Any, Iterator, Optional
 import bpy
 from ... import pyscene
 
 
 class ExportMap:
-    def __init__(self):
+    def __init__(self, nodes: List[pyscene.Node] = None):
         self.nodes: List[pyscene.Node] = []
+        if nodes:
+            self.nodes = nodes
         self.meshes: List[pyscene.FaceMesh] = []
         self._node_map: Dict[bpy.types.Object, pyscene.Node] = {}
         self._skin_map: Dict[bpy.types.Object, pyscene.Skin] = {}
