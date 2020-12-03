@@ -1,5 +1,6 @@
 import unittest
 import os
+import json
 from typing import List
 import pathlib
 import bpy
@@ -11,12 +12,11 @@ from lib import formats
 from lib import pyscene
 from lib import bpy_helper
 
+import pyimpex
+pyimpex.register()
+
 
 class VrmTests(unittest.TestCase):
-    def setUp(self):    
-        import pyimpex
-        pyimpex.register()
-
     def test_vivi(self):
         path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
         self.assertTrue(path.exists())
@@ -26,3 +26,10 @@ class VrmTests(unittest.TestCase):
 
         # load
         bpy_helper.importer.load(bpy.context.scene.collection, index_map)
+
+        # export
+        export_map = bpy_helper.exporter.scan()
+        exported = bpy_helper.exporter.to_gltf(export_map)
+
+        self.assertEqual(data.gltf.asset.generator,
+                         exported.gltf.asset.generator)

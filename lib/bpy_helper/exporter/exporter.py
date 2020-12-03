@@ -222,8 +222,8 @@ class Exporter:
         # # self.vrm.reference = armature_object['vrm_reference']
 
 
-def scan() -> Exporter:
+def scan() -> ExportMap:
     targets = utils.objects_selected_or_roots()
     scanner = Exporter()
     scanner.scan(targets)
-    return scanner
+    return scanner.export_map
