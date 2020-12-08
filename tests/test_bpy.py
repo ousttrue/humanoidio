@@ -162,3 +162,26 @@ class VrmTests(unittest.TestCase):
         exported = bpy_helper.exporter.to_gltf(export_map)
 
         self.assertEqual('pyimpex', exported.gltf.asset.generator)
+
+        #
+        # vrm
+        #
+        src = data.gltf.extensions.VRM
+        dst = exported.gltf.extensions.VRM
+
+        # meta
+        self.assertEqual(src.meta.title, dst.meta.title)
+
+        # humanoid
+
+        # expressions
+        self.assertEqual(len(src.blendShapeMaster.blendShapeGroups),
+                         len(dst.blendShapeMaster.blendShapeGroups))
+
+        # lookat
+
+        # firstperson
+
+        # springbone
+
+        # mtoon
