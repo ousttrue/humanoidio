@@ -26,11 +26,11 @@ class MaterialExporter:
                     material = mtoon_material.export(m, n)
                     break
 
-        if isinstance(material, pyscene.UnlitMaterial):
+        if material:
 
             material_index = len(self.export_map.materials)
             self.export_map.materials.append(material)
             self.export_map._material_map[m] = material_index
             return material
 
-        raise NotImplementedError()
+        raise NotImplementedError(f'fail to export {m}')

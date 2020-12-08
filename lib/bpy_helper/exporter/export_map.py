@@ -1,4 +1,3 @@
-from lib.pyscene import node
 from typing import List, Dict, Any, Iterator, Optional
 import bpy
 from ... import pyscene

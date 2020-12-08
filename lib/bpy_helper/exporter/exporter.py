@@ -1,9 +1,8 @@
-from lib.formats.vrm0x import HumanoidBones
 from logging import currentframe, getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Dict
 import bpy, mathutils
-from ... import pyscene
+from ... import pyscene, formats
 from ...struct_types import Float3
 from .. import utils
 from .material_exporter import MaterialExporter
@@ -191,7 +190,7 @@ class Exporter:
                         # custom property
                         humanoid_bone = bone.pyimpex_humanoid_bone
                         if humanoid_bone:
-                            node.humanoid_bone = HumanoidBones[humanoid_bone]
+                            node.humanoid_bone = formats.HumanoidBones[humanoid_bone]
 
                         for child in bone.children:
                             traverse_bone(child, bone.name)
