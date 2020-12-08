@@ -141,3 +141,21 @@ class BpyTests(unittest.TestCase):
 
         self.assertNotEqual(scene.collection, collection)
         self.assertEqual(scene.collection.children[0], collection)
+
+class VrmTests(unittest.TestCase):
+    def test_vivi(self):
+        path = VRM_SAMPLE_DIR / 'vroid/Vivi.vrm'
+        self.assertTrue(path.exists())
+
+        data = formats.parse_gltf(path)
+        index_map = pyscene.load(data)
+
+        # load
+        bpy_helper.importer.load(bpy.context.scene.collection, index_map)
+
+        # export
+        export_map = bpy_helper.exporter.scan()
+        exported = bpy_helper.exporter.to_gltf(export_map)
+
+        self.assertEqual(data.gltf.asset.generator,
+                         exported.gltf.asset.generator)
