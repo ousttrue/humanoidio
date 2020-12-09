@@ -161,7 +161,21 @@ class VrmTests(unittest.TestCase):
         export_map = bpy_helper.exporter.scan()
         exported = bpy_helper.exporter.to_gltf(export_map)
 
+        #
+        # gltf
+        #
         self.assertEqual('pyimpex', exported.gltf.asset.generator)
+
+        # mesh & morphtarget
+        src_submeshes = sum(len(mesh.primitives) for mesh in data.gltf.meshes)
+        dst_submeshes = sum(len(mesh.primitives) for mesh in exported.gltf.meshes)
+        self.assertEqual(src_submeshes, dst_submeshes)
+
+        # material
+
+        # texture & image
+
+        # node & skin
 
         #
         # vrm

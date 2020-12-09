@@ -17,7 +17,6 @@ bl_info = {
 
 from logging import getLogger
 logger = getLogger(__name__)
-import json
 import pathlib
 
 
@@ -112,13 +111,16 @@ class PyImpexExporter(bpy.types.Operator, ExportHelper):
         logger.debug('#### start ####')
 
         from .lib import bpy_helper
-        exporter = bpy_helper.exporter.scan()
-        data = bpy_helper.exporter.to_gltf(exporter.export_map)
+        export_map = bpy_helper.exporter.scan()
+        data = bpy_helper.exporter.to_gltf(export_map)
         d = data.gltf.to_dict()
 
-        from .lib.formats.glb import Glb
-        text = json.dumps(d)
+        from .lib import formats
+        text = formats.to_json(d)
         json_bytes = text.encode('utf-8')
+
+        from .lib.formats.glb import Glb
+        pathlib.Path(self.filepath).parent.mkdir(exist_ok=True, parents=True)
         with open(self.filepath, 'wb') as w:  # type: ignore
             Glb(json_bytes, data.bin).write_to(w)
 
