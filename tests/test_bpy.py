@@ -171,6 +171,8 @@ class VrmTests(unittest.TestCase):
 
         # meta
         self.assertEqual(src.meta.title, dst.meta.title)
+        self.assertEqual(src.meta.author, dst.meta.author)
+        self.assertEqual(src.meta.version, dst.meta.version)
 
         # humanoid
 

@@ -367,7 +367,7 @@ class GltfExporter:
                 'specVersion':
                 '0.0',
                 'meta':
-                vrm.meta.to_dict() if vrm.meta else {},
+                vrm.meta if vrm.meta else {},
                 'humanoid': {
                     'humanBones': [{
                         'bone': node.humanoid_bone.name,

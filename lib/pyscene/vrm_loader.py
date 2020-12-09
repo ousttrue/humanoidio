@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional, List
+from typing import NamedTuple, Optional, List, Dict
 from enum import Enum
 from .. import formats
 from .index_map import IndexMap
@@ -56,10 +56,10 @@ class Vrm:
     def __init__(self, vrm: Optional[formats.gltf.vrm] = None) -> None:
         self.expressions: List[VrmExpression] = []
         self.version = '1'
-        self.meta: Optional[formats.gltf.vrmMeta] = None
+        self.meta: Dict[str, str] = {}
         if vrm:
             self.version = vrm.exporterVersion
-            self.meta = vrm.meta
+            self.meta = vrm.meta.to_dict()
 
     @staticmethod
     def load(index_map: IndexMap, gltf: formats.gltf.glTF) -> Optional['Vrm']:

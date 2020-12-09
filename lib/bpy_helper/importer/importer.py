@@ -564,11 +564,10 @@ class Importer:
                 d.driver.type = 'SCRIPTED'
                 d.driver.expression = "var/0.1"
 
-    def _import_vrm(self, bl_obj: bpy.types.Object):
-        bl_obj['vrm_version'] = self.vrm.version
-        bl_obj['vrm_meta_title'] = self.vrm.meta.title
-        bl_obj['vrm_meta_author'] = self.vrm.meta.author
-        bl_obj['vrm_meta_version'] = self.vrm.meta.version
+    def _import_vrm(self, meta: custom_rna.PYIMPEX_Meta):
+        meta.title = self.vrm.meta.get('title', '')
+        meta.author = self.vrm.meta.get('author', '')
+        meta.version = self.vrm.meta.get('version', '')
         # self.vrm.meta.violentUssageName
         # self.vrm.meta.allowedUserName
         # self.vrm.meta.commercialUssageName
@@ -600,7 +599,7 @@ class Importer:
             self._load_expressions(bl_humanoid_obj, self.vrm.expressions)
 
             # meta
-            self._import_vrm(bl_humanoid_obj)
+            self._import_vrm(bl_humanoid_obj.pyimpex_meta)
         else:
             # skinning
             for root in roots:

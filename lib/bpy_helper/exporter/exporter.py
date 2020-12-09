@@ -4,7 +4,7 @@ from typing import List, Optional, Dict
 import bpy, mathutils
 from ... import pyscene, formats
 from ...struct_types import Float3
-from .. import utils
+from .. import utils, custom_rna
 from .material_exporter import MaterialExporter
 from .export_map import ExportMap
 
@@ -180,7 +180,8 @@ class Exporter:
                         self.export_map.nodes.append(node)
                         bones[bone.name] = node
 
-                    def traverse_bone(bone: bpy.types.PoseBone, parent_name: Optional[str] = None):
+                    def traverse_bone(bone: bpy.types.PoseBone,
+                                      parent_name: Optional[str] = None):
                         print(bone)
 
                         node = bones[bone.name]
@@ -190,7 +191,8 @@ class Exporter:
                         # custom property
                         humanoid_bone = bone.pyimpex_humanoid_bone
                         if humanoid_bone:
-                            node.humanoid_bone = formats.HumanoidBones[humanoid_bone]
+                            node.humanoid_bone = formats.HumanoidBones[
+                                humanoid_bone]
 
                         for child in bone.children:
                             traverse_bone(child, bone.name)
@@ -198,6 +200,16 @@ class Exporter:
                     for bone in o.pose.bones:
                         if not bone.parent:
                             traverse_bone(bone)
+
+                    # get vrm meta
+                    meta: custom_rna.PYIMPEX_Meta = o.pyimpex_meta
+                    vrm = pyscene.Vrm()
+                    self.export_map.vrm = vrm
+                    vrm.meta['version'] = meta.version
+                    vrm.meta['title'] = meta.title
+                    vrm.meta['author'] = meta.author
+                    # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
+                    # # self.vrm.reference = armature_object['vrm_reference']
 
         for child in o.children:
             self._export_object(child, node)
@@ -212,13 +224,6 @@ class Exporter:
         while True:
             if not self.export_map.remove_empty_leaf_nodes():
                 break
-
-        # # get vrm meta
-        # self.vrm.version = armature_object.get('vrm_version')
-        # self.vrm.title = armature_object.get('vrm_title')
-        # self.vrm.author = armature_object.get('vrm_author')
-        # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
-        # # self.vrm.reference = armature_object['vrm_reference']
 
 
 def scan() -> ExportMap:

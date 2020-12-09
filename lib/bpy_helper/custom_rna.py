@@ -113,14 +113,24 @@ class PYIMPEX_HumanoidBonePanel(bpy.types.Panel):
 
         row = layout.row()
         if context.active_pose_bone:
-            row.prop(context.active_pose_bone, 'pyimpex_humanoid_bone', text = 'humanoid bone')
+            row.prop(context.active_pose_bone,
+                     'pyimpex_humanoid_bone',
+                     text='humanoid bone')
 
         row = layout.row()
 
 
+class PYIMPEX_Meta(bpy.types.PropertyGroup):
+    title: bpy.props.StringProperty(name="title", description="VRM Meta title")
+    author: bpy.props.StringProperty(name="author",
+                                     description="VRM Meta author")
+    version: bpy.props.StringProperty(name="version",
+                                      description="VRM Meta version")
+
+
 CLASSES = [
     PYIMPEX_Expression, PYIMPEX_UL_ExpressionTemplate, PYIMPEX_ExpressionPanel,
-    PYIMPEX_HumanoidBonePanel
+    PYIMPEX_HumanoidBonePanel, PYIMPEX_Meta
 ]
 
 
@@ -128,15 +138,26 @@ def register():
     for c in CLASSES:
         bpy.utils.register_class(c)
 
+    #
+    # Object.meta
+    #
+    bpy.types.Object.pyimpex_meta = bpy.props.PointerProperty(
+        type=PYIMPEX_Meta)
+
+    #
+    # Object.expressions
+    #
     bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(  # type: ignore
         type=PYIMPEX_Expression)
     bpy.types.Object.pyimpex_expressions_active = bpy.props.IntProperty(  # type: ignore
     )
 
+    #
+    # PoseBone.humanoid_bone
+    #
     items = (
         (bone.name, bone.name, bone.name)  # (識別子, UI表示名, 説明文)
         for bone in formats.HumanoidBones)
-
     bpy.types.PoseBone.pyimpex_humanoid_bone = bpy.props.EnumProperty(
         items=items)
 
