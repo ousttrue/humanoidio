@@ -100,7 +100,7 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 
 ## Memo
 
-* [ ] view位置をbookmarkする。 `VIEW_3D`
+* [x] view位置をbookmarkする。 `VIEW_3D`
 
 ## lookat
 
