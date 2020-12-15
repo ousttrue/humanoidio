@@ -2,9 +2,9 @@ from logging import currentframe, getLogger
 logger = getLogger(__name__)
 from typing import List, Optional, Dict
 import bpy, mathutils
-from ... import pyscene, formats
+from ... import pyscene, formats, custom_rna
 from ...struct_types import Float3
-from .. import utils, custom_rna
+from .. import utils
 from .material_exporter import MaterialExporter
 from .export_map import ExportMap
 

@@ -6,9 +6,7 @@ logger = getLogger(__name__)
 from contextlib import contextmanager
 from typing import List, Optional, Dict, Set
 import bpy, mathutils
-from ... import pyscene
-from ... import formats
-from .. import custom_rna
+from ... import pyscene, formats, custom_rna
 from .. import utils
 from .material_importer import MaterialImporter
 from .mesh_importer import create_bmesh

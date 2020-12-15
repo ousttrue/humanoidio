@@ -11,6 +11,9 @@ import os
 import pathlib
 #
 import bpy
+context = bpy.context
+override = bpy.context.copy()
+
 #
 import pyimpex
 from pyimpex.lib import bpy_helper

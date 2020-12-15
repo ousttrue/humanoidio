@@ -140,7 +140,7 @@ def menu_func_export(self, context):
 
 
 def register():
-    from .lib.bpy_helper import custom_rna
+    from .lib import custom_rna
     import importlib
     importlib.reload(custom_rna)
     custom_rna.register()
@@ -162,7 +162,7 @@ def unregister():
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)  # type: ignore
 
     #
-    from .lib.bpy_helper import custom_rna
+    from .lib import custom_rna
     custom_rna.unregister()
 
 
