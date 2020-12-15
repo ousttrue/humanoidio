@@ -1,4 +1,5 @@
 import bpy
+from .. import formats
 
 
 class PYIMPEX_HumanoidBonePanel(bpy.types.Panel):
@@ -31,3 +32,30 @@ class PYIMPEX_HumanoidBonePanel(bpy.types.Panel):
             row.prop(context.active_pose_bone,
                      'pyimpex_humanoid_bone',
                      text='humanoid bone')
+
+
+CLASSES = [
+    PYIMPEX_HumanoidBonePanel,
+]
+
+
+def register():
+    try:
+        for c in CLASSES:
+            bpy.utils.register_class(c)
+    except:
+        pass
+
+    #
+    # PoseBone.humanoid_bone
+    #
+    items = (
+        (bone.name, bone.name, bone.name)  # (識別子, UI表示名, 説明文)
+        for bone in formats.HumanoidBones)
+    bpy.types.PoseBone.pyimpex_humanoid_bone = bpy.props.EnumProperty(
+        items=items)
+
+
+def unregister():
+    for c in CLASSES:
+        bpy.utils.unregister_class(c)

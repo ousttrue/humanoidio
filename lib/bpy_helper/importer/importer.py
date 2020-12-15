@@ -562,7 +562,7 @@ class Importer:
                 d.driver.type = 'SCRIPTED'
                 d.driver.expression = "var/0.1"
 
-    def _import_vrm(self, meta: custom_rna.PYIMPEX_Meta):
+    def _import_vrm(self, meta: custom_rna.meta.PYIMPEX_Meta):
         meta.title = self.vrm.meta.get('title', '')
         meta.author = self.vrm.meta.get('author', '')
         meta.version = self.vrm.meta.get('version', '')

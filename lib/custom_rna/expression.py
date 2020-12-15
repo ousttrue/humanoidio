@@ -81,3 +81,29 @@ class PYIMPEX_ExpressionPanel(bpy.types.Panel):
             "pyimpex_expressions_active")
 
         row = layout.row()
+
+
+CLASSES = [
+    PYIMPEX_Expression, PYIMPEX_UL_ExpressionTemplate, PYIMPEX_ExpressionPanel
+]
+
+
+def register():
+    try:
+        for c in CLASSES:
+            bpy.utils.register_class(c)
+    except:
+        pass
+
+    #
+    # Object.expressions
+    #
+    bpy.types.Object.pyimpex_expressions = bpy.props.CollectionProperty(  # type: ignore
+        type=PYIMPEX_Expression)
+    bpy.types.Object.pyimpex_expressions_active = bpy.props.IntProperty(  # type: ignore
+    )
+
+
+def unregister():
+    for c in CLASSES:
+        bpy.utils.unregister_class(c)
