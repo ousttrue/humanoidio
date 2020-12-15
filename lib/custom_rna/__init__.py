@@ -10,16 +10,38 @@ from .. import formats
 from .expression import PYIMPEX_Expression, PYIMPEX_UL_ExpressionTemplate, PYIMPEX_ExpressionPanel
 from .humanoid import PYIMPEX_HumanoidBonePanel
 from .meta import PYIMPEX_Meta
+from .view_bookmark import PYIMPEX_PT_ViewBookmark, PYIMPEX_OT_RegisterViewBookmark, PYIMPEX_ViewBookmark, PYIMPEX_UL_ViewBookmarkTemplate
 
 CLASSES = [
-    PYIMPEX_Expression, PYIMPEX_UL_ExpressionTemplate, PYIMPEX_ExpressionPanel,
-    PYIMPEX_HumanoidBonePanel, PYIMPEX_Meta
+    PYIMPEX_Expression,
+    PYIMPEX_UL_ExpressionTemplate,
+    PYIMPEX_ExpressionPanel,
+    #
+    PYIMPEX_HumanoidBonePanel,
+    #
+    PYIMPEX_Meta,
+    #
+    PYIMPEX_ViewBookmark,
+    PYIMPEX_UL_ViewBookmarkTemplate,
+    PYIMPEX_PT_ViewBookmark,
+    PYIMPEX_OT_RegisterViewBookmark,
 ]
 
 
+def reload():
+    # print(f'reload {__file__}')
+    from . import expression, humanoid, meta, view_bookmark
+    import importlib
+    for m in [expression, humanoid, meta, view_bookmark]:
+        importlib.reload(m)
+
+
 def register():
-    for c in CLASSES:
-        bpy.utils.register_class(c)
+    try:
+        for c in CLASSES:
+            bpy.utils.register_class(c)
+    except:
+        pass
 
     #
     # Object.meta
@@ -43,6 +65,14 @@ def register():
         for bone in formats.HumanoidBones)
     bpy.types.PoseBone.pyimpex_humanoid_bone = bpy.props.EnumProperty(
         items=items)
+
+    #
+    # Scene.bookmakviews
+    #
+    bpy.types.Scene.pyimpex_viewbookmarks = bpy.props.CollectionProperty(  # type: ignore
+        type=PYIMPEX_ViewBookmark)
+    bpy.types.Scene.pyimpex_viewbookmarks_active = bpy.props.IntProperty(  # type: ignore
+    )
 
 
 def unregister():

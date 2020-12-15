@@ -33,6 +33,9 @@ def reload():
     from .lib import bpy_helper
     bpy_helper.reload()
 
+    from .lib import custom_rna
+    custom_rna.reload()
+
 
 if "bpy" in locals():
     reload()
