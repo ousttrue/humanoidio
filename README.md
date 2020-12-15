@@ -85,13 +85,14 @@ Blender   /GLTF            rotate 180 degrees by Y axis
 
 ## Export
 
+* [ ] Collectionを対象にする
 * [ ] Gltf, Vrm 別のエクスポーターに分ける
 * [ ] unlit
 * [x] PBR
 * [ ] MToon
 * [ ] skinning
 * [ ] vrm humanoid
-* [ ] vrm meta
+* [ ] vrm meta。collectionに記録する
 
 ## VRMの新規作成
 
