@@ -130,7 +130,42 @@ class PyImpexExporter(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
-CLASSES = [PyImpexImporter, PyImpexExporter]
+class PyImpexSimetrizeVertexGroup(bpy.types.Operator):
+    """ Create empty opotunity vertex group that name ends_with `_L`, `.L`
+     """
+    bl_idname = "pyimpex.symetrize_vertexgroup"
+    bl_label = "Symetrize vertex group"
+
+    def execute(self, context: bpy.types.Context):
+        o = context.active_object
+        if o and isinstance(o.data, bpy.types.Mesh):
+            vg_names = [vg.name for vg in o.vertex_groups]
+
+            def opposite(name: str):
+                if name.endswith('.L'):
+                    return name[0:-2] + '.R'
+                if name.endswith('.R'):
+                    return name[0:-2] + '.L'
+                if name.endswith('_L'):
+                    return name[0:-2] + '_R'
+                if name.endswith('_R'):
+                    return name[0:-2] + '_L'
+
+            for name in vg_names:
+                new_name = opposite(name)
+                other_group = o.vertex_groups.get(new_name)
+                if not other_group:
+                    print(f'create vertex_group: {new_name}')
+                    self.report({'INFO'}, f'create vertex_group: {new_name}')
+                    o.vertex_groups.new(name=new_name)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+
+CLASSES = [PyImpexImporter, PyImpexExporter, PyImpexSimetrizeVertexGroup]
 
 
 def menu_func_import(self, context):
