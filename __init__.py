@@ -152,7 +152,11 @@ class PyImpexSimetrizeVertexGroup(bpy.types.Operator):
                     return name[0:-2] + '_L'
 
             for name in vg_names:
+                if not name:
+                    continue
                 new_name = opposite(name)
+                if not new_name:
+                    continue
                 other_group = o.vertex_groups.get(new_name)
                 if not other_group:
                     print(f'create vertex_group: {new_name}')
