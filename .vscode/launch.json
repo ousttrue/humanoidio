@@ -13,6 +13,17 @@
             "cwd": "${workspaceFolder}\\..",
         },
         {
+            "name": "blend.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/blend.py",
+            "args": [
+                "${env:USERPROFILE}/Desktop/20210114/untitled.blend"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}\\..",
+        },
+        {
             "name": "test",
             "type": "python",
             "request": "launch",

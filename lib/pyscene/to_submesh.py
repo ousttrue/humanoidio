@@ -81,6 +81,7 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
                     fv2.position_index]
 
     else:
+        # ToDo: 三角形化？
         raise Exception()
 
     # submesh

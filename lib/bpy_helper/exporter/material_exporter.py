@@ -33,4 +33,9 @@ class MaterialExporter:
             self.export_map._material_map[m] = material_index
             return material
 
-        raise NotImplementedError(f'fail to export {m}')
+        else:
+            # fail safe
+            material = pyscene.PBRMaterial(m.name)
+            material_index = len(self.export_map.materials)
+            self.export_map.materials.append(material)
+            return material
