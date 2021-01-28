@@ -1,7 +1,7 @@
 import enum
 from typing import Any, List, Optional, Dict, Sequence
 import array
-from ..struct_types import PlanarBuffer
+from ..struct_types import PlanarBuffer, Float2, Float3
 from .material import UnlitMaterial
 
 
@@ -58,6 +58,16 @@ class SubmeshMesh:
         ]
         morph = f' {len(self.morphtargets)}morph' if self.morphtargets else ''
         return f'<SubmeshMesh: {self.vertex_count}verts {"".join(submeshes)}{morph}>'
+
+    @staticmethod
+    def create(name: str, positions, normals, texcoords) -> 'SubmeshMesh':
+        submesh = SubmeshMesh(name, 0, False)
+        positions = (Float3 * len(positions))(*positions)
+        normals = (Float3 * len(normals))(*normals)
+        texcoords = (Float2 * len(texcoords))(*texcoords)
+        submesh.attributes = PlanarBuffer(positions, normals, texcoords, None,
+                                          None)
+        return submesh
 
     def compare(self, other) -> bool:
         if not isinstance(other, SubmeshMesh):

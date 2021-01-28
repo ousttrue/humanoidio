@@ -1,6 +1,7 @@
 from logging import getLogger
 logger = getLogger(__name__)
-from typing import (Any, List, Dict, Optional, NamedTuple, Sequence, MutableSequence)
+from typing import (Any, List, Dict, Optional, NamedTuple, Sequence,
+                    MutableSequence)
 import bpy, mathutils
 from ..struct_types import Float2, Float3, BoneWeight
 from .material import UnlitMaterial
@@ -45,19 +46,25 @@ class FaceMesh:
                  materials: List[UnlitMaterial],
                  vertex_groups: List[bpy.types.VertexGroup],
                  bone_names: List[str]) -> None:
+        '''
+        blender から取り出されたデータ。
+        '''
         self.name = name
+        self.materials = materials
+
+        # vertices
         self.positions: Any = (Float3 * len(vertices))()
         self.normals: Any = (Float3 * len(vertices))()
         for i, v in enumerate(vertices):
             self.positions[i] = Float3(v.co.x, v.co.y, v.co.z)
             self.normals[i] = Float3(v.normal.x, v.normal.y, v.normal.z)
-        self.materials = materials
 
         # faces
         self.face_vertices: List[FaceVertex] = []
         self.face_vertex_index_map: Dict[FaceVertex, int] = {}
         self.triangles: List[Triangle] = []
 
+        # skinning
         self.vertex_group_names = [g.name for g in vertex_groups]
         self.bone_names = bone_names
         self.bone_weights = (BoneWeight * len(vertices))()
@@ -67,6 +74,7 @@ class FaceMesh:
                 if vg_name in self.bone_names:
                     self.bone_weights[i].push(ve.group, ve.weight)
 
+        # morph
         self.morph_targets: List[Sequence[Float3]] = []
         self.morph_map: Dict[str, Any] = {}
 
@@ -78,6 +86,9 @@ class FaceMesh:
 
     def add_triangle(self, face: bpy.types.MeshLoopTriangle,
                      uv_texture_layer: Optional[bpy.types.MeshUVLoopLayer]):
+        '''
+        三角形面を追加する
+        '''
         def get_uv(i: int) -> Optional[mathutils.Vector]:
             if not uv_texture_layer: return None
             return uv_texture_layer.data[i].uv
@@ -104,7 +115,9 @@ class FaceMesh:
     def _get_or_add_face_vertex(self, material_index: int, vertex_index: int,
                                 uv: Optional[mathutils.Vector],
                                 face_normal: Optional[Float3]) -> int:
-        # 同一頂点を考慮する
+        '''
+        同一頂点を考慮する
+        '''
         face = FaceVertex(
             material_index, vertex_index,
             face_normal if face_normal else self.normals[vertex_index],
