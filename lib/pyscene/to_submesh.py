@@ -1,9 +1,9 @@
 import enum
-from typing import List, Dict
-from ..struct_types import Float2, Float3
+from typing import List, Dict, NamedTuple
+from ..struct_types import Float2, Float3, Float4, UShort4
 from .node import Node
 from .facemesh import FaceMesh
-from .submesh_mesh import Submesh, SubmeshMesh
+from .submesh_mesh import Submesh, SubmeshMesh, Vertex
 
 
 class TmpSubmesh:
@@ -36,13 +36,11 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
         return tmp
 
     if src.is_face_splitted():
-        positions = [Float3(0, 0, 0)] * len(src.positions)
-        normals = [Float3(0, 0, 0)] * len(src.positions)
-        texcoords = [Float2(0, 0)] * len(src.positions)
+        vertices = [Vertex.zero()] * len(src.positions)
     else:
-        positions = []
-        normals = []
-        texcoords = []
+        vertices = []
+
+    dst = SubmeshMesh(src.name)
 
     for t in src.triangles:
         fv0 = src.face_vertices[t.i0]
@@ -64,38 +62,31 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
         uv1 = fv1.uv.flip_uv() if fv1.uv else Float2(0, 0)
         uv2 = fv2.uv.flip_uv() if fv2.uv else Float2(0, 0)
 
-        # TODO: boneweight
+        b0 = src.bone_weights[fv0.position_index]
+        b1 = src.bone_weights[fv1.position_index]
+        b2 = src.bone_weights[fv2.position_index]
+
+        v0 = Vertex(p0, n0, uv0, b0.joints, b0.weights)
+        v1 = Vertex(p1, n1, uv1, b1.joints, b1.weights)
+        v2 = Vertex(p2, n2, uv2, b2.joints, b2.weights)
 
         if src.is_face_splitted():
             # Faceが分離済み(positions と face_vertices が一致)
-            # 三角形を頂点バッファに展開する
+            # 頂点 index が維持される
             i0 = fv0.position_index
             i1 = fv1.position_index
             i2 = fv2.position_index
-            positions[i0] = p0
-            positions[i1] = p1
-            positions[i2] = p2
-            normals[i0] = n0
-            normals[i1] = n1
-            normals[i2] = n2
-            texcoords[i0] = uv0
-            texcoords[i1] = uv1
-            texcoords[i2] = uv2
+            vertices[i0] = v0
+            vertices[i1] = v1
+            vertices[i2] = v2
         else:
-            i0 = len(positions)
-            positions.append(p0)
-            i1 = len(positions)
-            positions.append(p1)
-            i2 = len(positions)
-            positions.append(p2)
-
-            normals.append(n0)
-            normals.append(n1)
-            normals.append(n2)
-
-            texcoords.append(uv0)
-            texcoords.append(uv1)
-            texcoords.append(uv2)
+            # 頂点 index の振り直し
+            i0 = len(vertices)
+            vertices.append(v0)
+            i1 = len(vertices)
+            vertices.append(v1)
+            i2 = len(vertices)
+            vertices.append(v2)
 
         submesh = get_or_create_submesh(t.material_index)
         submesh.indices.append(i0)
@@ -109,7 +100,7 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
             morph.attributes.position[i1] = m[fv1.position_index]
             morph.attributes.position[i2] = m[fv2.position_index]
 
-        dst = SubmeshMesh.create(src.name, positions, normals, texcoords)
+    dst.set_vertices(vertices)
 
     # submesh
     keys = sorted(material_submesh_map.keys())

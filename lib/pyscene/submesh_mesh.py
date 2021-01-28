@@ -1,7 +1,6 @@
-import enum
-from typing import Any, List, Optional, Dict, Sequence
+from typing import Any, List, NamedTuple, Optional
 import array
-from ..struct_types import PlanarBuffer, Float2, Float3
+from ..struct_types import PlanarBuffer, Float2, Float3, Float4, UShort4
 from .material import UnlitMaterial
 
 
@@ -36,10 +35,23 @@ class MorphTarget:
         return str(self)
 
 
+class Vertex(NamedTuple):
+    position: Float3
+    normal: Float3
+    uv: Float2
+    joints: UShort4
+    weights: Float4
+
+    @staticmethod
+    def zero() -> 'Vertex':
+        return Vertex(Float3(), Float3(), Float2(), UShort4(), Float4())
+
+
 class SubmeshMesh:
-    def __init__(self, name: str, vertex_count: int, has_bone_weight: bool):
+    def __init__(self, name: str):
         self.name = name
-        self.attributes = PlanarBuffer.create(vertex_count, has_bone_weight)
+        self.attributes: Optional[
+            PlanarBuffer] = None  # PlanarBuffer.create(vertex_count, has_bone_weight)
         # morph
         # self.morph_map: Dict[str, memoryview] = {}
         # indices
@@ -47,7 +59,7 @@ class SubmeshMesh:
         self.submeshes: List[Submesh] = []
         # morph targets
         self.morphtargets: List[MorphTarget] = []
-        self.vertex_count = vertex_count
+        self.vertex_count = 0
 
     def __repr__(self):
         return str(self)
@@ -59,15 +71,22 @@ class SubmeshMesh:
         morph = f' {len(self.morphtargets)}morph' if self.morphtargets else ''
         return f'<SubmeshMesh: {self.vertex_count}verts {"".join(submeshes)}{morph}>'
 
-    @staticmethod
-    def create(name: str, positions, normals, texcoords) -> 'SubmeshMesh':
-        submesh = SubmeshMesh(name, 0, False)
-        positions = (Float3 * len(positions))(*positions)
-        normals = (Float3 * len(normals))(*normals)
-        texcoords = (Float2 * len(texcoords))(*texcoords)
-        submesh.attributes = PlanarBuffer(positions, normals, texcoords, None,
-                                          None)
-        return submesh
+    def set_vertices(self, vertices: List[Vertex]):
+        positions = (Float3 * len(vertices))()
+        normals = (Float3 * len(vertices))()
+        texcoords = (Float2 * len(vertices))()
+        joints = (UShort4 * len(vertices))()
+        weights = (Float4 * len(vertices))()
+        for i, v in enumerate(vertices):
+            positions[i] = v.position
+            normals[i] = v.normal
+            texcoords[i] = v.uv
+            joints[i] = v.joints
+            weights[i] = v.weights
+
+        self.attributes = PlanarBuffer(positions, normals, texcoords, joints,
+                                       weights)
+        self.vertex_count = len(vertices)
 
     def compare(self, other) -> bool:
         if not isinstance(other, SubmeshMesh):
@@ -112,8 +131,7 @@ class SubmeshMesh:
 
     def create_from_submesh(self, i: int) -> 'SubmeshMesh':
         submesh = self.submeshes[i]
-        mesh = SubmeshMesh(f'self.name:{i}', submesh.vertex_count,
-                           self.attributes.weights != None)
+        mesh = SubmeshMesh(f'self.name:{i}')
 
         index_map = {}
         for i, index_index in enumerate(
