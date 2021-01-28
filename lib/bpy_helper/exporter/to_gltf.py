@@ -337,23 +337,28 @@ class GltfExporter:
         if isinstance(skin_index, int):
             return skin_index
 
+        skin = node.skin
         # joints = [joint for joint in skin.traverse()][1:]
 
-        # matrices = (Mat4 * len(joints))()
-        # for i, _ in enumerate(joints):
-        #     p = joints[i].position
-        #     matrices[i] = Mat4.translation(-p.x, -p.y, -p.z)
-        # matrix_index = self.buffer.push_bytes(
-        #     f'{skin.name}.inverseBindMatrices',
-        #     memoryview(matrices))  # type: ignore
+        matrices = (Mat4 * len(skin.joints))()
+        for i, _ in enumerate(skin.joints):
+            p = skin.joints[i].position
+            matrices[i] = Mat4.translation(-p.x, -p.y, -p.z)
+        matrix_index = self.buffer.push_bytes(
+            f'{skin.name}.inverseBindMatrices',
+            memoryview(matrices))  # type: ignore
 
-        # return formats.gltf.Skin(
-        #     name=skin.name,
-        #     inverseBindMatrices=matrix_index,
-        #     skeleton=nodes.index(skin),
-        #     joints=[nodes.index(joint) for joint in joints])
+        gltf_skin = formats.gltf.Skin(name=skin.name,
+                                      inverseBindMatrices=matrix_index,
+                                      skeleton=None,
+                                      joints=[
+                                          self.export_map.nodes.index(joint)
+                                          for joint in skin.joints
+                                      ])
 
-        return None
+        skin_index = len(self.gltf_skins)
+        self.gltf_skins.append(gltf_skin)
+        return skin_index
 
     def export_vrm(self) -> Optional[formats.gltf.vrm]:
         humanoid_bones = [

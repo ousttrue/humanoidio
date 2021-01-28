@@ -14,18 +14,15 @@ class Exporter:
         self.export_map = ExportMap()
         self.material_exporter = MaterialExporter(self.export_map)
 
-    def _export_bone(self,
-                     skin: pyscene.Skin,
-                     matrix_world: mathutils.Matrix,
-                     bone: bpy.types.Bone,
-                     parent: Optional[pyscene.Node] = None):
+    def _export_bone(self, skin: pyscene.Skin, matrix_world: mathutils.Matrix,
+                     bone: bpy.types.Bone, parent: pyscene.Node):
         node = pyscene.Node(bone.name)
+        self.export_map.add_node(bone, node)
         h = bone.head_local
         node.position = Float3(h.x, h.y, h.z)
 
-        if parent:
-            parent.add_child(node)
-            skin.joints.append(node)
+        parent.add_child(node)
+        skin.joints.append(node)
 
         for child in bone.children:
             self._export_bone(skin, matrix_world, child, node)
@@ -53,7 +50,9 @@ class Exporter:
             for b in armature.bones:
                 if not b.parent:
                     # root bone
-                    self._export_bone(skin, armature_object.matrix_world, b)
+                    parent = self.export_map._node_map[armature_object]
+                    self._export_bone(skin, armature_object.matrix_world, b,
+                                      parent)
 
         return skin
 
@@ -97,10 +96,10 @@ class Exporter:
             ]
 
             # vertices
-            # bone_names = [b.name
-            #               for b in node.skin.traverse()] if node.skin else []
+            bone_names = [b.name
+                          for b in node.skin.joints] if node.skin else []
             facemesh = pyscene.FaceMesh(o.data.name, new_mesh.vertices,
-                                        materials, o.vertex_groups, [])
+                                        materials, o.vertex_groups, bone_names)
             # triangles
             uv_texture_layer = get_texture_layer(new_mesh.uv_layers)
             for i, triangle in enumerate(triangles):
@@ -221,9 +220,9 @@ class Exporter:
             self._export_object(root)
 
         # self._mesh_node_under_empty()
-        while True:
-            if not self.export_map.remove_empty_leaf_nodes():
-                break
+        # while True:
+        #     if not self.export_map.remove_empty_leaf_nodes():
+        #         break
 
 
 def scan() -> ExportMap:

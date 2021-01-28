@@ -37,7 +37,8 @@ def create_sparse_buffer(buffer: memoryview) -> Tuple[memoryview, memoryview]:
     return memoryview(indices), memoryview(values)
 
 
-def format_to_componentType(values: memoryview) -> Tuple[gltf.AccessorComponentType, int]:
+def format_to_componentType(
+        values: memoryview) -> Tuple[gltf.AccessorComponentType, int]:
     t = values.format
     if t == 'f':
         return gltf.AccessorComponentType.FLOAT, 1
@@ -53,6 +54,20 @@ def format_to_componentType(values: memoryview) -> Tuple[gltf.AccessorComponentT
         return gltf.AccessorComponentType.UNSIGNED_SHORT, 4
     elif t == 'T{<f:x:<f:y:<f:z:<f:w:}':
         return gltf.AccessorComponentType.FLOAT, 4
+
+    try:
+        # ctypes
+        if values.obj._type_ == Float2:
+            return gltf.AccessorComponentType.FLOAT, 2
+        if values.obj._type_ == Float3:
+            return gltf.AccessorComponentType.FLOAT, 3
+        if values.obj._type_ == Float4:
+            return gltf.AccessorComponentType.FLOAT, 4
+        if values.obj._type_ == UShort4:
+            return gltf.AccessorComponentType.UNSIGNED_SHORT, 4
+
+    except:
+        pass
 
     if values.itemsize == 8:
         return gltf.AccessorComponentType.FLOAT, 2
@@ -165,5 +180,3 @@ class BufferManager:
                 extras={})
             self.accessors.append(accessor)
             return accessor_index
-
-
