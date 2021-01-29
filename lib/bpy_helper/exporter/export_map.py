@@ -4,6 +4,9 @@ from ... import pyscene
 
 
 class ExportMap:
+    '''
+    この中は LeftHanded Y-UP になっていること
+    '''
     def __init__(self, nodes: List[pyscene.Node] = None):
         self.nodes: List[pyscene.Node] = []
         if nodes:

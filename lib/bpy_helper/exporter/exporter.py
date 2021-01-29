@@ -153,71 +153,83 @@ class Exporter:
 
     def _export_object(self,
                        o: bpy.types.Object,
+                       process_data: bool,
                        parent: Optional[pyscene.Node] = None) -> pyscene.Node:
         '''
         scan Node recursive
         '''
-        # location = o.location
-        # if o.parent:
-        #     location -= o.parent.location
-        node = pyscene.Node(o.name)
-        self.export_map.add_node(o, node)
-        if parent:
-            parent.add_child(node)
 
-        if not o.hide_viewport:
-            if isinstance(o.data, bpy.types.Mesh):
-                mesh = self._export_mesh(o, o.data, node)
-                self.export_map.meshes.append(mesh)
-                node.mesh = mesh
+        if not process_data:
 
-            if isinstance(o.data, bpy.types.Armature):
-                with utils.disposable_mode(o, 'POSE'):
-                    bones: Dict[str, pyscene.Node] = {}
-                    for bone in o.pose.bones:
-                        node = pyscene.Node(bone.name)
-                        self.export_map.nodes.append(node)
-                        bones[bone.name] = node
+            # location = o.location
+            # if o.parent:
+            #     location -= o.parent.location
+            node = pyscene.Node(o.name)
+            self.export_map.add_node(o, node)
+            if parent:
+                parent.add_child(node)
 
-                    def traverse_bone(bone: bpy.types.PoseBone,
-                                      parent_name: Optional[str] = None):
-                        print(bone)
+        else:
 
-                        node = bones[bone.name]
-                        if parent_name:
-                            bones[parent_name].add_child(node)
+            node = self.export_map._node_map[o]
 
-                        # custom property
-                        humanoid_bone = bone.pyimpex_humanoid_bone
-                        if humanoid_bone:
-                            node.humanoid_bone = formats.HumanoidBones[
-                                humanoid_bone]
+            if not o.hide_viewport:
+                if isinstance(o.data, bpy.types.Mesh):
+                    mesh = self._export_mesh(o, o.data, node)
+                    self.export_map.meshes.append(mesh)
+                    node.mesh = mesh
 
-                        for child in bone.children:
-                            traverse_bone(child, bone.name)
+                if isinstance(o.data, bpy.types.Armature):
+                    with utils.disposable_mode(o, 'POSE'):
+                        bones: Dict[str, pyscene.Node] = {}
+                        for bone in o.pose.bones:
+                            node = pyscene.Node(bone.name)
+                            # self.export_map.nodes.append(node)
+                            bones[bone.name] = node
 
-                    for bone in o.pose.bones:
-                        if not bone.parent:
-                            traverse_bone(bone)
+                        def traverse_bone(bone: bpy.types.PoseBone,
+                                        parent_name: Optional[str] = None):
+                            # print(bone)
 
-                    # get vrm meta
-                    meta: custom_rna.PYIMPEX_Meta = o.pyimpex_meta
-                    vrm = pyscene.Vrm()
-                    self.export_map.vrm = vrm
-                    vrm.meta['version'] = meta.version
-                    vrm.meta['title'] = meta.title
-                    vrm.meta['author'] = meta.author
-                    # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
-                    # # self.vrm.reference = armature_object['vrm_reference']
+                            node = bones[bone.name]
+                            # if parent_name:
+                            #     bones[parent_name].add_child(node)
+
+                            # custom property
+                            humanoid_bone = bone.pyimpex_humanoid_bone
+                            if humanoid_bone:
+                                node.humanoid_bone = formats.HumanoidBones[
+                                    humanoid_bone]
+
+                            for child in bone.children:
+                                traverse_bone(child, bone.name)
+
+                        for bone in o.pose.bones:
+                            if not bone.parent:
+                                traverse_bone(bone)
+
+                        # get vrm meta
+                        meta: custom_rna.PYIMPEX_Meta = o.pyimpex_meta
+                        vrm = pyscene.Vrm()
+                        self.export_map.vrm = vrm
+                        vrm.meta['version'] = meta.version
+                        vrm.meta['title'] = meta.title
+                        vrm.meta['author'] = meta.author
+                        # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
+                        # # self.vrm.reference = armature_object['vrm_reference']
 
         for child in o.children:
-            self._export_object(child, node)
+            self._export_object(child, process_data, node)
 
         return node
 
     def scan(self, roots: List[bpy.types.Object]) -> None:
+        # 1st pass exoprt objects
         for root in roots:
-            self._export_object(root)
+            self._export_object(root, False)
+        # snd pass export mesh, skin
+        for root in roots:
+            self._export_object(root, True)
 
         # self._mesh_node_under_empty()
         # while True:

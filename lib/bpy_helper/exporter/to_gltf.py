@@ -234,7 +234,8 @@ class GltfExporter:
                                       mesh=mesh_index,
                                       skin=skin_index)
 
-        self.gltf_nodes.append(gltf_node)
+        index = self.export_map.nodes.index(node)
+        self.gltf_nodes[index] = gltf_node
 
     def _get_or_create_mesh(self, node: pyscene.Node) -> Optional[int]:
         '''
@@ -396,13 +397,16 @@ class GltfExporter:
             }
             return formats.gltf.vrm.from_dict(VRM)
 
-    def _push_node_recursive(self, node: pyscene.Node):
+    def _push_node_recursive(self, node: pyscene.Node, level=0):
+        indent = '  ' * level
+        print(f'{indent}{node.name}')
         self._get_or_create_node(node)
         for child in node.children:
-            self._push_node_recursive(child)
+            self._push_node_recursive(child, level + 1)
 
     def export(self) -> Tuple[formats.gltf.glTF, List[formats.BufferManager]]:
         # 情報を蓄える
+        self.gltf_nodes = [None] * len(self.export_map.nodes)
         for node in self.export_map.nodes:
             if not node.parent:
                 self._push_node_recursive(node)
