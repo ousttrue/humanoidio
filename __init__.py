@@ -132,7 +132,7 @@ class PyImpexExporter(bpy.types.Operator, ExportHelper):
 
 class PyImpexSimetrizeVertexGroup(bpy.types.Operator):
     """ Create empty opotunity vertex group that name ends_with `_L`, `.L`
-     """
+    """
     bl_idname = "pyimpex.symetrize_vertexgroup"
     bl_label = "Symetrize vertex group"
 
@@ -169,7 +169,56 @@ class PyImpexSimetrizeVertexGroup(bpy.types.Operator):
         return self.execute(context)
 
 
-CLASSES = [PyImpexImporter, PyImpexExporter, PyImpexSimetrizeVertexGroup]
+class PyImpexDeselectInAnyVertexGroup(bpy.types.Operator):
+    """ Deselect vertices belong to any vertex group
+    """
+    bl_idname = "pyimpex.deselect_in_any_vertexgroup"
+    bl_label = "Deselect vertex in any vertexgroup"
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        obj = context.object
+        if not isinstance(obj, bpy.types.Object):
+            return False
+        if not isinstance(obj.data, bpy.types.Mesh):
+            return False
+        if obj.mode != 'EDIT':
+            return False
+        return True
+
+    def execute(self, context: bpy.types.Context):
+        obj = context.object
+        if not isinstance(obj, bpy.types.Object):
+            return {'CANCELLED'}
+        mesh = obj.data
+        if not isinstance(mesh, bpy.types.Mesh):
+            return {'CANCELLED'}
+
+        des = []
+        for i, v in enumerate(mesh.vertices):
+            for g in v.groups:
+                if g.weight > 0:
+                    des.append(i)
+                    break
+
+        import bmesh
+        bm = bmesh.from_edit_mesh(mesh)
+        bm.select_mode = {'VERT'}
+        for i in des:
+            bm.verts[i].select = False
+        bm.select_flush_mode()   
+        mesh.update()        
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+
+CLASSES = [
+    PyImpexImporter, PyImpexExporter, PyImpexSimetrizeVertexGroup,
+    PyImpexDeselectInAnyVertexGroup
+]
 
 
 def menu_func_import(self, context):

@@ -73,6 +73,8 @@ class FaceMesh:
                 vg_name = self.vertex_group_names[ve.group]
                 if vg_name in self.bone_names:
                     self.bone_weights[i].push(ve.group, ve.weight)
+        for i, b in enumerate(self.bone_weights):
+            b.normalize()
 
         # morph
         self.morph_targets: List[Sequence[Float3]] = []

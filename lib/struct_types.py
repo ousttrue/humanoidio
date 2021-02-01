@@ -253,6 +253,14 @@ class BoneWeight(ctypes.LittleEndianStructure):
         else:
             raise NotImplementedError('over 4')
 
+    def normalize(self):
+        total_weights = (self.weights.x + self.weights.y + self.weights.z +
+                         self.weights.w)
+        if total_weights == 0:
+            raise Exception('no weights')
+        factor = 1 / total_weights
+        self.weights *= factor
+
     def to_joints_with_weights(
             self,
             group_index_to_joint_index: Dict[int,
