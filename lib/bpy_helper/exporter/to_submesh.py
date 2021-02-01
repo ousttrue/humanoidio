@@ -1,9 +1,7 @@
 import enum
 from typing import List, Dict, NamedTuple
-from ..struct_types import Float2, Float3, Float4, UShort4
-from .node import Node
-from .facemesh import FaceMesh
-from .submesh_mesh import Submesh, SubmeshMesh, Vertex
+from ...struct_types import Float2, Float3, Float4, UShort4
+from ...pyscene import Node, FaceMesh, Submesh, SubmeshMesh, Vertex
 
 
 class TmpSubmesh:

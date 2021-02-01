@@ -11,6 +11,7 @@ from ... import formats, pyscene
 from ...pyscene.material import BlendMode, UnlitMaterial, PBRMaterial, Texture
 from ...struct_types import Float3, Mat4
 from .export_map import ExportMap
+from .to_submesh import facemesh_to_submesh
 
 GLTF_VERSION = '2.0'
 GENERATOR_NAME = 'pyimpex'
@@ -248,7 +249,7 @@ class GltfExporter:
             return mesh_index
 
         if isinstance(node.mesh, pyscene.FaceMesh):
-            mesh = pyscene.facemesh_to_submesh(node)
+            mesh = facemesh_to_submesh(node)
         elif isinstance(node.mesh, pyscene.SubmeshMesh):
             mesh = node.mesh
         else:
