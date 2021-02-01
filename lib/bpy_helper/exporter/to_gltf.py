@@ -367,6 +367,7 @@ class GltfExporter:
             node for node in self.export_map.nodes if node.humanoid_bone
         ]
         if humanoid_bones:
+            print(f'has vrm: {humanoid_bones}')
             vrm = self.export_map.vrm
             VRM = {
                 'exporterVersion':
@@ -400,7 +401,6 @@ class GltfExporter:
 
     def _push_node_recursive(self, node: pyscene.Node, level=0):
         indent = '  ' * level
-        print(f'{indent}{node.name}')
         self._get_or_create_node(node)
         for child in node.children:
             self._push_node_recursive(child, level + 1)

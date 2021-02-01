@@ -132,7 +132,7 @@ class PYIMPEX_OT_ApplyViewBookmark(bpy.types.Operator):
     bl_idname = "pyimpex.apply_viewbookmark"
     bl_label = "Apply Item"
 
-    index = bpy.props.IntProperty(default=-1)
+    index: bpy.props.IntProperty(default=-1)
 
     def execute(self, context):
         index = self.index
