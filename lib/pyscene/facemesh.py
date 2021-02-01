@@ -65,14 +65,20 @@ class FaceMesh:
         self.triangles: List[Triangle] = []
 
         # skinning
-        self.vertex_group_names = [g.name for g in vertex_groups]
+        # vertex_group_names = [g.name for g in vertex_groups]
         self.bone_names = bone_names
         self.bone_weights = (BoneWeight * len(vertices))()
+
+        def get_vertex_group(g):
+            for i, name in enumerate(bone_names):
+                if name == g.name:
+                    return i
+
         for i, v in enumerate(vertices):
-            for ve in v.groups:
-                vg_name = self.vertex_group_names[ve.group]
-                if vg_name in self.bone_names:
-                    self.bone_weights[i].push(ve.group, ve.weight)
+            for ge in v.groups:
+                index = get_vertex_group(vertex_groups[ge.group])
+                if isinstance(index, int):
+                    self.bone_weights[i].push(index, ge.weight)
         for i, b in enumerate(self.bone_weights):
             b.normalize()
 

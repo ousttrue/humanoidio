@@ -19,7 +19,9 @@ class Exporter:
         node = pyscene.Node(bone.name)
         self.export_map.add_node(bone, node)
         h = bone.head_local
-        node.position = Float3(h.x, h.y, h.z)
+
+        # Z-UP to Y-UP
+        node.position = Float3(h.x, h.z, -h.y)
 
         parent.add_child(node)
         skin.joints.append(node)
@@ -106,14 +108,14 @@ class Exporter:
                 facemesh.add_triangle(triangle, uv_texture_layer)
 
             # shapekey
-            if o.data.shape_keys:
-                for key_block in o.data.shape_keys.key_blocks:
+            if mesh.shape_keys:
+                for key_block in mesh.shape_keys.key_blocks:
                     if key_block.name == 'Basis':
                         continue
 
-                    shape_positions = (Float3 * len(o.data.vertices))()
+                    shape_positions = (Float3 * len(mesh.vertices))()
                     for i, v in enumerate(key_block.data):
-                        delta = v.co - o.data.vertices[i].co
+                        delta = v.co - mesh.vertices[i].co
                         shape_positions[i] = Float3(delta.x, delta.z, -delta.y)
                     facemesh.add_morph(key_block.name,
                                        shape_positions)  # type: ignore
@@ -188,7 +190,7 @@ class Exporter:
                             bones[bone.name] = node
 
                         def traverse_bone(bone: bpy.types.PoseBone,
-                                        parent_name: Optional[str] = None):
+                                          parent_name: Optional[str] = None):
                             # print(bone)
 
                             node = bones[bone.name]
