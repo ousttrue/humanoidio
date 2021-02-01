@@ -66,7 +66,7 @@ class Float3(ctypes.Structure):
         return Float3(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
 
     def zup2yup(self) -> Tuple[float, float, float]:
-        return (self.x, self.z, -self.y)
+        return (-self.x, self.z, self.y)
 
     def yup2zup(self) -> Tuple[float, float, float]:
         return (self.x, -self.z, self.y)

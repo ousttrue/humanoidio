@@ -206,8 +206,115 @@ class PyImpexDeselectInAnyVertexGroup(bpy.types.Operator):
         bm.select_mode = {'VERT'}
         for i in des:
             bm.verts[i].select = False
-        bm.select_flush_mode()   
-        mesh.update()        
+        bm.select_flush_mode()
+        mesh.update()
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+
+class PyImpexGuessHumanoidSkeleton(bpy.types.Operator):
+    """ Guess humanoid skeleton
+    """
+    bl_idname = "pyimpex.guess_humanoid"
+    bl_label = "Guess humanoid bone assignment"
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        obj = context.object
+        if not isinstance(obj, bpy.types.Object):
+            return False
+        if not isinstance(obj.data, bpy.types.Armature):
+            return False
+        if obj.mode != 'POSE':
+            return False
+        return True
+
+    def execute(self, context: bpy.types.Context):
+        obj = context.object
+        if not isinstance(obj, bpy.types.Object):
+            return {'CANCELLED'}
+        armature = obj.data
+        if not isinstance(armature, bpy.types.Armature):
+            return {'CANCELLED'}
+
+        from .lib import formats
+        used = {}
+        for bone in obj.pose.bones:
+            src = formats.HumanoidBones[bone.pyimpex_humanoid_bone]
+            if src != formats.HumanoidBones.unknown:
+                used[src] = True
+
+        name_to_bone = {
+            'hips': formats.HumanoidBones.hips,
+            'spine': formats.HumanoidBones.spine,
+            'chest': formats.HumanoidBones.chest,
+            'neck': formats.HumanoidBones.neck,
+            'head': formats.HumanoidBones.head,
+            # LR
+            'shoulder_L': formats.HumanoidBones.leftShoulder,
+            'upperArm_L': formats.HumanoidBones.leftUpperArm,
+            'lowerArm_L': formats.HumanoidBones.leftLowerArm,
+            'hand_L': formats.HumanoidBones.leftHand,
+            'upperLeg_L': formats.HumanoidBones.leftUpperLeg,
+            'lowerLeg_L': formats.HumanoidBones.leftLowerLeg,
+            'foot_L': formats.HumanoidBones.leftFoot,
+            'toes_L': formats.HumanoidBones.leftToes,
+            'shoulder_R': formats.HumanoidBones.rightShoulder,
+            'upperArm_R': formats.HumanoidBones.rightUpperArm,
+            'lowerArm_R': formats.HumanoidBones.rightLowerArm,
+            'hand_R': formats.HumanoidBones.rightHand,
+            'upperLeg_R': formats.HumanoidBones.rightUpperLeg,
+            'lowerLeg_R': formats.HumanoidBones.rightLowerLeg,
+            'foot_R': formats.HumanoidBones.rightFoot,
+            'toes_R': formats.HumanoidBones.rightToes,
+            # fingers L
+            'thumb0_L': formats.HumanoidBones.leftThumbProximal,
+            'thumb1_L': formats.HumanoidBones.leftThumbIntermediate,
+            'thumb2_L': formats.HumanoidBones.leftThumbDistal,
+            'index0_L': formats.HumanoidBones.leftIndexProximal,
+            'index1_L': formats.HumanoidBones.leftIndexIntermediate,
+            'index2_L': formats.HumanoidBones.leftIndexDistal,
+            'middle0_L': formats.HumanoidBones.leftMiddleProximal,
+            'middle1_L': formats.HumanoidBones.leftMiddleIntermediate,
+            'middle2_L': formats.HumanoidBones.leftMiddleDistal,
+            'ring0_L': formats.HumanoidBones.leftRingProximal,
+            'ring1_L': formats.HumanoidBones.leftRingIntermediate,
+            'ring2_L': formats.HumanoidBones.leftRingDistal,
+            'little0_L': formats.HumanoidBones.leftLittleProximal,
+            'little1_L': formats.HumanoidBones.leftLittleIntermediate,
+            'little2_L': formats.HumanoidBones.leftLittleDistal,
+            # fingers R
+            'thumb0_R': formats.HumanoidBones.rightThumbProximal,
+            'thumb1_R': formats.HumanoidBones.rightThumbIntermediate,
+            'thumb2_R': formats.HumanoidBones.rightThumbDistal,
+            'index0_R': formats.HumanoidBones.rightIndexProximal,
+            'index1_R': formats.HumanoidBones.rightIndexIntermediate,
+            'index2_R': formats.HumanoidBones.rightIndexDistal,
+            'middle0_R': formats.HumanoidBones.rightMiddleProximal,
+            'middle1_R': formats.HumanoidBones.rightMiddleIntermediate,
+            'middle2_R': formats.HumanoidBones.rightMiddleDistal,
+            'ring0_R': formats.HumanoidBones.rightRingProximal,
+            'ring1_R': formats.HumanoidBones.rightRingIntermediate,
+            'ring2_R': formats.HumanoidBones.rightRingDistal,
+            'little0_R': formats.HumanoidBones.rightLittleProximal,
+            'little1_R': formats.HumanoidBones.rightLittleIntermediate,
+            'little2_R': formats.HumanoidBones.rightLittleDistal,
+        }
+
+        def guess_bone(name: str) -> formats.HumanoidBones:
+            print(f'guess: {name}')
+            return name_to_bone.get(name, formats.HumanoidBones.unknown)
+
+        for bone in obj.pose.bones:
+            src = formats.HumanoidBones[bone.pyimpex_humanoid_bone]
+            if src == formats.HumanoidBones.unknown:
+                humanoid_bone = guess_bone(bone.name)
+                if humanoid_bone not in used:
+                    print(f'{bone} => {humanoid_bone}')
+                    bone.pyimpex_humanoid_bone = humanoid_bone.name
 
         return {'FINISHED'}
 
@@ -217,7 +324,7 @@ class PyImpexDeselectInAnyVertexGroup(bpy.types.Operator):
 
 CLASSES = [
     PyImpexImporter, PyImpexExporter, PyImpexSimetrizeVertexGroup,
-    PyImpexDeselectInAnyVertexGroup
+    PyImpexDeselectInAnyVertexGroup, PyImpexGuessHumanoidSkeleton
 ]
 
 

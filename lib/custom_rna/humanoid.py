@@ -32,6 +32,8 @@ class PYIMPEX_HumanoidBonePanel(bpy.types.Panel):
             row.prop(context.active_pose_bone,
                      'pyimpex_humanoid_bone',
                      text='humanoid bone')
+        else:
+            row.label(text='use pose mode', icon='INFO')
 
 
 CLASSES = [

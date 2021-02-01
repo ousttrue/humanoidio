@@ -21,7 +21,7 @@ class Exporter:
         h = bone.head_local
 
         # Z-UP to Y-UP
-        node.position = Float3(h.x, h.z, -h.y)
+        node.position = Float3(-h.x, h.z, h.y)
 
         parent.add_child(node)
         skin.joints.append(node)
@@ -55,6 +55,43 @@ class Exporter:
                     parent = self.export_map._node_map[armature_object]
                     self._export_bone(skin, armature_object.matrix_world, b,
                                       parent)
+
+                    # humanoid
+                    bones: Dict[str, pyscene.Node] = {}
+
+                    def find_node(name) -> pyscene.Node:
+                        for node in self.export_map.nodes:
+                            if node.name == name:
+                                return node
+
+                        raise Exception('not found')
+
+                    for bone in armature_object.pose.bones:
+                        # node = pyscene.Node(bone.name)
+                        node = find_node(bone.name)
+                        # self.export_map.nodes.append(node)
+                        bones[bone.name] = node
+
+                    def traverse_bone(bone: bpy.types.PoseBone,
+                                      parent_name: Optional[str] = None):
+                        # print(bone)
+
+                        node = bones[bone.name]
+                        # if parent_name:
+                        #     bones[parent_name].add_child(node)
+
+                        # custom property
+                        humanoid_bone = bone.pyimpex_humanoid_bone
+                        if humanoid_bone:
+                            node.humanoid_bone = formats.HumanoidBones[
+                                humanoid_bone]
+
+                        for child in bone.children:
+                            traverse_bone(child, bone.name)
+
+                    for bone in armature_object.pose.bones:
+                        if not bone.parent:
+                            traverse_bone(bone)
 
         return skin
 
@@ -182,43 +219,16 @@ class Exporter:
                     node.mesh = mesh
 
                 if isinstance(o.data, bpy.types.Armature):
-                    with utils.disposable_mode(o, 'POSE'):
-                        bones: Dict[str, pyscene.Node] = {}
-                        for bone in o.pose.bones:
-                            node = pyscene.Node(bone.name)
-                            # self.export_map.nodes.append(node)
-                            bones[bone.name] = node
 
-                        def traverse_bone(bone: bpy.types.PoseBone,
-                                          parent_name: Optional[str] = None):
-                            # print(bone)
-
-                            node = bones[bone.name]
-                            # if parent_name:
-                            #     bones[parent_name].add_child(node)
-
-                            # custom property
-                            humanoid_bone = bone.pyimpex_humanoid_bone
-                            if humanoid_bone:
-                                node.humanoid_bone = formats.HumanoidBones[
-                                    humanoid_bone]
-
-                            for child in bone.children:
-                                traverse_bone(child, bone.name)
-
-                        for bone in o.pose.bones:
-                            if not bone.parent:
-                                traverse_bone(bone)
-
-                        # get vrm meta
-                        meta: custom_rna.PYIMPEX_Meta = o.pyimpex_meta
-                        vrm = pyscene.Vrm()
-                        self.export_map.vrm = vrm
-                        vrm.meta['version'] = meta.version
-                        vrm.meta['title'] = meta.title
-                        vrm.meta['author'] = meta.author
-                        # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
-                        # # self.vrm.reference = armature_object['vrm_reference']
+                    # get vrm meta
+                    meta: custom_rna.PYIMPEX_Meta = o.pyimpex_meta
+                    vrm = pyscene.Vrm()
+                    self.export_map.vrm = vrm
+                    vrm.meta['version'] = meta.version
+                    vrm.meta['title'] = meta.title
+                    vrm.meta['author'] = meta.author
+                    # # self.vrm.contactInformation = armature_object['vrm_contactInformation']
+                    # # self.vrm.reference = armature_object['vrm_reference']
 
         for child in o.children:
             self._export_object(child, process_data, node)
