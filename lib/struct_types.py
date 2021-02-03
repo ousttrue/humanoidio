@@ -257,7 +257,7 @@ class BoneWeight(ctypes.LittleEndianStructure):
         total_weights = (self.weights.x + self.weights.y + self.weights.z +
                          self.weights.w)
         if total_weights == 0:
-            raise Exception('no weights')
+            raise Exception('skin has no weight vertex')
         factor = 1 / total_weights
         self.weights *= factor
 
