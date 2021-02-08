@@ -406,10 +406,6 @@ def load(data: formats.GltfContext) -> IndexMap:
     before_import(roots, data.gltf.extensions != None)
     deserializer.index_map.load_vrm()
 
-    for node in nodes:
-        if not node.parent:
-            print_tree(node)
-
     return deserializer.index_map
 
 

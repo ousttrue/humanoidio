@@ -91,6 +91,7 @@ class SubmeshMesh:
         self.attributes = PlanarBuffer(positions, normals, texcoords, joints,
                                        weights)
         self.vertex_count = len(vertices)
+        a = 0
 
     def compare(self, other) -> bool:
         if not isinstance(other, SubmeshMesh):

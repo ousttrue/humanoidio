@@ -325,7 +325,7 @@ class GltfExporter:
         gltf_mesh = formats.gltf.Mesh(name=mesh.name,
                                       primitives=primitives,
                                       extensions={},
-                                      extras=formats.gltf.meshesItemExtras())
+                                      extras={})
         mesh_index = len(self.gltf_meshes)
         self.gltf_meshes.append(gltf_mesh)
         self._mesh_index_map[node.mesh] = mesh_index
@@ -416,7 +416,7 @@ class GltfExporter:
         # extensions
         extensionsUsed = ['KHR_materials_unlit']
         vrm = self.export_vrm()
-        extensions = formats.gltf.Extension(vrm)
+        extensions = vrm
         if vrm:
             extensionsUsed.append('VRM')
 

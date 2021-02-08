@@ -459,12 +459,8 @@ class Importer:
                      node: pyscene.Node,
                      parent: Optional[pyscene.Node] = None,
                      level=0):
-        if node.name == 'J_Sec_L_SkirtSide2_end':
-            a = 0
-        if node.name == 'J_Sec_L_SkirtSide2':
-            a = 0
         indent = '  ' * level
-        print(f'{indent}{node.name}')
+        # print(f'{indent}{node.name}')
         self._create_object(node)
         for child in node.children:
             self._create_tree(child, node, level + 1)

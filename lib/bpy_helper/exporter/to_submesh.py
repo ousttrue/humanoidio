@@ -10,6 +10,27 @@ class TmpSubmesh:
         self.indices: List[int] = []
 
 
+class VertexBuffer:
+    def __init__(self, is_face_splitted: bool, count: int):
+        if is_face_splitted:
+            self.vertices = [Vertex.zero()] * count
+        else:
+            self.vertices = []
+        self.morph_targets = {}
+
+    def add_vertex(self, v0):
+        i0 = len(self.vertices)
+        self.vertices.append(v0)
+        return i0
+
+    def set_morph(self, morph_index: int, i: int, p):
+        morph_target = self.morph_targets.get(morph_index)
+        if not morph_target:
+            morph_target = {}
+            self.morph_targets[morph_index] = morph_target
+        morph_target[i] = p
+
+
 def facemesh_to_submesh(node: Node) -> SubmeshMesh:
     '''
     blenderの面毎にmaterialを持つ形式から、
@@ -33,10 +54,7 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
         material_submesh_map[material_index] = tmp
         return tmp
 
-    if src.is_face_splitted():
-        vertices = [Vertex.zero()] * len(src.positions)
-    else:
-        vertices = []
+    buffer = VertexBuffer(src.is_face_splitted(), len(src.positions))
 
     dst = SubmeshMesh(src.name)
 
@@ -74,17 +92,14 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
             i0 = fv0.position_index
             i1 = fv1.position_index
             i2 = fv2.position_index
-            vertices[i0] = v0
-            vertices[i1] = v1
-            vertices[i2] = v2
+            buffer.vertices[i0] = v0
+            buffer.vertices[i1] = v1
+            buffer.vertices[i2] = v2
         else:
             # 頂点 index の振り直し
-            i0 = len(vertices)
-            vertices.append(v0)
-            i1 = len(vertices)
-            vertices.append(v1)
-            i2 = len(vertices)
-            vertices.append(v2)
+            i0 = buffer.add_vertex(v0)
+            i1 = buffer.add_vertex(v1)
+            i2 = buffer.add_vertex(v2)
 
         submesh = get_or_create_submesh(t.material_index)
         submesh.indices.append(i0)
@@ -93,12 +108,16 @@ def facemesh_to_submesh(node: Node) -> SubmeshMesh:
 
         # morph target
         for i, m in enumerate(src.morph_targets):
-            morph = dst.get_or_create_morphtarget(i)
-            morph.attributes.position[i0] = m[fv0.position_index]
-            morph.attributes.position[i1] = m[fv1.position_index]
-            morph.attributes.position[i2] = m[fv2.position_index]
+            buffer.set_morph(i, i0, m[fv0.position_index])
+            buffer.set_morph(i, i1, m[fv1.position_index])
+            buffer.set_morph(i, i2, m[fv2.position_index])
 
-    dst.set_vertices(vertices)
+    dst.set_vertices(buffer.vertices)
+
+    for i, m in buffer.morph_targets.items():
+        morph = dst.get_or_create_morphtarget(i)
+        for j, k in m.items():
+            morph.attributes.position[j] = k
 
     # submesh
     keys = sorted(material_submesh_map.keys())
