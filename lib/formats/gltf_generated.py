@@ -1294,7 +1294,7 @@ class vrmMeta(NamedTuple):
     otherPermissionUrl: Optional[str] = None
     # License type
     licenseName: Optional[str] = None
-    # If â€œOtherâ€ is selected, put the URL link of the license document here.
+    # If gOtherh is selected, put the URL link of the license document here.
     otherLicenseUrl: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
