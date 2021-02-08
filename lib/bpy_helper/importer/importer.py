@@ -193,10 +193,12 @@ class Importer:
         # pass1: create and head postiion
         bones: Dict[pyscene.Node, bpy.types.EditBone] = {}
         for node in skin.joints:
-            bl_object = self.import_map.obj[node]
             bl_bone = armature.edit_bones.new(node.name)
             # get armature local matrix
-            world_to_local = m @ bl_object.matrix_world
+            matrix_world = self.import_map.matrix_map.get(node)
+            if not matrix_world:
+                raise Exception('no matrix')
+            world_to_local = m @ matrix_world
             bl_bone.head = world_to_local @ mathutils.Vector((0, 0, 0))
             bl_bone.tail = bl_bone.head + mathutils.Vector((0, 0.1, 0))
             bones[node] = bl_bone
@@ -441,7 +443,6 @@ class Importer:
         self.collection.objects.link(bl_obj)
         bl_obj.select_set(True)
         self.import_map.obj[node] = bl_obj
-
         # parent
         if node.parent:
             bl_obj.parent = self.import_map.obj.get(node.parent)
@@ -452,12 +453,21 @@ class Importer:
             bl_obj.rotation_quaternion = self.yup2zup_q(node.rotation)
         bl_obj.scale = self.yup2zup_s(node.scale)
 
+        self.import_map.matrix_map[node] = bl_obj.matrix_world
+
     def _create_tree(self,
                      node: pyscene.Node,
-                     parent: Optional[pyscene.Node] = None):
+                     parent: Optional[pyscene.Node] = None,
+                     level=0):
+        if node.name == 'J_Sec_L_SkirtSide2_end':
+            a = 0
+        if node.name == 'J_Sec_L_SkirtSide2':
+            a = 0
+        indent = '  ' * level
+        print(f'{indent}{node.name}')
         self._create_object(node)
         for child in node.children:
-            self._create_tree(child, node)
+            self._create_tree(child, node, level + 1)
 
     def _remove_empty(self, node: pyscene.Node):
         '''

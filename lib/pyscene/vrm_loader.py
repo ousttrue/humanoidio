@@ -53,7 +53,7 @@ class VrmExpression:
 
 
 class Vrm:
-    def __init__(self, vrm: Optional[formats.gltf.vrm] = None) -> None:
+    def __init__(self, vrm: Optional[formats.generated.vrm] = None) -> None:
         self.expressions: List[VrmExpression] = []
         self.version = '1'
         self.meta: Dict[str, str] = {}
@@ -65,13 +65,15 @@ class Vrm:
     def load(index_map: IndexMap, gltf: formats.gltf.glTF) -> Optional['Vrm']:
         if not gltf.extensions:
             return None
-        if not gltf.extensions.VRM:
+
+        gltf_vrm = gltf.extensions.get('VRM')
+        if not isinstance(gltf_vrm, formats.generated.vrm):
             return None
 
-        vrm = Vrm(gltf.extensions.VRM)
+        vrm = Vrm(gltf_vrm)
 
         # expressions
-        for blendshape in gltf.extensions.VRM.blendShapeMaster.blendShapeGroups:
+        for blendshape in gltf_vrm.blendShapeMaster.blendShapeGroups:
             if not isinstance(blendshape.name, str):
                 raise Exception()
             if not blendshape.presetName:

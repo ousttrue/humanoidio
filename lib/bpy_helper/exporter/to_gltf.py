@@ -362,7 +362,7 @@ class GltfExporter:
         self.gltf_skins.append(gltf_skin)
         return skin_index
 
-    def export_vrm(self) -> Optional[formats.gltf.vrm]:
+    def export_vrm(self) -> Optional[formats.generated.vrm]:
         humanoid_bones = [
             node for node in self.export_map.nodes if node.humanoid_bone
         ]
@@ -397,7 +397,7 @@ class GltfExporter:
                     'tagMap': {}
                 } for material in self.export_map.materials]
             }
-            return formats.gltf.vrm.from_dict(VRM)
+            return formats.generated.vrm.from_dict(VRM)
 
     def _push_node_recursive(self, node: pyscene.Node, level=0):
         indent = '  ' * level

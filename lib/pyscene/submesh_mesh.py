@@ -71,6 +71,10 @@ class SubmeshMesh:
         morph = f' {len(self.morphtargets)}morph' if self.morphtargets else ''
         return f'<SubmeshMesh: {self.vertex_count}verts {"".join(submeshes)}{morph}>'
 
+    def create_buffer(self, vertex_count: int, has_skin: bool):
+        self.attributes = PlanarBuffer.create(vertex_count, has_skin)
+        self.vertex_count = vertex_count
+
     def set_vertices(self, vertices: List[Vertex]):
         positions = (Float3 * len(vertices))()
         normals = (Float3 * len(vertices))()
@@ -132,6 +136,8 @@ class SubmeshMesh:
     def create_from_submesh(self, i: int) -> 'SubmeshMesh':
         submesh = self.submeshes[i]
         mesh = SubmeshMesh(f'self.name:{i}')
+        mesh.create_buffer(submesh.vertex_count, self.attributes.joints
+                           is not None)
 
         index_map = {}
         for i, index_index in enumerate(

@@ -1,13 +1,13 @@
 from typing import Tuple, NamedTuple, List
 import pathlib
 import json
-from .gltf_generated import glTF
+from .  import generated
 from .glb import Glb
 
 
 class GltfContext(NamedTuple):
     # parsed glTF
-    gltf: glTF
+    gltf: generated.glTF
     # bytes of glb binary chunk
     bin: bytes
     # path for file exists

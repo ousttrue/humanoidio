@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any
 import bpy
 from ... import pyscene
 
@@ -13,3 +13,4 @@ class ImportMap:
         self.skin: Dict[pyscene.Skin, bpy.types.Object] = {}
         self.material: Dict[pyscene.UnlitMaterial, bpy.types.Material] = {}
         self.image: Dict[pyscene.Texture, bpy.types.Image] = {}
+        self.matrix_map: Dict[pyscene.Node, Any] = {}  # matrix

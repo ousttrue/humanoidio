@@ -1,6 +1,6 @@
 import pathlib
 import json
-from . import gltf_generated as gltf
+from .generated import gltf
 from .glb import Glb
 from .gltf_context import GltfContext
 from .bytesreader import BytesReader

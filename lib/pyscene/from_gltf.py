@@ -6,7 +6,7 @@ import bpy, mathutils
 from .. import formats
 from .node import Node, Skin
 from .material import UnlitMaterial, PBRMaterial, MToonMaterial, Texture, TextureUsage, BlendMode
-from .submesh_mesh import SubmeshMesh, Submesh
+from .submesh_mesh import SubmeshMesh, Submesh, PlanarBuffer
 from .index_map import IndexMap
 from .modifier import before_import
 
@@ -40,9 +40,11 @@ class Reader:
         self.reader = formats.BytesReader(data)
         self.index_map = IndexMap(data.gltf)
 
-    def get_vrm(self) -> Optional[formats.gltf.vrm]:
+    def get_vrm(self) -> Optional[formats.generated.vrm]:
         if self.data.gltf.extensions:
-            return self.data.gltf.extensions.VRM
+            vrm = self.data.gltf.extensions.get('VRM')
+            if isinstance(vrm, formats.generated.vrm):
+                return vrm
 
     def _get_or_create_texture(self, image_index: int) -> Texture:
         texture = self.index_map.texture.get(image_index)
@@ -149,7 +151,8 @@ class Reader:
             for k, v in vrm_material.vectorProperties.items():
                 material.set_vector4(k, v)
 
-        elif gl_material.extensions and gl_material.extensions.KHR_materials_unlit:
+        elif gl_material.extensions and gl_material.extensions.get(
+                'KHR_materials_unlit'):
             material = UnlitMaterial(name)
             load_common_porperties(material, gl_material)
 
@@ -241,12 +244,14 @@ class Reader:
         has_skin = _check_has_skin(m.primitives[0])
 
         def get_morph_name(m, p, i) -> str:
-            if p.extras and p.extras.targetNames and i < len(
-                    p.extras.targetNames):
-                return p.extras.targetNames[i]
-            elif m.extras and m.extras.targetNames and i < len(
-                    m.extras.targetNames):
-                return p.extras.targetNames[i]
+            if p.extras:
+                targetNames = p.extras.get('targetNames')
+                if isinstance(targetNames, list) and i < len(targetNames):
+                    return targetNames[i]
+            if m.extras:
+                targetNames = m.extras.get('targetNames')
+                if isinstance(targetNames, list) and i < len(targetNames):
+                    return p.extras.targetNames[i]
 
             # ToDo: target.position accessor/bufferView name ? see gltf sample
             return f'{i}'
@@ -255,7 +260,9 @@ class Reader:
             # share vertex buffer
             shared_prim = m.primitives[0]
             vertex_count = position_count(shared_prim)
-            mesh = SubmeshMesh(name, vertex_count, has_skin)
+            mesh = SubmeshMesh(name)
+            mesh.create_buffer(vertex_count, has_skin)
+
             self.reader.read_attributes(mesh.attributes, 0, data,
                                         shared_prim.attributes)
             # morph target
@@ -301,6 +308,13 @@ class Reader:
         return mesh
 
 
+def print_tree(node: Node, level=0):
+    indent = '  ' * level
+    print(f'{indent}{node.name}')
+    for child in node.children:
+        print_tree(child, level + 1)
+
+
 def load(data: formats.GltfContext) -> IndexMap:
     '''
     glTFを中間形式のSubmesh形式に変換する
@@ -310,8 +324,8 @@ def load(data: formats.GltfContext) -> IndexMap:
     def get_humanoid_bone(node_index: int) -> Optional[formats.HumanoidBones]:
         if not data.gltf.extensions:
             return
-        vrm = data.gltf.extensions.VRM
-        if not vrm:
+        vrm = data.gltf.extensions.get('VRM')
+        if not isinstance(vrm, formats.generated.vrm):
             return
 
         for humanoid_bone in vrm.humanoid.humanBones:
@@ -391,6 +405,10 @@ def load(data: formats.GltfContext) -> IndexMap:
     roots = deserializer.index_map.get_roots()
     before_import(roots, data.gltf.extensions != None)
     deserializer.index_map.load_vrm()
+
+    for node in nodes:
+        if not node.parent:
+            print_tree(node)
 
     return deserializer.index_map
 

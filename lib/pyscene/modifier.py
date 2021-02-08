@@ -112,5 +112,5 @@ def before_import(roots: List[Node], is_vrm: bool):
         logger.debug(f'remove empty: {node}')
         node.parent.remove_child(node)
 
-    for root in roots:
-        traverse(root, None, remove_leaf)
+    # for root in roots:
+    #     traverse(root, None, remove_leaf)
