@@ -67,9 +67,10 @@ class Vrm:
             return None
 
         gltf_vrm = gltf.extensions.get('VRM')
-        if not isinstance(gltf_vrm, formats.generated.vrm):
+        if not gltf_vrm: #not isinstance(gltf_vrm, formats.generated.vrm):
             return None
-
+        
+        gltf_vrm = formats.generated.vrm.from_dict(gltf_vrm)
         vrm = Vrm(gltf_vrm)
 
         # expressions
