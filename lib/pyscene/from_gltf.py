@@ -321,10 +321,12 @@ def load(data: formats.GltfContext) -> IndexMap:
     '''
     deserializer = Reader(data)
 
-    def get_humanoid_bone(node_index: int) -> Optional[formats.HumanoidBones]:
-        if not data.gltf.extensions:
-            return
+    if data.gltf.extensions:
         vrm = data.gltf.extensions.get('VRM')
+        if vrm:
+            vrm = formats.generated.vrm.from_dict(vrm)
+
+    def get_humanoid_bone(node_index: int) -> Optional[formats.HumanoidBones]:
         if not isinstance(vrm, formats.generated.vrm):
             return
 
