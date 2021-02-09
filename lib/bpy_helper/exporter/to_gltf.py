@@ -364,7 +364,9 @@ class GltfExporter:
 
     def export_vrm(self) -> Optional[formats.generated.vrm]:
         humanoid_bones = [
-            node for node in self.export_map.nodes if node.humanoid_bone
+            node for node in self.export_map.nodes
+            if isinstance(node.humanoid_bone, formats.HumanoidBones)
+            and node.humanoid_bone != formats.HumanoidBones.unknown
         ]
         if humanoid_bones:
             print(f'has vrm: {humanoid_bones}')
