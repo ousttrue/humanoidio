@@ -418,7 +418,7 @@ class GltfExporter:
         vrm = self.export_vrm()
         extensions = {}
         if vrm:
-            extensions['VRM'] = vrm._asdict()
+            extensions['VRM'] = vrm.to_dict()
             extensionsUsed.append('VRM')
 
         # 出力する
