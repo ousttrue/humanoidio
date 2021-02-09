@@ -416,8 +416,9 @@ class GltfExporter:
         # extensions
         extensionsUsed = ['KHR_materials_unlit']
         vrm = self.export_vrm()
-        extensions = vrm
+        extensions = {}
         if vrm:
+            extensions['VRM'] = vrm._asdict()
             extensionsUsed.append('VRM')
 
         # 出力する
