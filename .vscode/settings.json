@@ -3,6 +3,7 @@
         "GLTF",
         "modelimpex"
     ],
+    "python.envFile": "${workspaceFolder}/.env",
     "python.testing.unittestArgs": [
         "-v",
         "-s",

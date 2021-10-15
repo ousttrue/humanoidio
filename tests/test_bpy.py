@@ -10,9 +10,6 @@ HERE = pathlib.Path(__file__).absolute().parent
 SAMPLE_DIR = pathlib.Path(os.environ[KEY]) / '2.0'
 
 import unittest
-
-sys.path.append(str(HERE.parent.parent))
-print(sys.path)
 import modelimpex.lib.scene
 
 
