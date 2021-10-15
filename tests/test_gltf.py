@@ -1,7 +1,5 @@
-import unittest
 import os
 import sys
-from typing import Optional, Iterable
 
 KEY = 'GLTF_SAMPLE_MODELS'
 if KEY not in os.environ:
@@ -9,6 +7,9 @@ if KEY not in os.environ:
 import pathlib
 
 SAMPLE_DIR = pathlib.Path(os.environ[KEY]) / '2.0'
+
+import unittest
+from typing import Optional, Iterable
 
 
 def get_gltf(d: pathlib.Path) -> Optional[pathlib.Path]:
