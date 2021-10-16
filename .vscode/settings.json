@@ -3,7 +3,6 @@
         "GLTF",
         "modelimpex"
     ],
-    "python.envFile": "${workspaceFolder}/.env",
     "python.testing.unittestArgs": [
         "-v",
         "-s",
@@ -12,5 +11,6 @@
         "test_*.py"
     ],
     "python.testing.pytestEnabled": false,
-    "python.testing.unittestEnabled": true
+    "python.testing.unittestEnabled": true,
+    "python.formatting.provider": "yapf"
 }

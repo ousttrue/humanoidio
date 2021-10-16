@@ -10,7 +10,7 @@ HERE = pathlib.Path(__file__).absolute().parent
 SAMPLE_DIR = pathlib.Path(os.environ[KEY]) / '2.0'
 
 import unittest
-import modelimpex.lib.scene
+import modelimpex.scene
 
 
 class TestBpy(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestBpy(unittest.TestCase):
         path = SAMPLE_DIR / 'BoxTextured/glTF-Binary/BoxTextured.glb'
         self.assertTrue(path.exists())
 
-        modelimpex.lib.scene.load(path)
+        modelimpex.scene.load(path)
         # data = formats.parse_gltf(path)
         # index_map = pyscene.load(data)
         # roots = index_map.get_roots()
