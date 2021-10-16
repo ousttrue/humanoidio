@@ -6,8 +6,9 @@
 # blender addon memo
 
 ```{toctree}
-:maxdepth: 2
-:caption: Contents:
+:maxdepth: 1
+
+module
 ```
 
 # path
