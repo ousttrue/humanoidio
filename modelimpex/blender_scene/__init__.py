@@ -7,26 +7,20 @@ import bmesh
 from .. import gltf
 
 
-def create_bmesh(mesh: gltf.Submesh) -> bmesh.types.BMesh:
-    logger.debug(f'create: {mesh}')
-
-    # create an empty BMesh
-    bm = bmesh.new()
-
+def create_vertices(bm, mesh: gltf.Submesh):
     for pos, n in mesh.get_vertices():
         # position
         vert = bm.verts.new(pos)
         # normal
         if n:
             vert.normal = n
-    bm.verts.ensure_lookup_table()
-    bm.verts.index_update()
 
-    # face
+
+def create_face(bm, mesh: gltf.Submesh):
     for i0, i1, i2 in mesh.get_indices():
-        v0 = bm.verts[i0]
-        v1 = bm.verts[i1]
-        v2 = bm.verts[i2]
+        v0 = bm.verts[i0 + mesh.vertex_offset]
+        v1 = bm.verts[i1 + mesh.vertex_offset]
+        v2 = bm.verts[i2 + mesh.vertex_offset]
         face = bm.faces.new((v0, v1, v2))
         face.smooth = True  # use vertex normal
         # face.material_index = indicesindex_to_materialindex(i)
@@ -50,20 +44,28 @@ def create_bmesh(mesh: gltf.Submesh) -> bmesh.types.BMesh:
     #         p = target.attributes.position[i]
     #         vert[layer] = mathutils.Vector(yup2zup(p)) + vert.co
 
-    return bm
-
 
 def load(loader: gltf.Loader):
-    for m in loader.meshes:
-        for i, sm in enumerate(m.submeshes):
-            name = f'{m.name}_{i}'
+    for mesh in loader.meshes:
+        logger.debug(f'create: {mesh.name}')
 
-            # Create an empty mesh and the object.
-            bl_mesh = bpy.data.meshes.new(name + '_mesh')
-            bl_obj = bpy.data.objects.new(name, bl_mesh)
-            # Add the object into the scene.
-            bpy.context.scene.collection.objects.link(bl_obj)
+        # create an empty BMesh
+        bm = bmesh.new()
+        for i, sm in enumerate(mesh.submeshes):
+            create_vertices(bm, sm)
 
-            bm = create_bmesh(sm)
-            bm.to_mesh(bl_mesh)
-            bm.free()
+        bm.verts.ensure_lookup_table()
+        bm.verts.index_update()
+
+        for i, sm in enumerate(mesh.submeshes):
+            create_face(bm, sm)
+
+        # Create an empty mesh and the object.
+        name = mesh.name
+        bl_mesh = bpy.data.meshes.new(name + '_mesh')
+        bl_obj = bpy.data.objects.new(name, bl_mesh)
+        # Add the object into the scene.
+        bpy.context.scene.collection.objects.link(bl_obj)
+
+        bm.to_mesh(bl_mesh)
+        bm.free()
