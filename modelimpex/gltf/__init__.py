@@ -115,6 +115,59 @@ class Mesh:
         self.submeshes = []
 
 
+def enumerate_1(iterable):
+    def g():
+        for x in iterable:
+            yield x
+
+    return g
+
+
+def enumerate_2(iterable):
+    def g():
+        it = iter(iterable)
+        while True:
+            try:
+                _0 = next(it)
+                _1 = next(it)
+                yield (_0, _1)
+            except StopIteration:
+                break
+
+    return g
+
+
+def enumerate_3(iterable):
+    def g():
+        it = iter(iterable)
+        while True:
+            try:
+                _0 = next(it)
+                _1 = next(it)
+                _2 = next(it)
+                yield (_0, _1, _2)
+            except StopIteration:
+                break
+
+    return g
+
+
+def enumerate_4(iterable):
+    def g():
+        it = iter(iterable)
+        while True:
+            try:
+                _0 = next(it)
+                _1 = next(it)
+                _2 = next(it)
+                _3 = next(it)
+                yield (_0, _1, _2, _3)
+            except StopIteration:
+                break
+
+    return g
+
+
 def get_span(data: bytes, accessor):
     ct = accessor['componentType']
     t = accessor['type']
@@ -122,118 +175,43 @@ def get_span(data: bytes, accessor):
     if ct == 5120:
         # int8
         if t == "SCALAR":
-
-            def int8():
-                for x in data[:count]:
-                    yield x
-
-            return int8
+            return enumerate_1(data[:count])
         else:
             raise NotImplementedError()
     elif ct == 5121:
         # uint8
         if t == "SCALAR":
-
-            def uint8():
-                for x in memoryview(data[:count]).cast('B'):
-                    yield x
-
-            return uint8
+            return enumerate_1(memoryview(data[:count]).cast('B'))
         else:
             raise NotImplementedError()
     elif ct == 5122:
         # int16
         if t == "SCALAR":
-
-            def int16():
-                for x in memoryview(data[:count * 2]).cast('h'):
-                    yield x
-
-            return int16
+            return enumerate_1(memoryview(data[:count * 2]).cast('h'))
         else:
             raise NotImplementedError()
     elif ct == 5123:
         # uint16
         if t == "SCALAR":
-
-            def uint16():
-                for x in memoryview(data[:count * 2]).cast('H'):
-                    yield x
-
-            return uint16
+            return enumerate_1(memoryview(data[:count * 2]).cast('H'))
         elif t == "VEC4":
-
-            def ushort4():
-                it = iter(memoryview(data[:count * 2 * 4]).cast('H'))
-                while True:
-                    try:
-                        u0 = next(it)
-                        u1 = next(it)
-                        u2 = next(it)
-                        u3 = next(it)
-                        yield u0, u1, u2, u3
-                    except StopIteration:
-                        break
-
-            return ushort4
-
+            return enumerate_4(memoryview(data[:count * 2 * 4]).cast('H'))
         else:
             raise NotImplementedError()
     elif ct == 5125:
         # uint32
         if t == "SCALAR":
-
-            def uint32():
-                for x in memoryview(data[:count * 4]).cast('I'):
-                    yield x
-
-            return uint32
+            return enumerate_1(memoryview(data[:count * 4]).cast('I'))
         else:
             raise NotImplementedError()
     elif ct == 5126:
         # float
-        if t == 'VEC4':
-
-            def float4():
-                it = iter(memoryview(data[:count * 4 * 4]).cast('f'))
-                while True:
-                    try:
-                        f0 = next(it)
-                        f1 = next(it)
-                        f2 = next(it)
-                        f3 = next(it)
-                        yield (f0, f1, f2, f3)
-                    except StopIteration:
-                        break
-
-            return float4
+        if t == 'VEC2':
+            return enumerate_2(memoryview(data[:count * 4 * 2]).cast('f'))
         elif t == 'VEC3':
-
-            def float3():
-                it = iter(memoryview(data[:count * 4 * 3]).cast('f'))
-                while True:
-                    try:
-                        f0 = next(it)
-                        f1 = next(it)
-                        f2 = next(it)
-                        yield (f0, f1, f2)
-                    except StopIteration:
-                        break
-
-            return float3
-        elif t == 'VEC2':
-
-            def float2():
-                it = iter(memoryview(data[:count * 4 * 2]).cast('f'))
-                while True:
-                    try:
-                        f0 = next(it)
-                        f1 = next(it)
-                        yield (f0, f1)
-                    except StopIteration:
-                        break
-
-            return float2
+            return enumerate_3(memoryview(data[:count * 4 * 3]).cast('f'))
+        elif t == 'VEC4':
+            return enumerate_4(memoryview(data[:count * 4 * 4]).cast('f'))
         else:
             raise NotImplementedError()
     else:
