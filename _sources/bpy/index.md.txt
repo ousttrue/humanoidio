@@ -6,4 +6,5 @@
 ```{toctree}
 context
 mesh
+operator
 ```

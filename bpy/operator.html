@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AddOn の実装 &mdash; Blender-2.93 python memo  ドキュメント</title>
+  <title>operator &mdash; Blender-2.93 python memo  ドキュメント</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="importer" href="importer.html" />
-    <link rel="prev" title="BMesh" href="../bmesh/index.html" /> 
+    <link rel="next" title="BMesh" href="../bmesh/index.html" />
+    <link rel="prev" title="Mesh" href="mesh.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,14 +41,15 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../obsolete.html">Obsolete(Blender2.8より前の動かないコード)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dev.html">開発環境</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../bpy/index.html">bpy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../bmesh/index.html">BMesh</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">AddOn の実装</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="importer.html">importer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exporter.html">exporter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#path">path</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="context.html">bpy.context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mesh.html">Mesh</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">operator</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../bmesh/index.html">BMesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../addon_dev/index.html">AddOn Dev</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../addon_list/index.html">AddOn List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../snippet/index.html">snippet</a></li>
 </ul>
 
@@ -66,9 +67,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>AddOn の実装</li>
+          <li><a href="index.html">bpy</a> &raquo;</li>
+      <li>operator</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/addon/index.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/bpy/operator.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -76,28 +78,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="addon">
-<h1>AddOn の実装<a class="headerlink" href="#addon" title="このヘッドラインへのパーマリンク"></a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="importer.html">importer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exporter.html">exporter</a></li>
-</ul>
+  <section class="tex2jax_ignore mathjax_ignore" id="operator">
+<h1>operator<a class="headerlink" href="#operator" title="このヘッドラインへのパーマリンク"></a></h1>
+<p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Operator.html">https://docs.blender.org/api/current/bpy.types.Operator.html</a></p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bpy</span>
+
+
+<span class="k">class</span> <span class="nc">HelloWorldOperator</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">Operator</span><span class="p">):</span>
+    <span class="n">bl_idname</span> <span class="o">=</span> <span class="s2">&quot;wm.hello_world&quot;</span>
+    <span class="n">bl_label</span> <span class="o">=</span> <span class="s2">&quot;Minimal Operator&quot;</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Hello World&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;FINISHED&#39;</span><span class="p">}</span>
+
+<span class="n">bpy</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">register_class</span><span class="p">(</span><span class="n">HelloWorldOperator</span><span class="p">)</span>
+
+<span class="c1"># test call to the newly defined operator</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">wm</span><span class="o">.</span><span class="n">hello_world</span><span class="p">()</span>
+</pre></div>
 </div>
-<section id="path">
-<h2>path<a class="headerlink" href="#path" title="このヘッドラインへのパーマリンク"></a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">%APPDATA%\Blender</span> <span class="pre">Foundation\Blender\2.93\scripts\addons</span></code></p></li>
-</ul>
-</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../bmesh/index.html" class="btn btn-neutral float-left" title="BMesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="importer.html" class="btn btn-neutral float-right" title="importer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mesh.html" class="btn btn-neutral float-left" title="Mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../bmesh/index.html" class="btn btn-neutral float-right" title="BMesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
