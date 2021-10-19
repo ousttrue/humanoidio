@@ -5,15 +5,17 @@ logger = getLogger(__name__)
 import os
 import sys
 
-KEY = 'GLTF_SAMPLE_MODELS'
-if KEY not in os.environ:
-    sys.exit()
 import pathlib
 import unittest
 from logging import basicConfig, DEBUG
 
 HERE = pathlib.Path(__file__).absolute().parent
-SAMPLE_DIR = pathlib.Path(os.environ[KEY]) / '2.0'
+GLTF_SAMPLE_KEY = 'GLTF_SAMPLE_MODELS'
+GLTF_SAMPLE_DIR = pathlib.Path(os.environ[GLTF_SAMPLE_KEY]) / '2.0'
+GLTF_PATH = GLTF_SAMPLE_DIR / 'BoxTextured/glTF-Binary/BoxTextured.glb'
+VRM_SAMPLE_KEY = 'VRM_SAMPLES'
+VRM_SAMPLE_DIR = pathlib.Path(os.environ[VRM_SAMPLE_KEY])
+VRM_PATH = VRM_SAMPLE_DIR / 'vroid/Darkness_Shibu.vrm'
 
 basicConfig(
     level=DEBUG,
@@ -43,8 +45,7 @@ def clear():
 
 class TestBpy(unittest.TestCase):
     def test_box_textured_glb(self):
-        path = SAMPLE_DIR / 'BoxTextured/glTF-Binary/BoxTextured.glb'
-        self.assertTrue(path.exists())
+        self.assertTrue(GLTF_PATH.exists())
 
         # clear scene
         clear()
@@ -52,7 +53,7 @@ class TestBpy(unittest.TestCase):
         import modelimpex
         modelimpex.register()
 
-        bpy.ops.modelimpex.importer(filepath=str(path))  # type: ignore
+        bpy.ops.modelimpex.importer(filepath=str(VRM_PATH))  # type: ignore
 
         # modelimpex.scene.load(path)
         # data = formats.parse_gltf(path)

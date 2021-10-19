@@ -69,6 +69,8 @@ class Submesh:
         self.POSITION = None
         self.NORMAL = None
         self.TEXCOORD_0 = None
+        self.JOINTS_0 = None
+        self.WEIGHTS_0 = None
 
     def set_attribute(self, key: str, value):
         if key == 'POSITION':
@@ -77,6 +79,10 @@ class Submesh:
             self.NORMAL = value
         elif key == 'TEXCOORD_0':
             self.TEXCOORD_0 = value
+        elif key == 'JOINTS_0':
+            self.JOINTS_0 = value
+        elif key == 'WEIGHTS_0':
+            self.WEIGHTS_0 = value
         else:
             raise NotImplementedError()
 
@@ -104,7 +110,8 @@ class Submesh:
 
 
 class Mesh:
-    def __init__(self):
+    def __init__(self, name: str):
+        self.name = name
         self.submeshes = []
 
 
@@ -154,6 +161,22 @@ def get_span(data: bytes, accessor):
                     yield x
 
             return uint16
+        elif t == "VEC4":
+
+            def ushort4():
+                it = iter(memoryview(data[:count * 2 * 4]).cast('H'))
+                while True:
+                    try:
+                        u0 = next(it)
+                        u1 = next(it)
+                        u2 = next(it)
+                        u3 = next(it)
+                        yield u0, u1, u2, u3
+                    except StopIteration:
+                        break
+
+            return ushort4
+
         else:
             raise NotImplementedError()
     elif ct == 5125:
@@ -169,10 +192,25 @@ def get_span(data: bytes, accessor):
             raise NotImplementedError()
     elif ct == 5126:
         # float
-        if t == 'VEC3':
+        if t == 'VEC4':
+
+            def float4():
+                it = iter(memoryview(data[:count * 4 * 4]).cast('f'))
+                while True:
+                    try:
+                        f0 = next(it)
+                        f1 = next(it)
+                        f2 = next(it)
+                        f3 = next(it)
+                        yield (f0, f1, f2, f3)
+                    except StopIteration:
+                        break
+
+            return float4
+        elif t == 'VEC3':
 
             def float3():
-                it = iter(memoryview(data[:count * 3 * 4]).cast('f'))
+                it = iter(memoryview(data[:count * 4 * 3]).cast('f'))
                 while True:
                     try:
                         f0 = next(it)
@@ -186,7 +224,7 @@ def get_span(data: bytes, accessor):
         elif t == 'VEC2':
 
             def float2():
-                it = iter(memoryview(data[:count * 2 * 4]).cast('f'))
+                it = iter(memoryview(data[:count * 4 * 2]).cast('f'))
                 while True:
                     try:
                         f0 = next(it)
@@ -223,8 +261,8 @@ class Loader:
             raise NotImplementedError('without bin')
 
     def load(self):
-        for m in self.gltf['meshes']:
-            mesh = Mesh()
+        for i, m in enumerate(self.gltf['meshes']):
+            mesh = Mesh(m.get('name', f'mesh{i}'))
             self.meshes.append(mesh)
 
             for prim in m['primitives']:

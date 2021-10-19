@@ -56,7 +56,7 @@ def create_bmesh(mesh: gltf.Submesh) -> bmesh.types.BMesh:
 def load(loader: gltf.Loader):
     for m in loader.meshes:
         for i, sm in enumerate(m.submeshes):
-            name = f'name_{i}'
+            name = f'{m.name}_{i}'
 
             # Create an empty mesh and the object.
             bl_mesh = bpy.data.meshes.new(name + '_mesh')
