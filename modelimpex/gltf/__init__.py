@@ -1,5 +1,9 @@
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 import pathlib
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, List, Generator
 import json
 
 
@@ -73,6 +77,30 @@ class Submesh:
             self.NORMAL = value
         elif key == 'TEXCOORD_0':
             self.TEXCOORD_0 = value
+        else:
+            raise NotImplementedError()
+
+    def get_vertices(self):
+        pos = self.POSITION()
+        nom = self.NORMAL()
+        while True:
+            try:
+                p = next(pos)
+                n = next(nom)
+                yield p, n
+            except StopIteration:
+                break
+
+    def get_indices(self):
+        i = self.indices()
+        while True:
+            try:
+                i0 = next(i)
+                i1 = next(i)
+                i2 = next(i)
+                yield (i0, i1, i2)
+            except StopIteration:
+                break
 
 
 class Mesh:
@@ -80,14 +108,119 @@ class Mesh:
         self.submeshes = []
 
 
+def get_span(data: bytes, accessor):
+    ct = accessor['componentType']
+    t = accessor['type']
+    count = accessor['count']
+    if ct == 5120:
+        # int8
+        if t == "SCALAR":
+
+            def int8():
+                for x in data[:count]:
+                    yield x
+
+            return int8
+        else:
+            raise NotImplementedError()
+    elif ct == 5121:
+        # uint8
+        if t == "SCALAR":
+
+            def uint8():
+                for x in memoryview(data[:count]).cast('B'):
+                    yield x
+
+            return uint8
+        else:
+            raise NotImplementedError()
+    elif ct == 5122:
+        # int16
+        if t == "SCALAR":
+
+            def int16():
+                for x in memoryview(data[:count * 2]).cast('h'):
+                    yield x
+
+            return int16
+        else:
+            raise NotImplementedError()
+    elif ct == 5123:
+        # uint16
+        if t == "SCALAR":
+
+            def uint16():
+                for x in memoryview(data[:count * 2]).cast('H'):
+                    yield x
+
+            return uint16
+        else:
+            raise NotImplementedError()
+    elif ct == 5125:
+        # uint32
+        if t == "SCALAR":
+
+            def uint32():
+                for x in memoryview(data[:count * 4]).cast('I'):
+                    yield x
+
+            return uint32
+        else:
+            raise NotImplementedError()
+    elif ct == 5126:
+        # float
+        if t == 'VEC3':
+
+            def float3():
+                it = iter(memoryview(data[:count * 3 * 4]).cast('f'))
+                while True:
+                    try:
+                        f0 = next(it)
+                        f1 = next(it)
+                        f2 = next(it)
+                        yield (f0, f1, f2)
+                    except StopIteration:
+                        break
+
+            return float3
+        elif t == 'VEC2':
+
+            def float2():
+                it = iter(memoryview(data[:count * 2 * 4]).cast('f'))
+                while True:
+                    try:
+                        f0 = next(it)
+                        f1 = next(it)
+                        yield (f0, f1)
+                    except StopIteration:
+                        break
+
+            return float2
+        else:
+            raise NotImplementedError()
+    else:
+        raise ValueError(f'unknown component type: {ct}')
+
+
 class Loader:
     def __init__(self, gltf: Dict[str, Any], bin: bytes = None):
         self.gltf = gltf
         self.bin = bin
-        self.meshes = []
+        self.meshes: List[Mesh] = []
 
     def get_accessor(self, index: int):
-        return self.gltf['accessors'][index]
+        accessor = self.gltf['accessors'][index]
+        bufferView_index = accessor['bufferView']
+        bufferView = self.gltf['bufferViews'][bufferView_index]
+        accessor_offset = accessor['byteOffset']
+        if self.bin:
+            offset = bufferView['byteOffset'] + accessor_offset
+            length = bufferView['byteLength']
+            slice = self.bin[offset:offset + length]
+            span = get_span(slice, accessor)
+            return span
+        else:
+            raise NotImplementedError('without bin')
 
     def load(self):
         for m in self.gltf['meshes']:
@@ -106,7 +239,7 @@ def load_glb(src: pathlib.Path) -> Loader:
     json_chunk, bin_chunk = get_glb_chunks(src.read_bytes())
     gltf = json.loads(json_chunk)
 
-    loader = Loader(gltf, json_chunk)
+    loader = Loader(gltf, bin_chunk)
     loader.load()
     return loader
 

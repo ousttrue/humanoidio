@@ -2,7 +2,8 @@
     "cSpell.words": [
         "GLTF",
         "idname",
-        "modelimpex"
+        "modelimpex",
+        "verts"
     ],
     "python.testing.unittestArgs": [
         "-v",
