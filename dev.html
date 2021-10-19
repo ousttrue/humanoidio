@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>module &mdash; Blender-2.93 python memo  ドキュメント</title>
+  <title>開発環境 &mdash; Blender-2.93 python memo  ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,9 @@
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
-    <link rel="search" title="検索" href="search.html" /> 
+    <link rel="search" title="検索" href="search.html" />
+    <link rel="next" title="bpy" href="bpy/index.html" />
+    <link rel="prev" title="Obsolete(Blender2.8より前の動かないコード)" href="obsolete.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -36,9 +38,9 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="obsolete.html">Obsolete(Blender2.8より前の動かないコード)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dev.html">開発環境</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">開発環境</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bpy/index.html">bpy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bmesh/index.html">BMesh</a></li>
 <li class="toctree-l1"><a class="reference internal" href="addon/index.html">AddOn の実装</a></li>
@@ -59,9 +61,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>module</li>
+      <li>開発環境</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/module.md.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/dev.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -69,26 +71,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="module">
-<h1>module<a class="headerlink" href="#module" title="このヘッドラインへのパーマリンク"></a></h1>
-<p>blender の addon module は、<code class="docutils literal notranslate"><span class="pre">bl_info</span></code>, <code class="docutils literal notranslate"><span class="pre">register</span></code>, <code class="docutils literal notranslate"><span class="pre">unregister</span></code>
-の３つの要素を持つ。</p>
-<p>bl_info は root の <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> に直接記述されている必要がある。</p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># こういうのは動かない</span>
-<span class="kn">from</span> <span class="nn">hoge</span> <span class="kn">import</span> <span class="n">bl_info</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AST</span> <span class="n">error</span> <span class="n">parsing</span> <span class="n">bl_info</span> <span class="k">for</span><span class="p">:</span> <span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
-  <span class="n">File</span> <span class="s2">&quot;2.93\scripts\modules</span><span class="se">\a</span><span class="s2">ddon_utils.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">137</span><span class="p">,</span> <span class="ow">in</span> <span class="n">fake_module</span>
-    <span class="n">mod</span><span class="o">.</span><span class="n">bl_info</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">body</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-</pre></div>
-</div>
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1>開発環境<a class="headerlink" href="#id1" title="このヘッドラインへのパーマリンク"></a></h1>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/nutti/fake-bpy-module#readme">https://github.com/nutti/fake-bpy-module#readme</a></p></li>
+</ul>
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="obsolete.html" class="btn btn-neutral float-left" title="Obsolete(Blender2.8より前の動かないコード)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bpy/index.html" class="btn btn-neutral float-right" title="bpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
