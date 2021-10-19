@@ -5,12 +5,16 @@ KEY = 'GLTF_SAMPLE_MODELS'
 if KEY not in os.environ:
     sys.exit()
 import pathlib
+import unittest
+from logging import basicConfig, DEBUG
 
 HERE = pathlib.Path(__file__).absolute().parent
 SAMPLE_DIR = pathlib.Path(os.environ[KEY]) / '2.0'
 
-import unittest
-import modelimpex.scene
+basicConfig(
+    level=DEBUG,
+    datefmt='%H:%M:%S',
+    format='%(asctime)s[%(levelname)s][%(name)s.%(funcName)s] %(message)s')
 
 
 class TestBpy(unittest.TestCase):
@@ -18,7 +22,13 @@ class TestBpy(unittest.TestCase):
         path = SAMPLE_DIR / 'BoxTextured/glTF-Binary/BoxTextured.glb'
         self.assertTrue(path.exists())
 
-        modelimpex.scene.load(path)
+        import modelimpex
+        modelimpex.register()
+        import bpy
+        bpy.ops.modelimpex.importer(filepath=str(path))  # type: ignore
+        modelimpex.unregister()
+
+        # modelimpex.scene.load(path)
         # data = formats.parse_gltf(path)
         # index_map = pyscene.load(data)
         # roots = index_map.get_roots()

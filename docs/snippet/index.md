@@ -7,3 +7,7 @@
 
 ## command line
 `blender --background --python myscript.py`
+
+## info
+
+<https://blender.stackexchange.com/questions/717/is-it-possible-to-print-to-the-report-window-in-the-info-view>
