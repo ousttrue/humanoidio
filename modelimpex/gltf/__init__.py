@@ -64,7 +64,10 @@ def get_glb_chunks(data: bytes) -> Tuple[bytes, bytes]:
 
 
 class Submesh:
-    def __init__(self):
+    def __init__(self, index_offset: int, index_count: int):
+        self.index_offset = index_offset
+        self.index_count = index_count
+        self.vertex_offset = 0
         self.indices = None
         self.POSITION = None
         self.NORMAL = None
@@ -152,6 +155,21 @@ def enumerate_3(iterable):
     return g
 
 
+def yup2zup_3(iterable):
+    def g():
+        it = iter(iterable)
+        while True:
+            try:
+                _0 = next(it)
+                _1 = next(it)
+                _2 = next(it)
+                yield (-_0, _2, _1)
+            except StopIteration:
+                break
+
+    return g
+
+
 def enumerate_4(iterable):
     def g():
         it = iter(iterable)
@@ -209,7 +227,7 @@ def get_span(data: bytes, accessor):
         if t == 'VEC2':
             return enumerate_2(memoryview(data[:count * 4 * 2]).cast('f'))
         elif t == 'VEC3':
-            return enumerate_3(memoryview(data[:count * 4 * 3]).cast('f'))
+            return yup2zup_3(memoryview(data[:count * 4 * 3]).cast('f'))
         elif t == 'VEC4':
             return enumerate_4(memoryview(data[:count * 4 * 4]).cast('f'))
         else:
@@ -243,8 +261,16 @@ class Loader:
             mesh = Mesh(m.get('name', f'mesh{i}'))
             self.meshes.append(mesh)
 
+            index_offset = 0
+            vertex_offset = 0
             for prim in m['primitives']:
-                sm = Submesh()
+                count = self.gltf['accessors'][prim['indices']]['count']
+                sm = Submesh(index_offset, count)
+                sm.vertex_offset = vertex_offset
+                vertex_offset += self.gltf['accessors'][prim['attributes']
+                                                        ['POSITION']]['count']
+                index_offset += count
+
                 mesh.submeshes.append(sm)
                 for k, v in prim['attributes'].items():
                     sm.set_attribute(k, self.get_accessor(v))
