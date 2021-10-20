@@ -291,10 +291,7 @@ class GltfAccessor:
         else:
             raise NotImplementedError('without bin')
 
-    def accessor_generator(
-            self,
-            index: int,
-            geometry: bool = False) -> Generator[Any, None, None]:
+    def accessor_generator(self, index: int) -> Generator[Any, None, None]:
         accessor = self.gltf['accessors'][index]
         offset = accessor.get('byteOffset', 0)
         count = accessor.get('count')
@@ -308,10 +305,7 @@ class GltfAccessor:
         elif element_count == 2:
             return enumerate_2(span)
         elif element_count == 3:
-            if geometry:
-                return self.conversion.generator(span)
-            else:
-                return enumerate_3(span)
+            return enumerate_3(span)
         elif element_count == 4:
             return enumerate_4(span)
         else:

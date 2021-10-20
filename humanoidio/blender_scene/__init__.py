@@ -220,7 +220,7 @@ def convert_obj(src: gltf.Coodinate, dst: gltf.Coodinate,
                 bl_obj: bpy.types.Object):
     if dst == gltf.Coodinate.BLENDER_ROTATE:
         if src == gltf.Coodinate.VRM0:
-            bl_obj.rotation_euler = (math.pi * 0.5, 0, 0)
+            bl_obj.rotation_euler = (math.pi * 0.5, 0, math.pi)
         else:
             raise NotImplementedError()
     else:
@@ -240,17 +240,45 @@ class Importer:
         self.collection = context.scene.collection
         self.conversion = conversion
         self.obj_map: Dict[gltf.Node, bpy.types.Object] = {}
+        self.mesh_map: Dict[gltf.Mesh, bpy.types.Mesh] = {}
         self.mesh_obj_list: List[bpy.types.Object] = []
         self.matrix_map = {}
         self.skin_map: Dict[gltf.Skin, bpy.types.Object] = {}
+
+    def _get_or_create_mesh(self, mesh: gltf.Mesh) -> bpy.types.Mesh:
+        bl_mesh = self.mesh_map.get(mesh)
+        if bl_mesh:
+            return bl_mesh
+
+        logger.debug(f'create: {mesh.name}')
+
+        # create an empty BMesh
+        bm = bmesh.new()
+        for i, sm in enumerate(mesh.submeshes):
+            create_vertices(bm, sm)
+
+        bm.verts.ensure_lookup_table()
+        bm.verts.index_update()
+
+        for i, sm in enumerate(mesh.submeshes):
+            create_face(bm, sm)
+
+        # Create an empty mesh and the object.
+        name = mesh.name
+        bl_mesh = bpy.data.meshes.new(name + '_mesh')
+        self.mesh_map[mesh] = bl_mesh
+
+        bm.to_mesh(bl_mesh)
+        bm.free()
+
+        return bl_mesh
 
     def _create_object(self, node: gltf.Node) -> None:
         '''
         Node から bpy.types.Object を作る
         '''
         # create object
-        # if isinstance(node.mesh, gltf.Mesh):
-        if False:
+        if isinstance(node.mesh, gltf.Mesh):
             bl_mesh = self._get_or_create_mesh(node.mesh)
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
         else:
@@ -387,30 +415,6 @@ class Importer:
 
         return bl_obj
 
-    def _load_mesh(self, mesh: gltf.Mesh):
-        logger.debug(f'create: {mesh.name}')
-
-        # create an empty BMesh
-        bm = bmesh.new()
-        for i, sm in enumerate(mesh.submeshes):
-            create_vertices(bm, sm)
-
-        bm.verts.ensure_lookup_table()
-        bm.verts.index_update()
-
-        for i, sm in enumerate(mesh.submeshes):
-            create_face(bm, sm)
-
-        # Create an empty mesh and the object.
-        name = mesh.name
-        bl_mesh = bpy.data.meshes.new(name + '_mesh')
-        bl_obj = bpy.data.objects.new(name, bl_mesh)
-        # Add the object into the scene.
-        bpy.context.scene.collection.objects.link(bl_obj)
-
-        bm.to_mesh(bl_mesh)
-        bm.free()
-
     def load(self, loader: gltf.Loader):
         # create object for each node
         root_objs = []
@@ -451,6 +455,3 @@ class Importer:
                 bl_obj.parent = bl_humanoid_obj
             else:
                 bpy.data.objects.remove(bl_obj, do_unlink=True)
-
-        for mesh in loader.meshes:
-            self._load_mesh(mesh)

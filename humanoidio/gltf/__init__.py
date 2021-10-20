@@ -69,11 +69,7 @@ class Loader:
 
             mesh.submeshes.append(sm)
             for k, v in prim['attributes'].items():
-                if k in ('POSITION', 'NORMAL'):
-                    # convert geometry
-                    sm.set_attribute(k, data.accessor_generator(v, True))
-                else:
-                    sm.set_attribute(k, data.accessor_generator(v))
+                sm.set_attribute(k, data.accessor_generator(v))
             sm.indices = data.accessor_generator(prim['indices'])
 
         return mesh
