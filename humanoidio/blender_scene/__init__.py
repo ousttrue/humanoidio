@@ -4,6 +4,7 @@ logger = getLogger(__name__)
 
 import bpy
 import bmesh
+import math
 from typing import List, Dict, Optional
 from contextlib import contextmanager
 from .. import gltf
@@ -182,6 +183,24 @@ def disposable_mode(bl_obj: bpy.types.Object, mode='OBJECT'):
     finally:
         if bpy.context.mode != restore:
             bpy.ops.object.mode_set(mode=restore, toggle=False)
+
+
+def convert_obj(src: gltf.Coodinate, dst: gltf.Coodinate,
+                bl_obj: bpy.types.Object):
+    if dst == gltf.Coodinate.BLENDER_ROTATE:
+        if src == gltf.Coodinate.VRM0:
+            bl_obj.rotation_euler = (math.pi * 0.5, 0, 0)
+        else:
+            raise NotImplementedError()
+    else:
+        raise NotImplementedError()
+
+
+def bl_traverse(bl_obj: bpy.types.Object, pred):
+    pred(bl_obj)
+
+    for child in bl_obj.children:
+        bl_traverse(child, pred)
 
 
 class Importer:
@@ -368,6 +387,23 @@ class Importer:
             root_objs.append(bl_obj)
 
         # apply conversion
+        empty = bpy.data.objects.new("empty", None)
+        self.collection.objects.link(empty)
+        for bl_obj in root_objs:
+            bl_obj.parent = empty
+        convert_obj(self.conversion.src, self.conversion.dst, empty)
+
+        def apply(o: bpy.types.Object):
+            o.select_set(True)
+            bpy.ops.object.transform_apply(location=False,
+                                           rotation=True,
+                                           scale=False)
+            o.select_set(False)
+
+        bpy.ops.object.select_all(action='DESELECT')
+        bl_traverse(empty, apply)
+        empty.select_set(True)
+        bpy.ops.object.delete(use_global=False)
 
         if loader.vrm:
             # single skin humanoid model

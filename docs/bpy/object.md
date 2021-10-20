@@ -1,20 +1,50 @@
-# object
+# bpy.types.Object
 
+## empty
 ```py
 import bpy
-
-# bpy.context.object is readonly
-data = bpy.context.object.data
-if isinstance(data, bpy.types.Mesh):
-	print('is mesh')
+o = bpy.data.objects.new("empty", None)
+bpy.context.scene.collection.objects.link(o)
 ```
 
-## active
+## active object
 
 ```py
-# edit mode
-bpy.context.view_layer.objects.active = obj
-print(bpy.context.object.mode)
+# これ
+bpy.context.active_object # readonly
 
-bpy.ops.object.mode_set(mode='EDIT')
+# active_object と object 同じぽい？
+bpy.context.object # readonly
+
+# change
+bpy.context.scene.objects.active
+```
+
+https://blender.stackexchange.com/questions/31759/are-bpy-context-object-and-bpy-context-active-object-still-the-same
+`context.object == context.active_object ?`
+
+```py
+# 2.80
+bpy.context.view_layer.objects.active = obj 
+# 2.79
+bpy.context.scene.objects.active = obj
+```
+
+## selected object
+
+`bpy.context.selected_objects`
+
+```py
+# 2.8
+obj.select_set(True)
+# 2.79
+obj.select = True
+```
+
+## select all
+
+```py
+bpy.ops.object.select_all(action='SELECT')
+
+bpy.ops.object.select_all(action='DESELECT')
 ```
