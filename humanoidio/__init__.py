@@ -1,6 +1,6 @@
 # This is dummy for development. Main is `../__init__.py`
 bl_info = {
-    "name": "modelimpex",
+    "name": "humanoidio",
     "blender": (2, 93, 0),
     "category": "Import-Export",
 }

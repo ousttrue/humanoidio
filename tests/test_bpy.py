@@ -50,12 +50,12 @@ class TestBpy(unittest.TestCase):
         # clear scene
         clear()
 
-        import modelimpex
-        modelimpex.register()
+        import humanoidio
+        humanoidio.register()
 
-        bpy.ops.modelimpex.importer(filepath=str(VRM_PATH))  # type: ignore
+        bpy.ops.humanoidio.importer(filepath=str(VRM_PATH))  # type: ignore
 
-        # modelimpex.scene.load(path)
+        # humanoidio.scene.load(path)
         # data = formats.parse_gltf(path)
         # index_map = pyscene.load(data)
         # roots = index_map.get_roots()
@@ -73,7 +73,7 @@ class TestBpy(unittest.TestCase):
         #     self._check_node(l, r)
 
         bpy.ops.wm.save_as_mainfile(filepath=str(HERE.parent / 'tmp.blend'))
-        modelimpex.unregister()
+        humanoidio.unregister()
 
 
 if __name__ == "__main__":

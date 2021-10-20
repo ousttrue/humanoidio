@@ -10,7 +10,7 @@ from .. import blender_scene
 
 
 class Importer(bpy.types.Operator, ImportHelper):
-    bl_idname = "modelimpex.importer"
+    bl_idname = "humanoidio.importer"
     bl_label = "Model Importer"
 
     def execute(self, context: bpy.types.Context):

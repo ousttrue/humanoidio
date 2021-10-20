@@ -1,7 +1,7 @@
-from .modelimpex import (register, unregister)
+from .humanoidio import (register, unregister)
 
 bl_info = {
-    "name": "modelimpex",
+    "name": "humanoidio",
     "blender": (2, 93, 0),
     "category": "Import-Export",
 }
