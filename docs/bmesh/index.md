@@ -40,7 +40,8 @@ bm.free()  # free and prevent further access
 v = bm.verts.new((x, y, z))
 ```
 
-## uv_layer
+## loop layer
+### uv_layer
 
 * [Blender Python 開発メモ 〜UV座標の取得〜](http://takunoji.hatenablog.com/entry/2018/03/20/221150)
 
@@ -48,7 +49,11 @@ v = bm.verts.new((x, y, z))
 `vert` から接続する `loop` を得て、その `uv layer` から値を得る。
 
 ```py
-uv_layer = bm.loops.layers.uv.active
+uv_layer = bm.loops.layers.uv.new(UV_LAYER_NAME)
+```
+
+```py
+layer = bm.loops.layers.uv.active
 
 def uv_from_vert_first(uv_layer, v):
     for l in v.link_loops:
@@ -56,12 +61,19 @@ def uv_from_vert_first(uv_layer, v):
     return None
 ```
 
-## vertex group
+## verts layer
+### vertex group
 
 * [Manipulate vertex groups via bmesh?](https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192)
 
 * <https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh>
 
 ```py
-layer_deform = bm.verts.layers.deform.active
+layer = bm.verts.layers.deform.active
+```
+
+### morph target
+
+```py
+layer = bm.verts.layers.shape.new(target.name)
 ```

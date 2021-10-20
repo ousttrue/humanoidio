@@ -1,4 +1,8 @@
+import bpy
+import bmesh
 from .. import gltf
+
+UV_LAYER_NAME = 'texcoord0'
 
 
 def create_vertices(bm, mesh: gltf.Submesh):
@@ -9,6 +13,7 @@ def create_vertices(bm, mesh: gltf.Submesh):
         if n:
             vert.normal = n
 
+
 def create_face(bm, mesh: gltf.Submesh):
     for i0, i1, i2 in mesh.get_indices():
         v0 = bm.verts[i0 + mesh.vertex_offset]
@@ -18,15 +23,19 @@ def create_face(bm, mesh: gltf.Submesh):
         face.smooth = True  # use vertex normal
         # face.material_index = indicesindex_to_materialindex(i)
 
-    # uv_layer = None
-    # if attributes.texcoord:
-    #     uv_layer = bm.loops.layers.uv.new(UV0)
-    # # uv
-    # if uv_layer:
-    #     for face in bm.faces:
-    #         for loop in face.loops:
-    #             uv = attributes.texcoord[loop.vert.index]
-    #             loop[uv_layer].uv = uv.flip_uv()
+
+def get_or_create_uv_layer(bm):
+    if UV_LAYER_NAME in bm.loops.layers.uv:
+        return bm.loops.layers.uv[UV_LAYER_NAME]
+    return bm.loops.layers.uv.new(UV_LAYER_NAME)
+
+
+def set_uv(bm, uv_list):
+    uv_layer = get_or_create_uv_layer(bm)
+    for face in bm.faces:
+        for loop in face.loops:
+            uv = uv_list[loop.vert.index]
+            loop[uv_layer].uv = uv
 
     # # Set morph target positions (no normals/tangents)
     # for target in mesh.morphtargets:
@@ -36,3 +45,28 @@ def create_face(bm, mesh: gltf.Submesh):
     #     for i, vert in enumerate(bm.verts):
     #         p = target.attributes.position[i]
     #         vert[layer] = mathutils.Vector(yup2zup(p)) + vert.co
+
+
+def create_mesh(bl_mesh: bpy.types.Mesh, mesh: gltf.Mesh):
+    # create an empty BMesh
+    bm = bmesh.new()
+
+    uv_list = []
+
+    for sm in mesh.submeshes:
+        create_vertices(bm, sm)
+        if sm.TEXCOORD_0:
+            for uv in sm.TEXCOORD_0():
+                uv_list.append(uv)
+
+    bm.verts.ensure_lookup_table()
+    bm.verts.index_update()
+
+    for sm in mesh.submeshes:
+        create_face(bm, sm)
+
+    if len(uv_list) > 0:
+        set_uv(bm, uv_list)
+
+    bm.to_mesh(bl_mesh)
+    bm.free()

@@ -9,7 +9,7 @@ import math
 from typing import List, Dict, Optional, Set
 from contextlib import contextmanager
 from .. import gltf
-from .mesh import (create_vertices, create_face)
+from .mesh import create_mesh
 
 MODE_MAP = {
     'OBJECT': 'OBJECT',
@@ -92,24 +92,12 @@ class Importer:
 
         logger.debug(f'create: {mesh.name}')
 
-        # create an empty BMesh
-        bm = bmesh.new()
-        for i, sm in enumerate(mesh.submeshes):
-            create_vertices(bm, sm)
-
-        bm.verts.ensure_lookup_table()
-        bm.verts.index_update()
-
-        for i, sm in enumerate(mesh.submeshes):
-            create_face(bm, sm)
-
         # Create an empty mesh and the object.
         name = mesh.name
         bl_mesh = bpy.data.meshes.new(name + '_mesh')
         self.mesh_map[mesh] = bl_mesh
 
-        bm.to_mesh(bl_mesh)
-        bm.free()
+        create_mesh(bl_mesh, mesh)
 
         return bl_mesh
 
