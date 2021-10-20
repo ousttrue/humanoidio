@@ -6,7 +6,7 @@ import bpy
 import mathutils
 import bmesh
 import math
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Set
 from contextlib import contextmanager
 from .. import gltf
 
@@ -415,6 +415,52 @@ class Importer:
 
         return bl_obj
 
+    def _setup_skinning(self, mesh_node: gltf.Node) -> None:
+        if not isinstance(mesh_node.mesh, gltf.Mesh):
+            return
+        if not mesh_node.skin:
+            return
+
+        logger.debug(f'skinning: {mesh_node.name}')
+        skin = mesh_node.skin
+        bone_names = [joint.name for joint in skin.joints]
+        bl_object = self.obj_map[mesh_node]
+
+        # each face
+        if isinstance(bl_object.data, bpy.types.Mesh):
+            vert_idx = 0
+            for sm in mesh_node.mesh.submeshes:
+                j = sm.JOINTS_0()
+                w = sm.WEIGHTS_0()
+                while True:
+                    try:
+                        jj = next(j)
+                        ww = next(w)
+                    except StopIteration:
+                        break
+
+                    def set_bone_weight(joint_idx, weight_val):
+                        if weight_val != 0.0:
+                            # It can be a problem to assign weights of 0
+                            # for bone index 0, if there is always 4 indices in joint_ tuple
+                            bone_name = bone_names[joint_idx]
+                            if bone_name:
+                                try:
+                                    group = bl_object.vertex_groups[bone_name]
+                                except KeyError:
+                                    group = bl_object.vertex_groups.new(
+                                        name=bone_name)
+                                group.add([vert_idx], weight_val, 'ADD')
+
+                    set_bone_weight(jj[0], ww[0])
+                    set_bone_weight(jj[1], ww[1])
+                    set_bone_weight(jj[2], ww[2])
+                    set_bone_weight(jj[3], ww[3])
+                    vert_idx += 1
+
+        modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
+        modifier.object = self.skin_map[skin]
+
     def load(self, loader: gltf.Loader):
         # create object for each node
         root_objs = []
@@ -449,9 +495,9 @@ class Importer:
             pass
 
         bl_humanoid_obj = self._create_humanoid(loader.roots)
-        # Mesh を Armature の子にする
-        for bl_obj in self.mesh_obj_list:
-            if isinstance(bl_obj.data, bpy.types.Mesh):
-                bl_obj.parent = bl_humanoid_obj
-            else:
-                bpy.data.objects.remove(bl_obj, do_unlink=True)
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+        for n, o in self.obj_map.items():
+            if o.type == 'MESH' and n.skin:
+                with disposable_mode(o, 'OBJECT'):
+                    self._setup_skinning(n)
