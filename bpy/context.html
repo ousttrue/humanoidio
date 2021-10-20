@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="Mesh" href="mesh.html" />
-    <link rel="prev" title="bpy" href="index.html" /> 
+    <link rel="next" title="Collection" href="collection.html" />
+    <link rel="prev" title="bpy.data" href="data.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,17 +42,20 @@
 <li class="toctree-l1"><a class="reference internal" href="../obsolete.html">Obsolete(Blender2.8より前の動かないコード)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dev.html">開発環境</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data.html">bpy.data</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">bpy.context</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#scene">scene</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#active-object">active object</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#selected-object">selected object</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#mode">mode</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bpy-context-area">bpy.context.area</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#context">Contextオーバーライド</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#window">window</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="collection.html">Collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mode.html">mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="object.html">bpy.types.Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mesh.html">Mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bone.html">bone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operator.html">operator</a></li>
 </ul>
 </li>
@@ -119,37 +122,6 @@
 </pre></div>
 </div>
 </section>
-<section id="active-object">
-<h2>active object<a class="headerlink" href="#active-object" title="このヘッドラインへのパーマリンク"></a></h2>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># これ</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">active_object</span> <span class="c1"># readonly</span>
-
-<span class="c1"># active_object と object 同じぽい？</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">object</span> <span class="c1"># readonly</span>
-
-<span class="c1"># change</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">active</span>
-</pre></div>
-</div>
-<p>https://blender.stackexchange.com/questions/31759/are-bpy-context-object-and-bpy-context-active-object-still-the-same
-<code class="docutils literal notranslate"><span class="pre">context.object</span> <span class="pre">==</span> <span class="pre">context.active_object</span> <span class="pre">?</span></code></p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># 2.80</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">view_layer</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="n">obj</span> 
-<span class="c1"># 2.79</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="n">obj</span>
-</pre></div>
-</div>
-</section>
-<section id="selected-object">
-<h2>selected object<a class="headerlink" href="#selected-object" title="このヘッドラインへのパーマリンク"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">bpy.context.selected_objects</span></code></p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># 2.8</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">select_set</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-<span class="c1"># 2.79</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="bp">True</span>
-</pre></div>
-</div>
-</section>
 <section id="mode">
 <h2>mode<a class="headerlink" href="#mode" title="このヘッドラインへのパーマリンク"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.object.mode</span></code></p>
@@ -187,8 +159,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="bpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mesh.html" class="btn btn-neutral float-right" title="Mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="data.html" class="btn btn-neutral float-left" title="bpy.data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="collection.html" class="btn btn-neutral float-right" title="Collection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
