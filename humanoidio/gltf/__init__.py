@@ -6,7 +6,7 @@ import pathlib
 from typing import Tuple, List, Optional, Union
 import json
 from .mesh import (Submesh, Mesh)
-from .util import (get_glb_chunks)
+from .util import (get_glb_chunks, Coodinate)
 
 
 class Skin:
@@ -53,7 +53,8 @@ class Loader:
         self.roots: List[Node] = []
         self.vrm: Union[Vrm0, Vrm1, None] = None
 
-    def _load_mesh(self, data: util.GltfAccessor, i: int, m):
+    def _load_mesh(self, data: util.GltfAccessor, i: int, m,
+                   conv: Coodinate):
         mesh = Mesh(m.get('name', f'mesh{i}'))
 
         index_offset = 0
@@ -68,10 +69,11 @@ class Loader:
 
             mesh.submeshes.append(sm)
             for k, v in prim['attributes'].items():
-                conv = None
                 if k in ('POSITION', 'NORMAL'):
-                    conv = util.Coodinate.BLENDER_ROTATE
-                sm.set_attribute(k, data.accessor_generator(v, conv))
+                    # convert geometry
+                    sm.set_attribute(k, data.accessor_generator(v, conv))
+                else:
+                    sm.set_attribute(k, data.accessor_generator(v))
             sm.indices = data.accessor_generator(prim['indices'])
 
         return mesh
@@ -91,14 +93,14 @@ class Loader:
 
         return node
 
-    def load(self, data: util.GltfAccessor):
+    def load(self, data: util.GltfAccessor, conv: Coodinate):
         #
         # extensions
         #
         if 'extensions' in data.gltf:
             if 'VRM' in data.gltf['extensions']:
                 self.vrm = Vrm0(data.gltf['extensions']['VRM'])
-                data.coords = util.Coodinate.VRM0
+                data.coords = Coodinate.VRM0
             elif 'VRMC_vrm' in data.gltf['extensions']:
                 self.vrm = Vrm1(data.gltf['extensions']['VRMC_vrm'])
 
@@ -106,7 +108,7 @@ class Loader:
         # mesh
         #
         for i, m in enumerate(data.gltf['meshes']):
-            mesh = self._load_mesh(data, i, m)
+            mesh = self._load_mesh(data, i, m, conv)
             self.meshes.append(mesh)
 
         #
@@ -132,22 +134,22 @@ class Loader:
                 self.roots.append(node)
 
 
-def load_glb(src: pathlib.Path) -> Loader:
+def load_glb(src: pathlib.Path, conv: Coodinate) -> Loader:
     json_chunk, bin_chunk = get_glb_chunks(src.read_bytes())
     gltf = json.loads(json_chunk)
 
     accessor = util.GltfAccessor(gltf, bin_chunk)
     loader = Loader()
-    loader.load(accessor)
+    loader.load(accessor, conv)
     return loader
 
 
-def load_gltf(src: pathlib.Path):
+def load_gltf(src: pathlib.Path, conv: Coodinate):
     raise NotImplementedError()
 
 
-def load(src: pathlib.Path):
+def load(src: pathlib.Path, conv: Coodinate):
     if src.suffix == '.gltf':
-        return load_gltf(src)
+        return load_gltf(src, conv)
     else:
-        return load_glb(src)
+        return load_glb(src, conv)

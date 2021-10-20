@@ -358,8 +358,8 @@ class Importer:
 
     def load(self, loader: gltf.Loader):
         # create object for each node
-        # for root in loader.roots:
-        #     self._create_tree(root)
+        for root in loader.roots:
+            self._create_tree(root)
 
         if loader.vrm:
             # single skin humanoid model
