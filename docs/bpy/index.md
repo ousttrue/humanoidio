@@ -5,6 +5,7 @@
 
 ```{toctree}
 context
+collection
 mode
 object
 mesh

@@ -1,5 +1,5 @@
 from enum import IntEnum, auto
-from typing import Tuple, Iterable, Any, Dict, Generator, Optional
+from typing import Tuple, Iterable, Any, Dict, Generator, Optional, NamedTuple
 
 
 class Coodinate(IntEnum):
@@ -33,6 +33,59 @@ class Coodinate(IntEnum):
     # +--X
     LH_XYZ_right_up_forward = auto()
     UNITY = LH_XYZ_right_up_forward
+
+
+class Conversion(NamedTuple):
+    src: Coodinate
+    dst: Coodinate
+
+    def generator(self, span: Iterable[Any]) -> Generator[Any, None, None]:
+        if self.dst == Coodinate.BLENDER:
+            # [blender]
+            # Z  Y
+            # | /
+            # +--X
+            if self.src == Coodinate.GLTF:
+                # [glTF, VRM1]
+                #    Y  Z
+                #    | /
+                # X--+
+                return yup2zup_turn(span)
+            elif self.src == Coodinate.VRM0:
+                # [VRM0]
+                #    Y
+                #    |
+                #    +--X
+                #   /
+                # Z
+                return yup2zup(span)
+            else:
+                raise NotImplementedError()
+        elif self.dst == Coodinate.BLENDER_ROTATE:
+            # [blender]
+            #    z
+            #    |
+            # X--+
+            #   /
+            # y
+            if self.src == Coodinate.GLTF:
+                # [glTF, VRM1]
+                #    Y  Z
+                #    | /
+                # X--+
+                return yup2zup(span)
+            elif self.src == Coodinate.VRM0:
+                # [VRM0]
+                #    Y
+                #    |
+                #    +--X
+                #   /
+                # Z
+                return yup2zup_turn(span)
+            else:
+                raise NotImplementedError()
+        else:
+            raise NotImplementedError()
 
 
 class ByteReader:
@@ -171,56 +224,6 @@ def enumerate_4(iterable) -> Generator[Any, None, None]:
     return g
 
 
-def get_conv(src: Coodinate, dst: Coodinate,
-             span: Iterable[Any]) -> Generator[Any, None, None]:
-    if dst == Coodinate.BLENDER:
-        # [blender]
-        # Z  Y
-        # | /
-        # +--X
-        if src == Coodinate.GLTF:
-            # [glTF, VRM1]
-            #    Y  Z
-            #    | /
-            # X--+
-            return yup2zup_turn(span)
-        elif src == Coodinate.VRM0:
-            # [VRM0]
-            #    Y
-            #    |
-            #    +--X
-            #   /
-            # Z
-            return yup2zup(span)
-        else:
-            raise NotImplementedError()
-    elif dst == Coodinate.BLENDER_ROTATE:
-        # [blender]
-        #    z
-        #    |
-        # X--+
-        #   /
-        # y
-        if src == Coodinate.GLTF:
-            # [glTF, VRM1]
-            #    Y  Z
-            #    | /
-            # X--+
-            return yup2zup(span)
-        elif src == Coodinate.VRM0:
-            # [VRM0]
-            #    Y
-            #    |
-            #    +--X
-            #   /
-            # Z
-            return yup2zup_turn(span)
-        else:
-            raise NotImplementedError()
-    else:
-        raise NotImplementedError()
-
-
 class ComponentType(IntEnum):
     Int8 = 5120
     UInt8 = 5121
@@ -274,10 +277,10 @@ def get_size_count(accessor):
 
 
 class GltfAccessor:
-    def __init__(self, gltf: Dict[str, Any], bin: bytes):
+    def __init__(self, gltf: Dict[str, Any], bin: bytes, dst: Coodinate):
         self.gltf = gltf
         self.bin = bin
-        self.coords = Coodinate.GLTF
+        self.conversion = Conversion(Coodinate.GLTF, dst)
 
     def bufferview_bytes(self, index: int) -> bytes:
         bufferView = self.gltf['bufferViews'][index]
@@ -291,7 +294,7 @@ class GltfAccessor:
     def accessor_generator(
             self,
             index: int,
-            conv: Optional[Coodinate] = None) -> Generator[Any, None, None]:
+            geometry: bool = False) -> Generator[Any, None, None]:
         accessor = self.gltf['accessors'][index]
         offset = accessor.get('byteOffset', 0)
         count = accessor.get('count')
@@ -305,8 +308,8 @@ class GltfAccessor:
         elif element_count == 2:
             return enumerate_2(span)
         elif element_count == 3:
-            if conv:
-                return get_conv(self.coords, conv, span)
+            if geometry:
+                return self.conversion.generator(span)
             else:
                 return enumerate_3(span)
         elif element_count == 4:

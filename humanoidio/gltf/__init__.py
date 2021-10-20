@@ -6,7 +6,7 @@ import pathlib
 from typing import Tuple, List, Optional, Union
 import json
 from .mesh import (Submesh, Mesh)
-from .util import (get_glb_chunks, Coodinate)
+from .util import (get_glb_chunks, Coodinate, Conversion)
 
 
 class Skin:
@@ -53,8 +53,7 @@ class Loader:
         self.roots: List[Node] = []
         self.vrm: Union[Vrm0, Vrm1, None] = None
 
-    def _load_mesh(self, data: util.GltfAccessor, i: int, m,
-                   conv: Coodinate):
+    def _load_mesh(self, data: util.GltfAccessor, i: int, m):
         mesh = Mesh(m.get('name', f'mesh{i}'))
 
         index_offset = 0
@@ -71,7 +70,7 @@ class Loader:
             for k, v in prim['attributes'].items():
                 if k in ('POSITION', 'NORMAL'):
                     # convert geometry
-                    sm.set_attribute(k, data.accessor_generator(v, conv))
+                    sm.set_attribute(k, data.accessor_generator(v, True))
                 else:
                     sm.set_attribute(k, data.accessor_generator(v))
             sm.indices = data.accessor_generator(prim['indices'])
@@ -93,14 +92,15 @@ class Loader:
 
         return node
 
-    def load(self, data: util.GltfAccessor, conv: Coodinate):
+    def load(self, data: util.GltfAccessor):
         #
         # extensions
         #
         if 'extensions' in data.gltf:
             if 'VRM' in data.gltf['extensions']:
                 self.vrm = Vrm0(data.gltf['extensions']['VRM'])
-                data.coords = Coodinate.VRM0
+                data.conversion = Conversion(Coodinate.VRM0,
+                                             data.conversion.dst)
             elif 'VRMC_vrm' in data.gltf['extensions']:
                 self.vrm = Vrm1(data.gltf['extensions']['VRMC_vrm'])
 
@@ -108,7 +108,7 @@ class Loader:
         # mesh
         #
         for i, m in enumerate(data.gltf['meshes']):
-            mesh = self._load_mesh(data, i, m, conv)
+            mesh = self._load_mesh(data, i, m)
             self.meshes.append(mesh)
 
         #
@@ -138,9 +138,9 @@ def load_glb(src: pathlib.Path, conv: Coodinate) -> Loader:
     json_chunk, bin_chunk = get_glb_chunks(src.read_bytes())
     gltf = json.loads(json_chunk)
 
-    accessor = util.GltfAccessor(gltf, bin_chunk)
+    accessor = util.GltfAccessor(gltf, bin_chunk, conv)
     loader = Loader()
-    loader.load(accessor, conv)
+    loader.load(accessor)
     return loader
 
 
