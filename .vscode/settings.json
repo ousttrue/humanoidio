@@ -1,4 +1,7 @@
 {
+    "files.exclude": {
+        "**/__pycache__": true,
+    },
     "cSpell.words": [
         "GLTF",
         "idname",
