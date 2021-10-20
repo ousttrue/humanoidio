@@ -32,6 +32,7 @@ bm.free()  # free and prevent further access
 
 ## vertex
 
+* <https://docs.blender.org/api/current/bmesh.types.html#bmesh.types.BMVert>
 * [Blender Python BMesh 〜点の操作〜](http://takunoji.hatenablog.com/entry/2018/03/26/225317)
 
 ### add
@@ -40,7 +41,26 @@ bm.free()  # free and prevent further access
 v = bm.verts.new((x, y, z))
 ```
 
-## loop layer
+### vertex group
+
+* <https://gist.github.com/jirihnidek/64f2f269c9aa2021b33ae79989e21ebd>
+* [Manipulate vertex groups via bmesh?](https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192)
+* <https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh>
+* <https://programtalk.com/python-examples/bmesh.new/>
+
+```py
+layer = bm.verts.layers.deform.active
+
+bm.verts[vertex_index][layer][vertex_group_index] = weight
+```
+
+### morph target
+
+```py
+layer = bm.verts.layers.shape.new(target.name)
+```
+
+## loop
 ### uv_layer
 
 * [Blender Python 開発メモ 〜UV座標の取得〜](http://takunoji.hatenablog.com/entry/2018/03/20/221150)
@@ -59,21 +79,4 @@ def uv_from_vert_first(uv_layer, v):
     for l in v.link_loops:
         return l[uv_layer].uv
     return None
-```
-
-## verts layer
-### vertex group
-
-* [Manipulate vertex groups via bmesh?](https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192)
-
-* <https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh>
-
-```py
-layer = bm.verts.layers.deform.active
-```
-
-### morph target
-
-```py
-layer = bm.verts.layers.shape.new(target.name)
 ```

@@ -3,15 +3,23 @@ import bmesh
 from .. import gltf
 
 UV_LAYER_NAME = 'texcoord0'
+DEFORM_LAYER_NAME = 'deform0'
 
 
 def create_vertices(bm, mesh: gltf.Submesh):
-    for pos, n in mesh.get_vertices():
+
+    deform_layer = None
+    if mesh.JOINTS_0:
+        deform_layer = bm.verts.layers.deform
+
+    for pos, n, j, w in mesh.get_vertices():
         # position
         vert = bm.verts.new(pos)
         # normal
         if n:
             vert.normal = n
+        if deform_layer:
+            vert[deform_layer][j] = w
 
 
 def create_face(bm, mesh: gltf.Submesh):

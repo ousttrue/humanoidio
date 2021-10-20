@@ -85,35 +85,32 @@ class Importer:
         self.matrix_map = {}
         self.skin_map: Dict[gltf.Skin, bpy.types.Object] = {}
 
-    def _get_or_create_mesh(self, mesh: gltf.Mesh) -> bpy.types.Mesh:
-        bl_mesh = self.mesh_map.get(mesh)
-        if bl_mesh:
-            return bl_mesh
-
-        logger.debug(f'create: {mesh.name}')
-
-        # Create an empty mesh and the object.
-        name = mesh.name
-        bl_mesh = bpy.data.meshes.new(name + '_mesh')
-        self.mesh_map[mesh] = bl_mesh
-
-        create_mesh(bl_mesh, mesh)
-
-        return bl_mesh
-
     def _create_object(self, node: gltf.Node) -> None:
         '''
         Node から bpy.types.Object を作る
         '''
         # create object
         if isinstance(node.mesh, gltf.Mesh):
-            bl_mesh = self._get_or_create_mesh(node.mesh)
+            bl_mesh = self.mesh_map.get(node.mesh)
+            is_create = False
+            if not bl_mesh:
+                is_create = True
+                logger.debug(f'create: {node.mesh.name}')
+
+                # Create an empty mesh and the object.
+                name = node.mesh.name
+                bl_mesh = bpy.data.meshes.new(name + '_mesh')
+                self.mesh_map[node.mesh] = bl_mesh
+
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
             self.collection.objects.link(bl_obj)
-            bpy.context.view_layer.objects.active = bl_obj
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bl_obj.vertex_groups.new(name="debug")
+            if is_create:
+                if node.skin:
+                    for joint in node.skin.joints:
+                        bg = bl_obj.vertex_groups.new(name=joint.name)
+                        bg.add([0], 1.0, 'ADD')
+                        # print(bg)
+                # create_mesh(bl_mesh, node.mesh)
         else:
             # empty
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, None)
@@ -290,12 +287,12 @@ class Importer:
             bl_obj = self._create_tree(root)
             root_objs.append(bl_obj)
 
-        bpy.context.view_layer.update()
+        # bpy.context.view_layer.update()
 
-        for k, v in self.obj_map.items():
-            if v.type == 'MESH':
-                print(v)
-                v.vertex_groups.new(name="mesh")
+        # for k, v in self.obj_map.items():
+        #     if v.type == 'MESH':
+        #         print(v)
+        #         v.vertex_groups.new(name="mesh")
 
         # # apply conversion
         # empty = bpy.data.objects.new("empty", None)

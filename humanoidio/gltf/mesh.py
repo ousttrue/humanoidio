@@ -30,11 +30,25 @@ class Submesh:
     def get_vertices(self):
         pos = self.POSITION()
         nom = self.NORMAL()
+
+        def ng():
+            while True:
+                yield None
+
+        joints = ng
+        if self.JOINTS_0:
+            joints = self.JOINTS_0()
+        weights = ng
+        if self.WEIGHTS_0:
+            weights = self.WEIGHTS_0()
+
         while True:
             try:
                 p = next(pos)
                 n = next(nom)
-                yield p, n
+                j = next(joints)
+                w = next(weights)
+                yield p, n, j, w
             except StopIteration:
                 break
 
