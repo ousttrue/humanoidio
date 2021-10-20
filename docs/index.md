@@ -6,7 +6,7 @@
 
 ```{toctree}
 :maxdepth: 1
-obsolete
+legacy
 dev
 bpy/index
 bmesh/index
