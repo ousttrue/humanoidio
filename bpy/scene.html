@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>bpy.data &mdash; Blender-2.93 python memo  ドキュメント</title>
+  <title>scene and collection &mdash; Blender-2.93 python memo  ドキュメント</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="bpy.context" href="context.html" />
-    <link rel="prev" title="bpy" href="index.html" /> 
+    <link rel="next" title="mode" href="mode.html" />
+    <link rel="prev" title="bpy.context.area" href="area.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,11 +42,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../legacy.html">Blender2.8より前の動かないコード</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dev.html">開発環境</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">bpy.data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">bpy.data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context.html">bpy.context</a></li>
 <li class="toctree-l2"><a class="reference internal" href="window.html">window</a></li>
 <li class="toctree-l2"><a class="reference internal" href="area.html">bpy.context.area</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scene.html">scene and collection</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">scene and collection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#active-scene">active scene</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#master-collection">master collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#change-active-scene">change active scene</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#view-layer">view layer</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="mode.html">mode</a></li>
 <li class="toctree-l2"><a class="reference internal" href="object/index.html">bpy.types.Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operator.html">operator</a></li>
@@ -73,9 +79,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="index.html">bpy</a> &raquo;</li>
-      <li>bpy.data</li>
+      <li>scene and collection</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/bpy/data.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/bpy/scene.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -83,21 +89,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="bpy-data">
-<h1>bpy.data<a class="headerlink" href="#bpy-data" title="このヘッドラインへのパーマリンク"></a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="scene-and-collection">
+<h1>scene and collection<a class="headerlink" href="#scene-and-collection" title="このヘッドラインへのパーマリンク"></a></h1>
 <ul class="simple">
-<li><p>bpy.data.scenes</p></li>
-<li><p>bpy.data.objects</p></li>
-<li><p>bpy.data.meshes</p></li>
+<li><p><a class="reference external" href="https://code.blender.org/2017/09/view-layers-and-collections/">https://code.blender.org/2017/09/view-layers-and-collections/</a></p></li>
+<li><p><a class="reference external" href="https://code.blender.org/2018/05/collections-and-groups/">https://code.blender.org/2018/05/collections-and-groups/</a></p></li>
 </ul>
+<section id="active-scene">
+<h2>active scene<a class="headerlink" href="#active-scene" title="このヘッドラインへのパーマリンク"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bpy.context.scene</span></code></p>
+</section>
+<section id="master-collection">
+<h2>master collection<a class="headerlink" href="#master-collection" title="このヘッドラインへのパーマリンク"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bpy.context.scene.collection</span></code></p>
+<blockquote>
+<div><p>While the master collection contains all the Scene’s objects
+collections of Objects</p>
+</div></blockquote>
+</section>
+<section id="change-active-scene">
+<h2>change active scene<a class="headerlink" href="#change-active-scene" title="このヘッドラインへのパーマリンク"></a></h2>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">scenes</span><span class="p">[</span><span class="s1">&#39;Scene.001&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="view-layer">
+<h2>view layer<a class="headerlink" href="#view-layer" title="このヘッドラインへのパーマリンク"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bpy.context.view_layer</span></code></p>
+<p>Collection をグループ化して可視制御する。</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="bpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="context.html" class="btn btn-neutral float-right" title="bpy.context" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="area.html" class="btn btn-neutral float-left" title="bpy.context.area" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mode.html" class="btn btn-neutral float-right" title="mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

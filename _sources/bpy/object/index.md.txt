@@ -1,5 +1,12 @@
 # bpy.types.Object
 
+<https://docs.blender.org/manual/en/latest/scene_layout/object/types.html>
+
+```{toctree}
+object/mesh
+object/armature
+```
+
 ## empty
 ```py
 import bpy

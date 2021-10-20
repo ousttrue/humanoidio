@@ -1,6 +1,5 @@
 # bpy
 
-* <https://code.blender.org/2018/05/collections-and-groups/>
 * <https://docs.blender.org/manual/en/latest/scene_layout/object/types.html>
 
 ```{toctree}
@@ -8,10 +7,10 @@
 
 data
 context
-collection
+window
+area
+scene
 mode
-object
-mesh
-bone
+object/index
 operator
 ```

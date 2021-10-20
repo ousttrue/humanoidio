@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="Collection" href="collection.html" />
+    <link rel="next" title="window" href="window.html" />
     <link rel="prev" title="bpy.data" href="data.html" /> 
 </head>
 
@@ -39,23 +39,19 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../obsolete.html">Obsolete(Blender2.8より前の動かないコード)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../legacy.html">Blender2.8より前の動かないコード</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dev.html">開発環境</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">bpy.data</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">bpy.context</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#scene">scene</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#mode">mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bpy-context-area">bpy.context.area</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#context">Contextオーバーライド</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#window">window</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html">Collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="window.html">window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="area.html">bpy.context.area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scene.html">scene and collection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mode.html">mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object.html">bpy.types.Object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mesh.html">Mesh</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bone.html">bone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="object/index.html">bpy.types.Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operator.html">operator</a></li>
 </ul>
 </li>
@@ -93,43 +89,30 @@
   <section class="tex2jax_ignore mathjax_ignore" id="bpy-context">
 <h1>bpy.context<a class="headerlink" href="#bpy-context" title="このヘッドラインへのパーマリンク"></a></h1>
 <p><a class="reference external" href="https://docs.blender.org/api/current/bpy.context.html">https://docs.blender.org/api/current/bpy.context.html</a></p>
-<ul class="simple">
-<li><p>context</p>
-<ul>
-<li><p>window</p>
-<ul>
-<li><p>scene =&gt; data hierarchy</p>
-<ul>
-<li><p>view_layers</p>
-<ul>
-<li><p>collection</p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>workspace =&gt; GUI layout</p></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<section id="scene">
-<h2>scene<a class="headerlink" href="#scene" title="このヘッドラインへのパーマリンク"></a></h2>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># read</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">scene</span>
-<span class="c1"># change</span>
-<span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">scenes</span><span class="p">[</span><span class="s1">&#39;Scene.001&#39;</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="mode">
-<h2>mode<a class="headerlink" href="#mode" title="このヘッドラインへのパーマリンク"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">bpy.context.object.mode</span></code></p>
-</section>
-<section id="bpy-context-area">
-<h2>bpy.context.area<a class="headerlink" href="#bpy-context-area" title="このヘッドラインへのパーマリンク"></a></h2>
-<p><a class="reference external" href="https://memoteu.hatenablog.com/entry/2019/04/02/041803">【Blender 2.8 アドオン開発】003 Blender 内のデータにアクセスしよう(Context と データ構造 と レイアウト) </a></p>
-</section>
+<blockquote>
+<div><p>Note that all context values are readonly, but may be modified through the data API or by running operators</p>
+</div></blockquote>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>prop</p></th>
+<th class="head"><p></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>object</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>active_object</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>selected_objects</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>mode</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
 <section id="context">
 <h2>Contextオーバーライド<a class="headerlink" href="#context" title="このヘッドラインへのパーマリンク"></a></h2>
 <p><a class="reference external" href="https://docs.blender.org/api/blender2.8/bpy.ops.html#overriding-context">https://docs.blender.org/api/blender2.8/bpy.ops.html#overriding-context</a></p>
@@ -141,18 +124,6 @@
 </pre></div>
 </div>
 </section>
-<section id="window">
-<h2>window<a class="headerlink" href="#window" title="このヘッドラインへのパーマリンク"></a></h2>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span>
-<span class="n">window</span><span class="o">.</span><span class="n">workspace</span> <span class="c1"># 画面レイアウト</span>
-<span class="n">workspace</span><span class="o">.</span><span class="n">screens</span> <span class="c1"># blender 各window. main window と preference window など</span>
-<span class="n">screen</span><span class="o">.</span><span class="n">area</span> <span class="c1"># 分割された区画</span>
-<span class="n">area</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;INFO&#39;</span>
-<span class="n">area</span><span class="o">.</span><span class="n">region</span> <span class="c1"># 区画内の部分</span>
-<span class="c1"># region 内に panel が配置される</span>
-</pre></div>
-</div>
-</section>
 </section>
 
 
@@ -160,7 +131,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="data.html" class="btn btn-neutral float-left" title="bpy.data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="collection.html" class="btn btn-neutral float-right" title="Collection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="window.html" class="btn btn-neutral float-right" title="window" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

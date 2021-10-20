@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>bone &mdash; Blender-2.93 python memo  ドキュメント</title>
+  <title>bpy.context.area &mdash; Blender-2.93 python memo  ドキュメント</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="operator" href="operator.html" />
-    <link rel="prev" title="Mesh" href="mesh.html" /> 
+    <link rel="next" title="scene and collection" href="scene.html" />
+    <link rel="prev" title="window" href="window.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,16 +39,16 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../obsolete.html">Obsolete(Blender2.8より前の動かないコード)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../legacy.html">Blender2.8より前の動かないコード</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dev.html">開発環境</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">bpy.data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context.html">bpy.context</a></li>
-<li class="toctree-l2"><a class="reference internal" href="collection.html">Collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="window.html">window</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">bpy.context.area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scene.html">scene and collection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mode.html">mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object.html">bpy.types.Object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mesh.html">Mesh</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">bone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="object/index.html">bpy.types.Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operator.html">operator</a></li>
 </ul>
 </li>
@@ -73,9 +73,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="index.html">bpy</a> &raquo;</li>
-      <li>bone</li>
+      <li>bpy.context.area</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/bpy/bone.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/bpy/area.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -83,17 +83,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="bone">
-<h1>bone<a class="headerlink" href="#bone" title="このヘッドラインへのパーマリンク"></a></h1>
-<p><a class="reference external" href="https://dskjal.com/blender/bone-script.html">https://dskjal.com/blender/bone-script.html</a></p>
+  <section class="tex2jax_ignore mathjax_ignore" id="bpy-context-area">
+<h1>bpy.context.area<a class="headerlink" href="#bpy-context-area" title="このヘッドラインへのパーマリンク"></a></h1>
+<p><a class="reference external" href="https://memoteu.hatenablog.com/entry/2019/04/02/041803">【Blender 2.8 アドオン開発】003 Blender 内のデータにアクセスしよう(Context と データ構造 と レイアウト) </a></p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mesh.html" class="btn btn-neutral float-left" title="Mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="operator.html" class="btn btn-neutral float-right" title="operator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="window.html" class="btn btn-neutral float-left" title="window" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scene.html" class="btn btn-neutral float-right" title="scene and collection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

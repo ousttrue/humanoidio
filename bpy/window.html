@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Collection &mdash; Blender-2.93 python memo  ドキュメント</title>
+  <title>window &mdash; Blender-2.93 python memo  ドキュメント</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="mode" href="mode.html" />
+    <link rel="next" title="bpy.context.area" href="area.html" />
     <link rel="prev" title="bpy.context" href="context.html" /> 
 </head>
 
@@ -39,20 +39,16 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../obsolete.html">Obsolete(Blender2.8より前の動かないコード)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../legacy.html">Blender2.8より前の動かないコード</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../dev.html">開発環境</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">bpy.data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context.html">bpy.context</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Collection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#scene-collection">Scene Collection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id1">Collection</a></li>
-</ul>
-</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="area.html">bpy.context.area</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scene.html">scene and collection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mode.html">mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="object.html">bpy.types.Object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mesh.html">Mesh</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bone.html">bone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="object/index.html">bpy.types.Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="operator.html">operator</a></li>
 </ul>
 </li>
@@ -77,9 +73,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="index.html">bpy</a> &raquo;</li>
-      <li>Collection</li>
+      <li>window</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/bpy/collection.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/bpy/window.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -87,14 +83,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="collection">
-<h1>Collection<a class="headerlink" href="#collection" title="このヘッドラインへのパーマリンク"></a></h1>
-<section id="scene-collection">
-<h2>Scene Collection<a class="headerlink" href="#scene-collection" title="このヘッドラインへのパーマリンク"></a></h2>
-</section>
-<section id="id1">
-<h2>Collection<a class="headerlink" href="#id1" title="このヘッドラインへのパーマリンク"></a></h2>
-</section>
+  <section class="tex2jax_ignore mathjax_ignore" id="window">
+<h1>window<a class="headerlink" href="#window" title="このヘッドラインへのパーマリンク"></a></h1>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span>
+<span class="n">window</span><span class="o">.</span><span class="n">workspace</span> <span class="c1"># 画面レイアウト</span>
+<span class="n">workspace</span><span class="o">.</span><span class="n">screens</span> <span class="c1"># blender 各window. main window と preference window など</span>
+<span class="n">screen</span><span class="o">.</span><span class="n">area</span> <span class="c1"># 分割された区画</span>
+<span class="n">area</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;INFO&#39;</span>
+<span class="n">area</span><span class="o">.</span><span class="n">region</span> <span class="c1"># 区画内の部分</span>
+<span class="c1"># region 内に panel が配置される</span>
+</pre></div>
+</div>
 </section>
 
 
@@ -102,7 +101,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="context.html" class="btn btn-neutral float-left" title="bpy.context" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mode.html" class="btn btn-neutral float-right" title="mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="area.html" class="btn btn-neutral float-right" title="bpy.context.area" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,4 +1,4 @@
-# Obsolete(Blender2.8より前の動かないコード)
+# Blender2.8より前の動かないコード
 
 * [BlenderのPythonスクリプトのコードが2.80で動かなかった時に見る記事](https://qiita.com/hibit/items/d6b92d49d4d3a5730aa4)
 * [Blender 2.8の低レベルPython APIを利用してオブジェクトを操作する](https://qiita.com/t-sin/items/ac3a6d05b02b4ed990b3)
