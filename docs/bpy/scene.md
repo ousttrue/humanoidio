@@ -14,6 +14,13 @@
 > While the master collection contains all the Scene’s objects
 > collections of Objects
 
+## nested collection
+
+```py
+collection = bpy.data.collections.new(name='name')
+context.scene.collection.children.link(collection)
+```
+
 ## change active scene
 
 ```py
