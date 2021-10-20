@@ -49,6 +49,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">scene and collection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#active-scene">active scene</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#master-collection">master collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nested-collection">nested collection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#change-active-scene">change active scene</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#view-layer">view layer</a></li>
 </ul>
@@ -106,6 +107,13 @@
 <div><p>While the master collection contains all the Scene’s objects
 collections of Objects</p>
 </div></blockquote>
+</section>
+<section id="nested-collection">
+<h2>nested collection<a class="headerlink" href="#nested-collection" title="このヘッドラインへのパーマリンク"></a></h2>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">collection</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+<span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="change-active-scene">
 <h2>change active scene<a class="headerlink" href="#change-active-scene" title="このヘッドラインへのパーマリンク"></a></h2>
