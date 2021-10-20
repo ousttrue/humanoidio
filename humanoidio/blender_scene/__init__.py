@@ -205,6 +205,7 @@ def disposable_mode(bl_obj: bpy.types.Object, mode='OBJECT'):
     モードを変更して元のモードに戻る
     '''
     bpy.context.view_layer.objects.active = bl_obj
+    bl_obj.select_set(True)
 
     restore = MODE_MAP[bpy.context.mode]
     try:
@@ -214,6 +215,7 @@ def disposable_mode(bl_obj: bpy.types.Object, mode='OBJECT'):
     finally:
         if bpy.context.mode != restore:
             bpy.ops.object.mode_set(mode=restore, toggle=False)
+        bl_obj.select_set(False)
 
 
 def convert_obj(src: gltf.Coodinate, dst: gltf.Coodinate,
@@ -232,6 +234,18 @@ def bl_traverse(bl_obj: bpy.types.Object, pred):
 
     for child in bl_obj.children:
         bl_traverse(child, pred)
+
+
+def set_bone_weight(bl_object, vert_idx, bone_name, weight_val):
+    if weight_val != 0.0:
+        # It can be a problem to assign weights of 0
+        # for bone index 0, if there is always 4 indices in joint_ tuple
+        if bone_name:
+            try:
+                group = bl_object.vertex_groups[bone_name]
+            except KeyError:
+                group = bl_object.vertex_groups.new(name=bone_name)
+            group.add([vert_idx], weight_val, 'ADD')
 
 
 class Importer:
@@ -420,46 +434,34 @@ class Importer:
             return
         if not mesh_node.skin:
             return
-
-        logger.debug(f'skinning: {mesh_node.name}')
         skin = mesh_node.skin
         bone_names = [joint.name for joint in skin.joints]
         bl_object = self.obj_map[mesh_node]
+        if not isinstance(bl_object.data, bpy.types.Mesh):
+            return
 
-        # each face
-        if isinstance(bl_object.data, bpy.types.Mesh):
-            vert_idx = 0
-            for sm in mesh_node.mesh.submeshes:
-                j = sm.JOINTS_0()
-                w = sm.WEIGHTS_0()
-                while True:
-                    try:
-                        jj = next(j)
-                        ww = next(w)
-                    except StopIteration:
-                        break
+        logger.debug(f'skinning: {bl_object}')
+        vert_idx = 0
+        for sm in mesh_node.mesh.submeshes:
+            j = sm.JOINTS_0()
+            w = sm.WEIGHTS_0()
+            while True:
+                try:
+                    j0, j1, j2, j3 = next(j)
+                    w0, w1, w2, w3 = next(w)
 
-                    def set_bone_weight(joint_idx, weight_val):
-                        if weight_val != 0.0:
-                            # It can be a problem to assign weights of 0
-                            # for bone index 0, if there is always 4 indices in joint_ tuple
-                            bone_name = bone_names[joint_idx]
-                            if bone_name:
-                                try:
-                                    group = bl_object.vertex_groups[bone_name]
-                                except KeyError:
-                                    group = bl_object.vertex_groups.new(
-                                        name=bone_name)
-                                group.add([vert_idx], weight_val, 'ADD')
-
-                    set_bone_weight(jj[0], ww[0])
-                    set_bone_weight(jj[1], ww[1])
-                    set_bone_weight(jj[2], ww[2])
-                    set_bone_weight(jj[3], ww[3])
+                    set_bone_weight(bl_object, vert_idx, bone_names[j0], w0)
+                    set_bone_weight(bl_object, vert_idx, bone_names[j1], w1)
+                    set_bone_weight(bl_object, vert_idx, bone_names[j2], w2)
+                    set_bone_weight(bl_object, vert_idx, bone_names[j3], w3)
                     vert_idx += 1
 
+                except StopIteration:
+                    break
+
+        print(bl_object.vertex_groups)
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
-        modifier.object = self.skin_map[skin]
+        modifier.object = self.skin_map.get(skin)
 
     def load(self, loader: gltf.Loader):
         # create object for each node
@@ -495,8 +497,10 @@ class Importer:
             pass
 
         bl_humanoid_obj = self._create_humanoid(loader.roots)
-
         bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.ops.object.select_all(action='DESELECT')
+
         for n, o in self.obj_map.items():
             if o.type == 'MESH' and n.skin:
                 with disposable_mode(o, 'OBJECT'):
