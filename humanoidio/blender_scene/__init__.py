@@ -295,13 +295,18 @@ class Importer:
         if isinstance(node.mesh, gltf.Mesh):
             bl_mesh = self._get_or_create_mesh(node.mesh)
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, bl_mesh)
+            self.collection.objects.link(bl_obj)
+            bpy.context.view_layer.objects.active = bl_obj
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bl_obj.vertex_groups.new(name="debug")
         else:
             # empty
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, None)
             bl_obj.empty_display_size = 0.1
+            self.collection.objects.link(bl_obj)
 
-        self.collection.objects.link(bl_obj)
-        bl_obj.select_set(True)
+        # bl_obj.select_set(True)
         self.obj_map[node] = bl_obj
         # parent
         if node.parent:
@@ -314,6 +319,7 @@ class Importer:
         bl_obj.scale = node.scale
 
         self.matrix_map[node] = bl_obj.matrix_world
+
         return bl_obj
 
     def _create_tree(self,
@@ -470,38 +476,45 @@ class Importer:
             bl_obj = self._create_tree(root)
             root_objs.append(bl_obj)
 
-        # apply conversion
-        empty = bpy.data.objects.new("empty", None)
-        self.collection.objects.link(empty)
-        for bl_obj in root_objs:
-            bl_obj.parent = empty
-        convert_obj(self.conversion.src, self.conversion.dst, empty)
+        bpy.context.view_layer.update()
 
-        def apply(o: bpy.types.Object):
-            o.select_set(True)
-            bpy.ops.object.transform_apply(location=False,
-                                           rotation=True,
-                                           scale=False)
-            o.select_set(False)
+        for k, v in self.obj_map.items():
+            if v.type == 'MESH':
+                print(v)
+                v.vertex_groups.new(name="mesh")
 
-        bpy.ops.object.select_all(action='DESELECT')
-        bl_traverse(empty, apply)
-        empty.select_set(True)
-        bpy.ops.object.delete(use_global=False)
+        # # apply conversion
+        # empty = bpy.data.objects.new("empty", None)
+        # self.collection.objects.link(empty)
+        # for bl_obj in root_objs:
+        #     bl_obj.parent = empty
+        # convert_obj(self.conversion.src, self.conversion.dst, empty)
 
-        if loader.vrm:
-            # single skin humanoid model
-            pass
-        else:
-            # non humanoid generic scene
-            pass
+        # def apply(o: bpy.types.Object):
+        #     o.select_set(True)
+        #     bpy.ops.object.transform_apply(location=False,
+        #                                    rotation=True,
+        #                                    scale=False)
+        #     o.select_set(False)
 
-        bl_humanoid_obj = self._create_humanoid(loader.roots)
-        bpy.ops.object.mode_set(mode='OBJECT')
+        # bpy.ops.object.select_all(action='DESELECT')
+        # bl_traverse(empty, apply)
+        # empty.select_set(True)
+        # bpy.ops.object.delete(use_global=False)
 
-        bpy.ops.object.select_all(action='DESELECT')
+        # if loader.vrm:
+        #     # single skin humanoid model
+        #     pass
+        # else:
+        #     # non humanoid generic scene
+        #     pass
 
-        for n, o in self.obj_map.items():
-            if o.type == 'MESH' and n.skin:
-                with disposable_mode(o, 'OBJECT'):
-                    self._setup_skinning(n)
+        # bl_humanoid_obj = self._create_humanoid(loader.roots)
+        # bpy.ops.object.mode_set(mode='OBJECT')
+
+        # bpy.ops.object.select_all(action='DESELECT')
+
+        # for n, o in self.obj_map.items():
+        #     if o.type == 'MESH' and n.skin:
+        #         with disposable_mode(o, 'OBJECT'):
+        #             self._setup_skinning(n)

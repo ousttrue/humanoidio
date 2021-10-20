@@ -7,6 +7,7 @@
 * 2018 [Blender Python BMesh 〜点の操作〜](http://takunoji.hatenablog.com/entry/2018/03/26/225317)
 * 2018 [Blender Python 開発メモ 〜UV座標の取得〜](http://takunoji.hatenablog.com/entry/2018/03/20/221150)
 
+<https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192>
 
 ### create cube
 
@@ -38,3 +39,9 @@ bm.from_mesh(mesh)   # fill it in from a Mesh
 bm.to_mesh(mesh)
 bm.free()  # free and prevent further access
 ```
+
+## vertex group
+
+* <https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192>
+* <https://blender.stackexchange.com/questions/121292/how-can-i-reassign-or-move-vertexes-of-a-vertex-group>
+* <https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh>
