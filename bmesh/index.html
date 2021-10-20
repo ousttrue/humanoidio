@@ -51,10 +51,14 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#vertex">vertex</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#add">add</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vertex-group">vertex group</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#morph-target">morph target</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#uv-layer">uv_layer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#vertex-group">vertex group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loop">loop</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#uv-layer">uv_layer</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../addon_dev/index.html">AddOn Dev</a></li>
@@ -125,6 +129,7 @@
 <section id="vertex">
 <h2>vertex<a class="headerlink" href="#vertex" title="このヘッドラインへのパーマリンク"></a></h2>
 <ul class="simple">
+<li><p><a class="reference external" href="https://docs.blender.org/api/current/bmesh.types.html#bmesh.types.BMVert">https://docs.blender.org/api/current/bmesh.types.html#bmesh.types.BMVert</a></p></li>
 <li><p><a class="reference external" href="http://takunoji.hatenablog.com/entry/2018/03/26/225317">Blender Python BMesh 〜点の操作〜</a></p></li>
 </ul>
 <section id="add">
@@ -133,15 +138,40 @@
 </pre></div>
 </div>
 </section>
+<section id="vertex-group">
+<h3>vertex group<a class="headerlink" href="#vertex-group" title="このヘッドラインへのパーマリンク"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://gist.github.com/jirihnidek/64f2f269c9aa2021b33ae79989e21ebd">https://gist.github.com/jirihnidek/64f2f269c9aa2021b33ae79989e21ebd</a></p></li>
+<li><p><a class="reference external" href="https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192">Manipulate vertex groups via bmesh?</a></p></li>
+<li><p><a class="reference external" href="https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh">https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh</a></p></li>
+<li><p><a class="reference external" href="https://programtalk.com/python-examples/bmesh.new/">https://programtalk.com/python-examples/bmesh.new/</a></p></li>
+</ul>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">layer</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">verts</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">deform</span><span class="o">.</span><span class="n">active</span>
+
+<span class="n">bm</span><span class="o">.</span><span class="n">verts</span><span class="p">[</span><span class="n">vertex_index</span><span class="p">][</span><span class="n">layer</span><span class="p">][</span><span class="n">vertex_group_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight</span>
+</pre></div>
+</div>
 </section>
+<section id="morph-target">
+<h3>morph target<a class="headerlink" href="#morph-target" title="このヘッドラインへのパーマリンク"></a></h3>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">layer</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">verts</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="loop">
+<h2>loop<a class="headerlink" href="#loop" title="このヘッドラインへのパーマリンク"></a></h2>
 <section id="uv-layer">
-<h2>uv_layer<a class="headerlink" href="#uv-layer" title="このヘッドラインへのパーマリンク"></a></h2>
+<h3>uv_layer<a class="headerlink" href="#uv-layer" title="このヘッドラインへのパーマリンク"></a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="http://takunoji.hatenablog.com/entry/2018/03/20/221150">Blender Python 開発メモ 〜UV座標の取得〜</a></p></li>
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">loop</span></code> の <code class="docutils literal notranslate"><span class="pre">UV</span> <span class="pre">layer</span></code> に格納されている。
 <code class="docutils literal notranslate"><span class="pre">vert</span></code> から接続する <code class="docutils literal notranslate"><span class="pre">loop</span></code> を得て、その <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">layer</span></code> から値を得る。</p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">uv_layer</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">loops</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">uv</span><span class="o">.</span><span class="n">active</span>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">uv_layer</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">loops</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">uv</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">UV_LAYER_NAME</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">layer</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">loops</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">uv</span><span class="o">.</span><span class="n">active</span>
 
 <span class="k">def</span> <span class="nf">uv_from_vert_first</span><span class="p">(</span><span class="n">uv_layer</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">link_loops</span><span class="p">:</span>
@@ -150,15 +180,6 @@
 </pre></div>
 </div>
 </section>
-<section id="vertex-group">
-<h2>vertex group<a class="headerlink" href="#vertex-group" title="このヘッドラインへのパーマリンク"></a></h2>
-<ul class="simple">
-<li><p><a class="reference external" href="https://devtalk.blender.org/t/manipulate-vertex-groups-via-bmesh/11192">Manipulate vertex groups via bmesh?</a></p></li>
-<li><p><a class="reference external" href="https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh">https://blender.stackexchange.com/questions/69426/accessing-weights-of-a-bmesh</a></p></li>
-</ul>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">layer_deform</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">verts</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">deform</span><span class="o">.</span><span class="n">active</span>
-</pre></div>
-</div>
 </section>
 </section>
 
