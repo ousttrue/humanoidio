@@ -5,6 +5,9 @@
 
 ```{toctree}
 context
+mode
+object
 mesh
+bone
 operator
 ```
