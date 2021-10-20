@@ -134,21 +134,21 @@ class Loader:
                 self.roots.append(node)
 
 
-def load_glb(src: pathlib.Path, conv: Coodinate) -> Loader:
+def load_glb(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:
     json_chunk, bin_chunk = get_glb_chunks(src.read_bytes())
     gltf = json.loads(json_chunk)
 
-    accessor = util.GltfAccessor(gltf, bin_chunk, conv)
+    data = util.GltfAccessor(gltf, bin_chunk, conv)
     loader = Loader()
-    loader.load(accessor)
-    return loader
+    loader.load(data)
+    return loader, data.conversion
 
 
-def load_gltf(src: pathlib.Path, conv: Coodinate):
+def load_gltf(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:
     raise NotImplementedError()
 
 
-def load(src: pathlib.Path, conv: Coodinate):
+def load(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:
     if src.suffix == '.gltf':
         return load_gltf(src, conv)
     else:

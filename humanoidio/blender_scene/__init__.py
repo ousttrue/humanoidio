@@ -185,8 +185,10 @@ def disposable_mode(bl_obj: bpy.types.Object, mode='OBJECT'):
 
 
 class Importer:
-    def __init__(self, context: bpy.types.Context):
+    def __init__(self, context: bpy.types.Context,
+                 conversion: gltf.Conversion):
         self.collection = context.scene.collection
+        self.conversion = conversion
         self.obj_map: Dict[gltf.Node, bpy.types.Object] = {}
         self.matrix_map = {}
         self.skin_map: Dict[gltf.Skin, bpy.types.Object] = {}
@@ -219,6 +221,7 @@ class Importer:
         bl_obj.scale = node.scale
 
         self.matrix_map[node] = bl_obj.matrix_world
+        return bl_obj
 
     def _create_tree(self,
                      node: gltf.Node,
@@ -226,9 +229,10 @@ class Importer:
                      level=0):
         indent = '  ' * level
         # print(f'{indent}{node.name}')
-        self._create_object(node)
+        bl_obj = self._create_object(node)
         for child in node.children:
             self._create_tree(child, node, level + 1)
+        return bl_obj
 
     def _create_humanoid(self, roots: List[gltf.Node]) -> bpy.types.Object:
         '''
@@ -358,8 +362,12 @@ class Importer:
 
     def load(self, loader: gltf.Loader):
         # create object for each node
+        root_objs = []
         for root in loader.roots:
-            self._create_tree(root)
+            bl_obj = self._create_tree(root)
+            root_objs.append(bl_obj)
+
+        # apply conversion
 
         if loader.vrm:
             # single skin humanoid model

@@ -17,9 +17,9 @@ class Importer(bpy.types.Operator, ImportHelper):
         logger.debug('#### start ####')
         # read file
         path = pathlib.Path(self.filepath).absolute()
-        loader = gltf.load(path, gltf.Coodinate.BLENDER_ROTATE)
+        loader, conversion = gltf.load(path, gltf.Coodinate.BLENDER_ROTATE)
         # build mesh
-        bl_importer = blender_scene.Importer(context)
+        bl_importer = blender_scene.Importer(context, conversion)
         bl_importer.load(loader)
         logger.debug('#### end ####')
         return {'FINISHED'}
