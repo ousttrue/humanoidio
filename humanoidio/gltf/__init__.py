@@ -24,6 +24,7 @@ class Node:
         self.scale: Tuple[float, float, float] = (1, 1, 1)
         self.mesh: Optional[Mesh] = None
         self.skin: Optional[Skin] = None
+        self.humanoid_bone = None
 
     def add_child(self, child: 'Node'):
         child.parent = self

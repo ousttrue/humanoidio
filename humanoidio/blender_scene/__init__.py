@@ -3,6 +3,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 import bpy
+import mathutils
 import bmesh
 import math
 from typing import List, Dict, Optional
@@ -46,6 +47,35 @@ def create_face(bm, mesh: gltf.Submesh):
     #     for i, vert in enumerate(bm.verts):
     #         p = target.attributes.position[i]
     #         vert[layer] = mathutils.Vector(yup2zup(p)) + vert.co
+
+
+EXCLUDE_HUMANOID_PARENT = [
+    # formats.HumanoidBones.head
+]
+
+EXCLUDE_HUMANOID_CHILDREN = [
+    # formats.HumanoidBones.hips,
+    # formats.HumanoidBones.leftUpperLeg,
+    # formats.HumanoidBones.rightUpperLeg,
+    # formats.HumanoidBones.leftShoulder,
+    # formats.HumanoidBones.rightShoulder,
+    # formats.HumanoidBones.leftEye,
+    # formats.HumanoidBones.rightEye,
+    # #
+    # formats.HumanoidBones.leftThumbProximal,
+    # formats.HumanoidBones.leftIndexProximal,
+    # formats.HumanoidBones.leftMiddleProximal,
+    # formats.HumanoidBones.leftRingProximal,
+    # formats.HumanoidBones.leftLittleProximal,
+    # #
+    # formats.HumanoidBones.rightThumbProximal,
+    # formats.HumanoidBones.rightIndexProximal,
+    # formats.HumanoidBones.rightMiddleProximal,
+    # formats.HumanoidBones.rightRingProximal,
+    # formats.HumanoidBones.rightLittleProximal,
+]
+
+EXCLUDE_OTHERS = ['J_Adj_L_FaceEyeSet', 'J_Adj_R_FaceEyeSet']
 
 
 class BoneConnector:
@@ -100,13 +130,14 @@ class BoneConnector:
                     bl_parent.tail = bl_bone.head + mathutils.Vector(
                         (0, 0, 1e-4))
 
-                if parent and (parent.humanoid_bone
-                               == formats.HumanoidBones.leftShoulder
-                               or parent.humanoid_bone
-                               == formats.HumanoidBones.rightShoulder):
-                    # https://blenderartists.org/t/rigify-error-generation-has-thrown-an-exception-but-theres-no-exception-message/1228840
-                    pass
-                else:
+                # if parent and (parent.humanoid_bone
+                #                == formats.HumanoidBones.leftShoulder
+                #                or parent.humanoid_bone
+                #                == formats.HumanoidBones.rightShoulder):
+                #     # https://blenderartists.org/t/rigify-error-generation-has-thrown-an-exception-but-theres-no-exception-message/1228840
+                #     pass
+                # else:
+                if True:
                     bl_bone.use_connect = True
 
         if node.children:
@@ -209,6 +240,7 @@ class Importer:
         self.collection = context.scene.collection
         self.conversion = conversion
         self.obj_map: Dict[gltf.Node, bpy.types.Object] = {}
+        self.mesh_obj_list: List[bpy.types.Object] = []
         self.matrix_map = {}
         self.skin_map: Dict[gltf.Skin, bpy.types.Object] = {}
 
@@ -412,7 +444,13 @@ class Importer:
             # non humanoid generic scene
             pass
 
-        # self._create_humanoid(loader.roots)
+        bl_humanoid_obj = self._create_humanoid(loader.roots)
+        # Mesh を Armature の子にする
+        for bl_obj in self.mesh_obj_list:
+            if isinstance(bl_obj.data, bpy.types.Mesh):
+                bl_obj.parent = bl_humanoid_obj
+            else:
+                bpy.data.objects.remove(bl_obj, do_unlink=True)
 
         for mesh in loader.meshes:
             self._load_mesh(mesh)
