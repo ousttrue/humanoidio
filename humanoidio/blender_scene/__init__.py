@@ -273,17 +273,10 @@ class Importer:
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map.get(skin)
 
-    def load(self, loader: gltf.Loader):
-        # create object for each node
-        root_objs = []
-        for root in loader.roots:
-            bl_obj = self._create_tree(root)
-            root_objs.append(bl_obj)
-
-        # apply conversion
+    def _apply_conversion(self, roots):
         empty = bpy.data.objects.new("empty", None)
         self.collection.objects.link(empty)
-        for bl_obj in root_objs:
+        for bl_obj in roots:
             bl_obj.parent = empty
         convert_obj(self.conversion.src, self.conversion.dst, empty)
 
@@ -299,6 +292,35 @@ class Importer:
         empty.select_set(True)
         bpy.ops.object.delete(use_global=False)
 
+    def _remove_empty(self, node: gltf.Node):
+        '''
+        深さ優先で、深いところから順に削除する
+        '''
+        for i in range(len(node.children) - 1, -1, -1):
+            child = node.children[i]
+            self._remove_empty(child)
+
+        if node.children:
+            return
+        if node.mesh:
+            return
+
+        # remove empty
+        bl_obj = self.obj_map[node]
+        bpy.data.objects.remove(bl_obj, do_unlink=True)
+        if node.parent:
+            node.parent.children.remove(node)
+
+    def load(self, loader: gltf.Loader):
+        # create object for each node
+        roots = []
+        for root in loader.roots:
+            bl_obj = self._create_tree(root)
+            roots.append(bl_obj)
+
+        # apply conversion
+        self._apply_conversion(roots)
+
         # if loader.vrm:
         #     # single skin humanoid model
         #     pass
@@ -307,9 +329,14 @@ class Importer:
         #     pass
 
         bl_humanoid_obj = self._create_humanoid(loader.roots)
+        for root in roots:
+            root.parent = bl_humanoid_obj
 
         bpy.ops.object.select_all(action='DESELECT')
         for n, o in self.obj_map.items():
             if o.type == 'MESH' and n.skin:
-                with disposable_mode(o, 'OBJECT'):
-                    self._setup_skinning(n)
+                self._setup_skinning(n)
+
+        # remove empties
+        for root in loader.roots:
+            self._remove_empty(root)
