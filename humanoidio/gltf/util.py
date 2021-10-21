@@ -88,59 +88,6 @@ class Conversion(NamedTuple):
             raise NotImplementedError()
 
 
-class ByteReader:
-    def __init__(self, data: bytes):
-        self.data = data
-        self.pos = 0
-
-    def read_bytes(self, read_len: int) -> bytes:
-        if self.pos + read_len > len(self.data):
-            raise IndexError()
-        value = self.data[self.pos:self.pos + read_len]
-        self.pos += read_len
-        return value
-
-    def read_int32(self) -> int:
-        value = self.read_bytes(4)
-        return int.from_bytes(value, byteorder='little')
-
-    def read_chunk(self) -> Tuple[int, bytes]:
-        chunk_length = self.read_int32()
-        chunk_type = self.read_int32()
-        chunk_body = self.read_bytes(chunk_length)
-        return (chunk_type, chunk_body)
-
-
-def get_glb_chunks(data: bytes) -> Tuple[bytes, bytes]:
-    reader = ByteReader(data)
-
-    magic = reader.read_int32()
-    if magic != 0x46546C67:
-        raise ValueError('invalid magic')
-
-    version = reader.read_int32()
-    if version != 2:
-        raise ValueError(f'unknown version: {version} != 2')
-
-    length = reader.read_int32()
-
-    chunk_type, chunk_body = reader.read_chunk()
-    if chunk_type != 0x4E4F534A:
-        raise ValueError(f'first chunk: {chunk_type:x} != 0x4E4F534A')
-    json_chunk = chunk_body
-
-    chunk_type, chunk_body = reader.read_chunk()
-    if chunk_type != 0x004E4942:
-        raise ValueError(f'second chunk: {chunk_type:x} != 0x004E4942')
-    bin_chunk = chunk_body
-
-    while length < reader.pos:
-        # chunk_type, chunk_body = reader.read_chunk()
-        raise NotImplementedError()
-
-    return (json_chunk, bin_chunk)
-
-
 def enumerate_1(iterable) -> Generator[Any, None, None]:
     def g():
         for x in iterable:
