@@ -76,9 +76,8 @@ def set_bone_weight(bl_object, vert_idx, bone_name, weight_val):
 
 
 class Importer:
-    def __init__(self, context: bpy.types.Context,
-                 conversion: gltf.Conversion):
-        self.collection = context.scene.collection
+    def __init__(self, collection, conversion: gltf.Conversion):
+        self.collection = collection
         self.conversion = conversion
         self.obj_map: Dict[gltf.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[gltf.Mesh, bpy.types.Mesh] = {}

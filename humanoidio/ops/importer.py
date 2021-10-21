@@ -18,8 +18,11 @@ class Importer(bpy.types.Operator, ImportHelper):
         # read file
         path = pathlib.Path(self.filepath).absolute()
         loader, conversion = gltf.load(path, gltf.Coodinate.BLENDER_ROTATE)
+
         # build mesh
-        bl_importer = blender_scene.Importer(context, conversion)
+        collection = bpy.data.collections.new(name=path.name)
+        context.scene.collection.children.link(collection)
+        bl_importer = blender_scene.Importer(collection, conversion)
         bl_importer.load(loader)
         logger.debug('#### end ####')
         return {'FINISHED'}
