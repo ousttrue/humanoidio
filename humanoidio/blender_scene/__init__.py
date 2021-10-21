@@ -10,6 +10,7 @@ from typing import List, Dict, Optional, Set
 from contextlib import contextmanager
 from .. import gltf
 from .mesh import create_mesh
+from .armature import connect_bones
 
 MODE_MAP = {
     'OBJECT': 'OBJECT',
@@ -81,8 +82,6 @@ class Importer:
         self.conversion = conversion
         self.obj_map: Dict[gltf.Node, bpy.types.Object] = {}
         self.mesh_map: Dict[gltf.Mesh, bpy.types.Mesh] = {}
-        self.mesh_obj_list: List[bpy.types.Object] = []
-        self.matrix_map = {}
         self.skin_map: Dict[gltf.Skin, bpy.types.Object] = {}
 
     def _create_object(self, node: gltf.Node) -> None:
@@ -109,8 +108,7 @@ class Importer:
                     for joint in node.skin.joints:
                         bg = bl_obj.vertex_groups.new(name=joint.name)
                         bg.add([0], 1.0, 'ADD')
-                        # print(bg)
-                # create_mesh(bl_mesh, node.mesh)
+                create_mesh(bl_mesh, node.mesh)
         else:
             # empty
             bl_obj: bpy.types.Object = bpy.data.objects.new(node.name, None)
@@ -125,11 +123,8 @@ class Importer:
 
         # TRS
         bl_obj.location = node.translation
-        # with tmp_mode(bl_obj, 'QUATERNION'):
         bl_obj.rotation_quaternion = node.rotation
         bl_obj.scale = node.scale
-
-        self.matrix_map[node] = bl_obj.matrix_world
 
         return bl_obj
 
@@ -137,8 +132,6 @@ class Importer:
                      node: gltf.Node,
                      parent: Optional[gltf.Node] = None,
                      level=0):
-        indent = '  ' * level
-        # print(f'{indent}{node.name}')
         bl_obj = self._create_object(node)
         for child in node.children:
             self._create_tree(child, node, level + 1)
@@ -202,6 +195,7 @@ class Importer:
 
         for skin in skins:
             self.skin_map[skin] = bl_obj
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # #
         # # set metarig
@@ -287,31 +281,24 @@ class Importer:
             bl_obj = self._create_tree(root)
             root_objs.append(bl_obj)
 
-        # bpy.context.view_layer.update()
+        # apply conversion
+        empty = bpy.data.objects.new("empty", None)
+        self.collection.objects.link(empty)
+        for bl_obj in root_objs:
+            bl_obj.parent = empty
+        convert_obj(self.conversion.src, self.conversion.dst, empty)
 
-        # for k, v in self.obj_map.items():
-        #     if v.type == 'MESH':
-        #         print(v)
-        #         v.vertex_groups.new(name="mesh")
+        def apply(o: bpy.types.Object):
+            o.select_set(True)
+            bpy.ops.object.transform_apply(location=False,
+                                           rotation=True,
+                                           scale=False)
+            o.select_set(False)
 
-        # # apply conversion
-        # empty = bpy.data.objects.new("empty", None)
-        # self.collection.objects.link(empty)
-        # for bl_obj in root_objs:
-        #     bl_obj.parent = empty
-        # convert_obj(self.conversion.src, self.conversion.dst, empty)
-
-        # def apply(o: bpy.types.Object):
-        #     o.select_set(True)
-        #     bpy.ops.object.transform_apply(location=False,
-        #                                    rotation=True,
-        #                                    scale=False)
-        #     o.select_set(False)
-
-        # bpy.ops.object.select_all(action='DESELECT')
-        # bl_traverse(empty, apply)
-        # empty.select_set(True)
-        # bpy.ops.object.delete(use_global=False)
+        bpy.ops.object.select_all(action='DESELECT')
+        bl_traverse(empty, apply)
+        empty.select_set(True)
+        bpy.ops.object.delete(use_global=False)
 
         # if loader.vrm:
         #     # single skin humanoid model
@@ -320,12 +307,10 @@ class Importer:
         #     # non humanoid generic scene
         #     pass
 
-        # bl_humanoid_obj = self._create_humanoid(loader.roots)
-        # bpy.ops.object.mode_set(mode='OBJECT')
+        bl_humanoid_obj = self._create_humanoid(loader.roots)
 
-        # bpy.ops.object.select_all(action='DESELECT')
-
-        # for n, o in self.obj_map.items():
-        #     if o.type == 'MESH' and n.skin:
-        #         with disposable_mode(o, 'OBJECT'):
-        #             self._setup_skinning(n)
+        bpy.ops.object.select_all(action='DESELECT')
+        for n, o in self.obj_map.items():
+            if o.type == 'MESH' and n.skin:
+                with disposable_mode(o, 'OBJECT'):
+                    self._setup_skinning(n)
