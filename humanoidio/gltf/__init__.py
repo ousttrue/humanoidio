@@ -7,6 +7,7 @@ from typing import Tuple, List, Optional, Union
 import json
 from .mesh import (Submesh, Mesh)
 from .util import (get_glb_chunks, Coodinate, Conversion)
+from . import vrm
 
 
 class Skin:
@@ -24,7 +25,7 @@ class Node:
         self.scale: Tuple[float, float, float] = (1, 1, 1)
         self.mesh: Optional[Mesh] = None
         self.skin: Optional[Skin] = None
-        self.humanoid_bone = None
+        self.humanoid_bone: Optional[vrm.HumanoidBones] = None
 
     def add_child(self, child: 'Node'):
         child.parent = self
@@ -129,6 +130,16 @@ class Loader:
         for node in self.nodes:
             if not node.parent:
                 self.roots.append(node)
+
+        #
+        # vrm
+        #
+        if isinstance(self.vrm, Vrm0):
+            for b in self.vrm.data['humanoid']['humanBones']:
+                node = self.nodes[b['node']]
+                node.humanoid_bone = vrm.HumanoidBones.from_name(b['bone'])
+        elif isinstance(self.vrm, Vrm1):
+            raise NotImplementedError()
 
 
 def load_glb(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:

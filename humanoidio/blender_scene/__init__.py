@@ -177,7 +177,7 @@ class Importer:
         # 2nd pass: tail, connect
         connect_bones(bones)
 
-        humaniod_map: Dict[formats.HumanoidBones, gltf.Node] = {}
+        humaniod_map: Dict[gltf.vrm.HumanoidBones, gltf.Node] = {}
         for k, v in bones.items():
             if k.humanoid_bone:
                 humaniod_map[k.humanoid_bone] = k
@@ -190,7 +190,7 @@ class Importer:
                 b = bl_obj.pose.bones[node.name]
                 b.bone_group = bone_group
                 # property
-                b.pyimpex_humanoid_bone = node.humanoid_bone.name
+                # b.pyimpex_humanoid_bone = node.humanoid_bone.name
 
         for skin in skins:
             self.skin_map[skin] = bl_obj
@@ -269,7 +269,6 @@ class Importer:
                 except StopIteration:
                     break
 
-        print(bl_object.vertex_groups)
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map.get(skin)
 
@@ -321,12 +320,12 @@ class Importer:
         # apply conversion
         self._apply_conversion(roots)
 
-        # if loader.vrm:
-        #     # single skin humanoid model
-        #     pass
-        # else:
-        #     # non humanoid generic scene
-        #     pass
+        if loader.vrm:
+            # single skin humanoid model
+            pass
+        else:
+            # non humanoid generic scene
+            pass
 
         bl_humanoid_obj = self._create_humanoid(loader.roots)
         for root in roots:
