@@ -5,7 +5,15 @@
 
 ## active scene
 
+get
+
 `bpy.context.scene`
+
+set
+
+```py
+bpy.context.window.scene = bpy.data.scenes['Scene.001']
+```
 
 ## master collection
 
@@ -19,12 +27,6 @@
 ```py
 collection = bpy.data.collections.new(name='name')
 context.scene.collection.children.link(collection)
-```
-
-## change active scene
-
-```py
-bpy.context.window.scene = bpy.data.scenes['Scene.001']
 ```
 
 ## view layer

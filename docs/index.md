@@ -12,6 +12,7 @@ bpy/index
 bmesh/index
 addon_dev/index
 addon_list/index
+bpy_struct/index
 snippet/index
 ```
 
