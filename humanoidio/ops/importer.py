@@ -11,7 +11,7 @@ from .. import blender_scene
 
 class Importer(bpy.types.Operator, ImportHelper):
     bl_idname = "humanoidio.importer"
-    bl_label = "Model Importer"
+    bl_label = "humanoidio Importer"
 
     def execute(self, context: bpy.types.Context):
         logger.debug('#### start ####')
@@ -24,5 +24,6 @@ class Importer(bpy.types.Operator, ImportHelper):
         context.scene.collection.children.link(collection)
         bl_importer = blender_scene.Importer(collection, conversion)
         bl_importer.load(loader)
+
         logger.debug('#### end ####')
         return {'FINISHED'}

@@ -7,8 +7,9 @@ bl_info = {
 
 import bpy
 from .ops.importer import Importer
+from .ops.exporter import Exporter
 
-CLASSES = [Importer]
+CLASSES = [Importer, Exporter]
 
 
 def register():

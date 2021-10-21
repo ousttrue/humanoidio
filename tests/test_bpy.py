@@ -23,6 +23,9 @@ basicConfig(
     format='%(asctime)s[%(levelname)s][%(name)s.%(funcName)s] %(message)s')
 
 import bpy
+import humanoidio
+
+humanoidio.register()
 
 
 def clear():
@@ -44,14 +47,11 @@ def clear():
 
 
 class TestBpy(unittest.TestCase):
-    def test_box_textured_glb(self):
+    def test_importer(self):
         self.assertTrue(GLTF_PATH.exists())
 
         # clear scene
         clear()
-
-        import humanoidio
-        humanoidio.register()
 
         bpy.ops.humanoidio.importer(filepath=str(VRM_PATH))  # type: ignore
 
@@ -74,6 +74,10 @@ class TestBpy(unittest.TestCase):
 
         bpy.ops.wm.save_as_mainfile(filepath=str(HERE.parent / 'tmp.blend'))
         humanoidio.unregister()
+
+    def test_exporter(self):
+        path = HERE.parent / 'export.glb'
+        bpy.ops.humanoidio.exporter(filepath=str(path))  # type: ignore
 
 
 if __name__ == "__main__":

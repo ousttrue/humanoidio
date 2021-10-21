@@ -5,15 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run",
+            "name": "import",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/tests/test_bpy.py",
+            "program": "${workspaceFolder}/import.py",
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "export",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/export.py",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "integratedTerminal"
+        },
     ]
 }
