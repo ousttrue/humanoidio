@@ -44,7 +44,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">bpy</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">bpy.data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context.html">bpy.context</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">window</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">window</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bpy-types-window">bpy.types.Window</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bpy-types-screen">bpy.types.Screen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bpy-types-area">bpy.types.Area</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="area.html">bpy.context.area</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scene.html">scene and collection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mode.html">mode</a></li>
@@ -55,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../bmesh/index.html">BMesh</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../addon_dev/index.html">AddOn Dev</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../addon_list/index.html">AddOn List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../bpy_struct/index.html">bpy_struct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../snippet/index.html">snippet</a></li>
 </ul>
 
@@ -85,15 +91,63 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="window">
 <h1>window<a class="headerlink" href="#window" title="このヘッドラインへのパーマリンク"></a></h1>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span>
-<span class="n">window</span><span class="o">.</span><span class="n">workspace</span> <span class="c1"># 画面レイアウト</span>
-<span class="n">workspace</span><span class="o">.</span><span class="n">screens</span> <span class="c1"># blender 各window. main window と preference window など</span>
-<span class="n">screen</span><span class="o">.</span><span class="n">area</span> <span class="c1"># 分割された区画</span>
-<span class="n">area</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;INFO&#39;</span>
-<span class="n">area</span><span class="o">.</span><span class="n">region</span> <span class="c1"># 区画内の部分</span>
-<span class="c1"># region 内に panel が配置される</span>
+<ul class="simple">
+<li><p><a class="reference external" href="https://memoteu.hatenablog.com/entry/2019/04/02/041803">【Blender 2.8 アドオン開発】003 Blender 内のデータにアクセスしよう(Context と データ構造 と レイアウト)</a></p></li>
+</ul>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">print_layout</span><span class="p">(</span><span class="n">window</span><span class="p">):</span>
+    <span class="n">workspace</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">workspace</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;[Workspace] {workspace.name}&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">screen</span> <span class="ow">in</span> <span class="n">workspace</span><span class="o">.</span><span class="n">screens</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;  [Screen] {screen.name}&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">area</span> <span class="ow">in</span> <span class="n">screen</span><span class="o">.</span><span class="n">areas</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;    [Area] {area.type}&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">area</span><span class="o">.</span><span class="n">regions</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;      [Region] {region.type}&quot;</span><span class="p">)</span>
+
+
+<span class="n">print_layout</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Workspace</span><span class="p">]</span> <span class="n">Layout</span>
+  <span class="p">[</span><span class="n">Screen</span><span class="p">]</span> <span class="n">Layout</span>
+    <span class="p">[</span><span class="n">Area</span><span class="p">]</span> <span class="n">PROPERTIES</span>        
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">HEADER</span>        
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">NAVIGATION_BAR</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">WINDOW</span>
+    <span class="p">[</span><span class="n">Area</span><span class="p">]</span> <span class="n">OUTLINER</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">HEADER</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">WINDOW</span>
+    <span class="p">[</span><span class="n">Area</span><span class="p">]</span> <span class="n">DOPESHEET_EDITOR</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">HEADER</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">CHANNELS</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">UI</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">WINDOW</span>
+    <span class="p">[</span><span class="n">Area</span><span class="p">]</span> <span class="n">VIEW_3D</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">TOOL_HEADER</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">HEADER</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">TOOLS</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">UI</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">HUD</span>
+      <span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="n">WINDOW</span>
+</pre></div>
+</div>
+<section id="bpy-types-window">
+<h2>bpy.types.Window<a class="headerlink" href="#bpy-types-window" title="このヘッドラインへのパーマリンク"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Window.html?highlight=window">https://docs.blender.org/api/current/bpy.types.Window.html?highlight=window</a></p></li>
+</ul>
+</section>
+<section id="bpy-types-screen">
+<h2>bpy.types.Screen<a class="headerlink" href="#bpy-types-screen" title="このヘッドラインへのパーマリンク"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Screen.html">https://docs.blender.org/api/current/bpy.types.Screen.html</a></p></li>
+</ul>
+</section>
+<section id="bpy-types-area">
+<h2>bpy.types.Area<a class="headerlink" href="#bpy-types-area" title="このヘッドラインへのパーマリンク"></a></h2>
+<p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Area.html">https://docs.blender.org/api/current/bpy.types.Area.html</a></p>
+<p><code class="docutils literal notranslate"><span class="pre">bpy.context.area.type</span></code></p>
+</section>
 </section>
 
 

@@ -40,11 +40,16 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="legacy.html">Blender2.8より前の動かないコード</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">開発環境</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">開発環境</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bpy-module">bpy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build">build</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="bpy/index.html">bpy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bmesh/index.html">BMesh</a></li>
 <li class="toctree-l1"><a class="reference internal" href="addon_dev/index.html">AddOn Dev</a></li>
 <li class="toctree-l1"><a class="reference internal" href="addon_list/index.html">AddOn List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bpy_struct/index.html">bpy_struct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="snippet/index.html">snippet</a></li>
 </ul>
 
@@ -74,9 +79,65 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="id1">
 <h1>開発環境<a class="headerlink" href="#id1" title="このヘッドラインへのパーマリンク"></a></h1>
+<section id="bpy-module">
+<h2>bpy module<a class="headerlink" href="#bpy-module" title="このヘッドラインへのパーマリンク"></a></h2>
 <ul class="simple">
+<li><p><a class="reference external" href="https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule">https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ousttrue/bpy_module">https://github.com/ousttrue/bpy_module</a></p></li>
 </ul>
+</section>
+<section id="build">
+<h2>build<a class="headerlink" href="#build" title="このヘッドラインへのパーマリンク"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>        <span class="s2">&quot;-DWITH_FFTW3=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_PUGIXML=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_BULLET=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENCOLORIO=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_XR_OPENXR=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_GMP=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_COMPOSITOR=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENIMAGEDENOISE=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENSUBDIV=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_POTRACE=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENVDB=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENVDB_BLOSC=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_NANOVDB=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_HARU=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_QUADRIFLOW=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_AUDASPACE=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENMP=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_MOD_FLUID=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_MOD_REMESH=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_MOD_OCEANSIM=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENIMAGEIO=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_IMAGE_OPENEXR=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_IMAGE_OPENJPEG=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_IMAGE_TIFF=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_IMAGE_DDS=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_IMAGE_CINEON=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_IMAGE_HDR=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_CODEC_AVI=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_CODEC_FFMPEG=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_CODEC_SNDFILE=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_ALEMBIC=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_USD=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENCOLLADA=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_SDL=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_OPENAL=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_WASAPI=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_LZO=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_LZMA=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_LIBMV=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_LIBMV_SCHUR_SPECIALIZATIONS=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_FREESTYLE=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_DRACO=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_FREESTYLE=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_INPUT_NDOF=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_CYCLES=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_BOOST=OFF&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-DWITH_TBB=OFF&quot;</span><span class="p">,</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 

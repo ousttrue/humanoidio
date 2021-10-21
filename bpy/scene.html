@@ -50,7 +50,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#active-scene">active scene</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#master-collection">master collection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nested-collection">nested collection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#change-active-scene">change active scene</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#view-layer">view layer</a></li>
 </ul>
 </li>
@@ -62,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../bmesh/index.html">BMesh</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../addon_dev/index.html">AddOn Dev</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../addon_list/index.html">AddOn List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../bpy_struct/index.html">bpy_struct</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../snippet/index.html">snippet</a></li>
 </ul>
 
@@ -98,7 +98,12 @@
 </ul>
 <section id="active-scene">
 <h2>active scene<a class="headerlink" href="#active-scene" title="このヘッドラインへのパーマリンク"></a></h2>
+<p>get</p>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.scene</span></code></p>
+<p>set</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">scenes</span><span class="p">[</span><span class="s1">&#39;Scene.001&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
 </section>
 <section id="master-collection">
 <h2>master collection<a class="headerlink" href="#master-collection" title="このヘッドラインへのパーマリンク"></a></h2>
@@ -112,12 +117,6 @@ collections of Objects</p>
 <h2>nested collection<a class="headerlink" href="#nested-collection" title="このヘッドラインへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">collection</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
 <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="change-active-scene">
-<h2>change active scene<a class="headerlink" href="#change-active-scene" title="このヘッドラインへのパーマリンク"></a></h2>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">scenes</span><span class="p">[</span><span class="s1">&#39;Scene.001&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
