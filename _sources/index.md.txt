@@ -14,6 +14,7 @@ addon_dev/index
 addon_list/index
 bpy_struct/index
 snippet/index
+gltf/index
 ```
 
 # Indices and tables
