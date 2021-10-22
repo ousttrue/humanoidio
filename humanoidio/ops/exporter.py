@@ -6,7 +6,7 @@ import bpy
 from bpy_extras.io_utils import ExportHelper
 
 from .. import blender_scene
-from .. import gltf
+import pathlib
 
 
 class Exporter(bpy.types.Operator, ExportHelper):
@@ -25,7 +25,9 @@ class Exporter(bpy.types.Operator, ExportHelper):
 
         # serialize
         glb = exporter.to_glb()
-        print(glb)
+        path = pathlib.Path(self.filepath)
 
-        logger.debug('#### end ####')
+        logger.debug(f'write {len(glb)} bytes to {path}')
+        path.write_bytes(glb)
+
         return {'FINISHED'}

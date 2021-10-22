@@ -7,7 +7,8 @@ from typing import Tuple, List, Optional, Union
 import json
 from .mesh import (Submesh, Mesh)
 from .glb import get_glb_chunks
-from .util import (Coodinate, Conversion, GltfAccessor)
+from .accessor_util import GltfAccessor
+from .coordinate import (Coodinate, Conversion)
 from . import vrm
 
 

@@ -1,3 +1,5 @@
 __pycache__
 /docs/_build
 *.blend*
+/export.glb
+/export_report.json

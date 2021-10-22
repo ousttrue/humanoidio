@@ -1,5 +1,8 @@
 # 開発環境
 
+* bpy モジュールのビルド
+* bpy モジュールの型アノテーションでインテリセンスを動かす
+
 ## bpy module
 
 * <https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule>

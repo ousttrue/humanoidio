@@ -18,6 +18,7 @@ def create_vertices(bm, mesh: gltf.Submesh):
         # normal
         if n:
             vert.normal = n
+        # bone weight
         if deform_layer:
             vert[deform_layer][j] = w
 
@@ -61,6 +62,7 @@ def create_mesh(bl_mesh: bpy.types.Mesh, mesh: gltf.Mesh):
 
     uv_list = []
 
+    # vertices
     for sm in mesh.submeshes:
         create_vertices(bm, sm)
         if sm.TEXCOORD_0:
@@ -70,9 +72,11 @@ def create_mesh(bl_mesh: bpy.types.Mesh, mesh: gltf.Mesh):
     bm.verts.ensure_lookup_table()
     bm.verts.index_update()
 
+    # triangles
     for sm in mesh.submeshes:
         create_face(bm, sm)
 
+    # loop layer
     if len(uv_list) > 0:
         set_uv(bm, uv_list)
 

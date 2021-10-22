@@ -6,9 +6,9 @@ from ..gltf import exporter
 
 class BlenderObjectExporter:
     def __init__(self):
-        pass
+        self.meshes = []
 
-    def _export_mexh(self, bm):
+    def _export_mesh(self, bm):
         triangles = bm.calc_loop_triangles()
         buffer = exporter.ExportMesh(len(bm.verts), len(triangles) * 3)
         self.meshes.append(buffer)
@@ -27,14 +27,12 @@ class BlenderObjectExporter:
             buffer.indices[i] = t2.index
             i += 1
 
-        return buffer
-
     def _export_object(self, bl_obj: bpy.types.Object):
 
         if isinstance(bl_obj.data, bpy.types.Mesh):
             bm = bmesh.new()
             bm.from_mesh(bl_obj.data)
-            self._export_mexh(bm)
+            self._export_mesh(bm)
             bm.free()
 
         for child in bl_obj.children:
@@ -42,9 +40,12 @@ class BlenderObjectExporter:
 
     def export(self, objs: List[bpy.types.Object]):
         for bl_obj in objs:
-            self._export_object(bl_obj)
+            export_mesh = self._export_object(bl_obj)
+        export_scene = exporter.ExportScene()
+        export_scene.meshes = self.meshes
+        return export_scene
 
 
 def export(objs: List[bpy.types.Object]) -> exporter.ExportScene:
-    export_scene = exporter.ExportScene()
-    return export_scene
+    exporter = BlenderObjectExporter()
+    return exporter.export(objs)
