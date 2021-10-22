@@ -59,6 +59,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#uv-layer">uv_layer</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#walker">walker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#source">source</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../addon_dev/index.html">AddOn Dev</a></li>
@@ -182,6 +184,104 @@
 </pre></div>
 </div>
 </section>
+</section>
+<section id="walker">
+<h2>walker<a class="headerlink" href="#walker" title="このヘッドラインへのパーマリンク"></a></h2>
+<p><a class="reference external" href="https://devtalk.blender.org/t/walking-edge-loops-across-a-mesh-from-c-to-python/14297/4">https://devtalk.blender.org/t/walking-edge-loops-across-a-mesh-from-c-to-python/14297/4</a></p>
+</section>
+<section id="source">
+<h2>source<a class="headerlink" href="#source" title="このヘッドラインへのパーマリンク"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source\blender\bmesh\bmesh.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source\blender\bmesh\bmesh_class.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source\blender\bmesh\intern\bmesh_mesh.h</span></code></p></li>
+</ul>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">BMesh</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">totvert</span><span class="p">,</span> <span class="n">totedge</span><span class="p">,</span> <span class="n">totloop</span><span class="p">,</span> <span class="n">totface</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">totvertsel</span><span class="p">,</span> <span class="n">totedgesel</span><span class="p">,</span> <span class="n">totfacesel</span><span class="p">;</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * Flag index arrays as being dirty so we can check if they are clean and</span>
+<span class="cm">   * avoid looping over the entire vert/edge/face/loop array in those cases.</span>
+<span class="cm">   * valid flags are: `(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP)`</span>
+<span class="cm">   */</span>
+  <span class="kt">char</span> <span class="n">elem_index_dirty</span><span class="p">;</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * Flag array table as being dirty so we know when its safe to use it,</span>
+<span class="cm">   * or when it needs to be re-created.</span>
+<span class="cm">   */</span>
+  <span class="kt">char</span> <span class="n">elem_table_dirty</span><span class="p">;</span>
+
+  <span class="cm">/* element pools */</span>
+  <span class="k">struct</span> <span class="n">BLI_mempool</span> <span class="o">*</span><span class="n">vpool</span><span class="p">,</span> <span class="o">*</span><span class="n">epool</span><span class="p">,</span> <span class="o">*</span><span class="n">lpool</span><span class="p">,</span> <span class="o">*</span><span class="n">fpool</span><span class="p">;</span>
+
+  <span class="cm">/* mempool lookup tables (optional)</span>
+<span class="cm">   * index tables, to map indices to elements via</span>
+<span class="cm">   * BM_mesh_elem_table_ensure and associated functions.  don&#39;t</span>
+<span class="cm">   * touch this or read it directly.\</span>
+<span class="cm">   * Use BM_mesh_elem_table_ensure(), BM_vert/edge/face_at_index() */</span>
+  <span class="n">BMVert</span> <span class="o">**</span><span class="n">vtable</span><span class="p">;</span>
+  <span class="n">BMEdge</span> <span class="o">**</span><span class="n">etable</span><span class="p">;</span>
+  <span class="n">BMFace</span> <span class="o">**</span><span class="n">ftable</span><span class="p">;</span>
+
+  <span class="cm">/* size of allocated tables */</span>
+  <span class="kt">int</span> <span class="n">vtable_tot</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">etable_tot</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">ftable_tot</span><span class="p">;</span>
+
+  <span class="cm">/* operator api stuff (must be all NULL or all alloc&#39;d) */</span>
+  <span class="k">struct</span> <span class="n">BLI_mempool</span> <span class="o">*</span><span class="n">vtoolflagpool</span><span class="p">,</span> <span class="o">*</span><span class="n">etoolflagpool</span><span class="p">,</span> <span class="o">*</span><span class="n">ftoolflagpool</span><span class="p">;</span>
+
+  <span class="n">uint</span> <span class="nl">use_toolflags</span> <span class="p">:</span> <span class="mi">1</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">toolflag_index</span><span class="p">;</span>
+
+  <span class="n">CustomData</span> <span class="n">vdata</span><span class="p">,</span> <span class="n">edata</span><span class="p">,</span> <span class="n">ldata</span><span class="p">,</span> <span class="n">pdata</span><span class="p">;</span>
+
+<span class="cp">#ifdef USE_BMESH_HOLES</span>
+  <span class="k">struct</span> <span class="n">BLI_mempool</span> <span class="o">*</span><span class="n">looplistpool</span><span class="p">;</span>
+<span class="cp">#endif</span>
+
+  <span class="k">struct</span> <span class="n">MLoopNorSpaceArray</span> <span class="o">*</span><span class="n">lnor_spacearr</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">spacearr_dirty</span><span class="p">;</span>
+
+  <span class="cm">/* Should be copy of scene select mode. */</span>
+  <span class="cm">/* Stored in #BMEditMesh too, this is a bit confusing,</span>
+<span class="cm">   * make sure they&#39;re in sync!</span>
+<span class="cm">   * Only use when the edit mesh cant be accessed - campbell */</span>
+  <span class="kt">short</span> <span class="n">selectmode</span><span class="p">;</span>
+
+  <span class="cm">/* ID of the shape key this bmesh came from */</span>
+  <span class="kt">int</span> <span class="n">shapenr</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">totflags</span><span class="p">;</span>
+  <span class="n">ListBase</span> <span class="n">selected</span><span class="p">;</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * The active face.</span>
+<span class="cm">   * This is kept even when unselected, mainly so UV editing can keep showing the</span>
+<span class="cm">   * active faces image while the selection is being modified in the 3D viewport.</span>
+<span class="cm">   *</span>
+<span class="cm">   * Without this the active image in the UV editor would flicker in a distracting way</span>
+<span class="cm">   * while changing selection in the 3D viewport.</span>
+<span class="cm">   */</span>
+  <span class="n">BMFace</span> <span class="o">*</span><span class="n">act_face</span><span class="p">;</span>
+
+  <span class="cm">/** List of #BMOpError, used for operator error handling. */</span>
+  <span class="n">ListBase</span> <span class="n">errorstack</span><span class="p">;</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * Keep a single reference to the Python instance of this #BMesh (if any exists).</span>
+<span class="cm">   *</span>
+<span class="cm">   * This allows save invalidation of a #BMesh when it&#39;s freed,</span>
+<span class="cm">   * so the Python object will report it as having been removed,</span>
+<span class="cm">   * instead of crashing on invalid memory access.</span>
+<span class="cm">   */</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">py_handle</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">BMesh</span><span class="p">;</span>
+</pre></div>
+</div>
 </section>
 </section>
 

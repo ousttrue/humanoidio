@@ -3,8 +3,8 @@
 <https://docs.blender.org/manual/en/latest/scene_layout/object/types.html>
 
 ```{toctree}
-object/mesh
-object/armature
+mesh
+armature
 ```
 
 ## empty
