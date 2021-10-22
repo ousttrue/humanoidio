@@ -1,6 +1,6 @@
 import ctypes
 from enum import IntEnum
-from typing import Iterable, Any, Dict, Generator
+from typing import Iterable, Any, Dict, Generator, Union
 from .coordinate import (Coodinate, Conversion)
 from .types import Float3
 
@@ -146,10 +146,15 @@ class GltfAccessor:
             raise NotImplementedError()
 
 
-def get_type_count(values):
-    if values._type_ == ctypes.c_uint32:
-        return ComponentType.UInt32, 1
-    elif values._type_ == Float3:
-        return ComponentType.Float, 3
-    else:
-        raise NotImplementedError(f'{values._type_}')
+def get_type_count(values: Union[memoryview, ctypes.Array]):
+    if isinstance(values, memoryview):
+        raise NotImplementedError()
+    elif isinstance(values, ctypes.Array):
+        t = values._type_
+        s = ctypes.sizeof(t)
+        if values._type_ == ctypes.c_uint32:
+            return ComponentType.UInt32, 1
+        elif s == 12:
+            return ComponentType.Float, 3
+        else:
+            raise NotImplementedError(f'{values._type_}')
