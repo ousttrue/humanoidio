@@ -21,36 +21,16 @@ class GltfWriter:
             'meshes': [],
             'nodes': [],
         }
-        self.bin = bytearray()
-
-    def push_bytes(self, data: bytes):
-        bufferView_index = len(self.gltf['bufferViews'])
-        bufferView = {
-            'buffer': 0,
-            'byteOffset': len(self.bin),
-            'byteLength': len(data),
-        }
-        self.bin.extend(data)
-        self.gltf['bufferViews'].append(bufferView)
-        return bufferView_index
-
-    def push_array(self, values) -> int:
-        accessor_index = len(self.gltf['accessors'])
-        t, c = accessor_util.get_type_count(values)
-        accessor = {
-            'bufferView': self.push_bytes(memoryview(values).cast('B')),
-            'type': t,
-            'componentType': c,
-        }
-        self.gltf['accessors'].append(accessor)
-        return accessor_index
+        self.accessor = accessor_util.GltfAccessor(self.gltf, bytearray())
 
     def push_mesh(self, mesh: ExportMesh):
         gltf_mesh = {'primitives': []}
         primitive: Dict[str, Any] = {'attributes': {}}
-        primitive['attributes']['POSITION'] = self.push_array(mesh.POSITION)
-        primitive['attributes']['NORMAL'] = self.push_array(mesh.NORMAL)
-        primitive['indices'] = self.push_array(mesh.indices)
+        primitive['attributes']['POSITION'] = self.accessor.push_array(
+            mesh.POSITION)
+        primitive['attributes']['NORMAL'] = self.accessor.push_array(
+            mesh.NORMAL)
+        primitive['indices'] = self.accessor.push_array(mesh.indices)
         gltf_mesh['primitives'].append(primitive)
         mesh_index = len(self.gltf['meshes'])
         self.gltf['meshes'].append(gltf_mesh)
@@ -62,8 +42,8 @@ class GltfWriter:
         return mesh_index
 
     def to_gltf(self):
-        self.gltf['buffers'] = [{'byteLength': len(self.bin)}]
-        return self.gltf, bytes(self.bin)
+        self.gltf['buffers'] = [{'byteLength': len(self.accessor.bin)}]
+        return self.gltf, bytes(self.accessor.bin)
 
 
 class ExportScene:

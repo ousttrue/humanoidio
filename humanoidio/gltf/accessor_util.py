@@ -110,11 +110,27 @@ def get_size_count(accessor):
     return (CT_SIZE_MAP[ComponentType(ct)], TYPE_SIZE_MAP[t])
 
 
+def get_type_count(values: Union[memoryview, ctypes.Array]):
+    if isinstance(values, memoryview):
+        raise NotImplementedError()
+    elif isinstance(values, ctypes.Array):
+        t = values._type_
+        s = ctypes.sizeof(t)
+        if values._type_ == ctypes.c_uint32:
+            return ComponentType.UInt32, 1
+        elif s == 12:
+            return ComponentType.Float, 3
+        else:
+            raise NotImplementedError(f'{values._type_}')
+
+
 class GltfAccessor:
-    def __init__(self, gltf: Dict[str, Any], bin: bytes, dst: Coodinate):
+    def __init__(self, gltf: Dict[str, Any], bin: Union[bytes, bytearray]):
         self.gltf = gltf
         self.bin = bin
-        self.conversion = Conversion(Coodinate.GLTF, dst)
+        if isinstance(bin, bytearray):
+            # writeable
+            self.write_buffer = bin
 
     def bufferview_bytes(self, index: int) -> bytes:
         bufferView = self.gltf['bufferViews'][index]
@@ -145,16 +161,26 @@ class GltfAccessor:
         else:
             raise NotImplementedError()
 
+    def push_bytes(self, data: bytes):
+        if not isinstance(self.write_buffer, bytearray):
+            raise Exception("not writable")
+        bufferView_index = len(self.gltf['bufferViews'])
+        bufferView = {
+            'buffer': 0,
+            'byteOffset': len(self.bin),
+            'byteLength': len(data),
+        }
+        self.write_buffer.extend(data)
+        self.gltf['bufferViews'].append(bufferView)
+        return bufferView_index
 
-def get_type_count(values: Union[memoryview, ctypes.Array]):
-    if isinstance(values, memoryview):
-        raise NotImplementedError()
-    elif isinstance(values, ctypes.Array):
-        t = values._type_
-        s = ctypes.sizeof(t)
-        if values._type_ == ctypes.c_uint32:
-            return ComponentType.UInt32, 1
-        elif s == 12:
-            return ComponentType.Float, 3
-        else:
-            raise NotImplementedError(f'{values._type_}')
+    def push_array(self, values) -> int:
+        accessor_index = len(self.gltf['accessors'])
+        t, c = get_type_count(values)
+        accessor = {
+            'bufferView': self.push_bytes(memoryview(values).cast('B')),
+            'type': t,
+            'componentType': c,
+        }
+        self.gltf['accessors'].append(accessor)
+        return accessor_index

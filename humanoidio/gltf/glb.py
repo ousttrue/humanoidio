@@ -62,7 +62,34 @@ def get_glb_chunks(data: bytes) -> Tuple[bytes, bytes]:
     return (json_chunk, bin_chunk)
 
 
+def get_padding_size(body_size: int):
+    body_size_padding = body_size % 4
+    if body_size_padding == 0:
+        return 0
+    body_size_padding = 4 - body_size_padding
+    return body_size_padding
+
+
+def write_chunk(bs: io.IOBase, magic: bytes, body: bytes):
+    body_size = len(body)
+    body_size_padding = get_padding_size(body_size)
+    body_size += body_size_padding
+
+    bs.write(int.to_bytes(body_size, length=4, byteorder='little'))
+    bs.write(magic)
+    bs.write(body)
+    for _ in range(body_size_padding):
+        bs.write(b' ')
+
+
+def chunk_size_with_padding(b: bytes):
+    return 8 + len(b) + get_padding_size(len(b))
+
+
 def to_glb(gltf: Dict[str, Any], bin: bytes):
+    '''
+    each chunk must has 4byte alignment
+    '''
 
     with io.BytesIO() as bs:
         json_body = json.dumps(gltf).encode('utf-8')
@@ -70,19 +97,11 @@ def to_glb(gltf: Dict[str, Any], bin: bytes):
         # header
         bs.write(GLB_MAGIC)
         bs.write(GLB_VERSION)
-        bs.write(
-            int.to_bytes(12 + (8 + len(json_body)) + (8 + len(bin)),
-                         length=4,
-                         byteorder='little'))
+        size = 12 + chunk_size_with_padding(
+            json_body) + chunk_size_with_padding(bin)
+        bs.write(int.to_bytes(size, length=4, byteorder='little'))
 
-        # JSON chunk
-        bs.write(int.to_bytes(len(json_body), length=4, byteorder='little'))
-        bs.write(JSON_CHUNK_MAGIC)
-        bs.write(json_body)
-
-        # BIN chunk
-        bs.write(int.to_bytes(len(bin), length=4, byteorder='little'))
-        bs.write(BIN_CHUNK_MAGIC)
-        bs.write(bin)
+        write_chunk(bs, JSON_CHUNK_MAGIC, json_body)
+        write_chunk(bs, BIN_CHUNK_MAGIC, bin)
 
         return bs.getvalue()
