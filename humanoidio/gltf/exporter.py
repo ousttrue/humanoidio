@@ -15,6 +15,9 @@ class ExportMesh:
 class GltfWriter:
     def __init__(self):
         self.gltf = {
+            'asset': {
+                'version': '2.0',
+            },
             'buffers': [],
             'bufferViews': [],
             'accessors': [],
