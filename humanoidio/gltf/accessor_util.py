@@ -117,9 +117,9 @@ def get_type_count(values: Union[memoryview, ctypes.Array]):
         t = values._type_
         s = ctypes.sizeof(t)
         if values._type_ == ctypes.c_uint32:
-            return ComponentType.UInt32, 1
+            return ComponentType.UInt32, 'SCALAR'
         elif s == 12:
-            return ComponentType.Float, 3
+            return ComponentType.Float, 'VEC3'
         else:
             raise NotImplementedError(f'{values._type_}')
 
@@ -174,13 +174,35 @@ class GltfAccessor:
         self.gltf['bufferViews'].append(bufferView)
         return bufferView_index
 
-    def push_array(self, values) -> int:
+    def push_array(self, values, use_min_max: bool = False) -> int:
         accessor_index = len(self.gltf['accessors'])
         t, c = get_type_count(values)
         accessor = {
             'bufferView': self.push_bytes(memoryview(values).cast('B')),
-            'type': t,
-            'componentType': c,
+            'type': c,
+            'componentType': t.value,
+            'count': len(values)
         }
+        if use_min_max:
+            min = Float3(float('inf'), float('inf'), float('inf'))
+            max = Float3(-float('inf'), -float('inf'), -float('inf'))
+            for v in values:
+                # min
+                if v.x < min.x:
+                    min.x = v.x
+                if v.y < min.y:
+                    min.y = v.y
+                if v.z < min.z:
+                    min.z = v.z
+                # max
+                if v.x > max.x:
+                    max.x = v.x
+                if v.y > max.y:
+                    max.y = v.y
+                if v.z > max.z:
+                    max.z = v.z
+            accessor['min'] = [min.x, min.y, min.z]
+            accessor['max'] = [max.x, max.y, max.z]
+
         self.gltf['accessors'].append(accessor)
         return accessor_index

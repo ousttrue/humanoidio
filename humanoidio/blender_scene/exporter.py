@@ -20,11 +20,11 @@ class BlenderObjectExporter:
 
         i = 0
         for t0, t1, t2 in triangles:
-            buffer.indices[i] = t0.index
+            buffer.indices[i] = t0.vert.index
             i += 1
-            buffer.indices[i] = t1.index
+            buffer.indices[i] = t1.vert.index
             i += 1
-            buffer.indices[i] = t2.index
+            buffer.indices[i] = t2.vert.index
             i += 1
 
     def _export_object(self, bl_obj: bpy.types.Object):

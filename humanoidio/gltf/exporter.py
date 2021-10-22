@@ -23,6 +23,7 @@ class GltfWriter:
             'accessors': [],
             'meshes': [],
             'nodes': [],
+            'scenes': [],
         }
         self.accessor = accessor_util.GltfAccessor(self.gltf, bytearray())
 
@@ -30,7 +31,7 @@ class GltfWriter:
         gltf_mesh = {'primitives': []}
         primitive: Dict[str, Any] = {'attributes': {}}
         primitive['attributes']['POSITION'] = self.accessor.push_array(
-            mesh.POSITION)
+            mesh.POSITION, True)
         primitive['attributes']['NORMAL'] = self.accessor.push_array(
             mesh.NORMAL)
         primitive['indices'] = self.accessor.push_array(mesh.indices)
@@ -41,6 +42,8 @@ class GltfWriter:
         # TODO:
         node = {'mesh': mesh_index}
         self.gltf['nodes'].append(node)
+        scene = {'nodes': [0]}
+        self.gltf['scenes'].append(scene)
 
         return mesh_index
 
