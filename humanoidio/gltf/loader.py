@@ -3,41 +3,14 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 import pathlib
-from typing import Tuple, List, Optional, Union
+from typing import Tuple, List, Union
 import json
 from .mesh import (Submesh, Mesh)
 from .glb import get_glb_chunks
 from .accessor_util import GltfAccessor
 from .coordinate import (Coodinate, Conversion)
-from . import vrm
-
-
-class Skin:
-    def __init__(self):
-        self.joints: List[Node] = []
-
-
-class Node:
-    def __init__(self, name: str):
-        self.name = name
-        self.children: List[Node] = []
-        self.parent: Optional[Node] = None
-        self.translation: Tuple[float, float, float] = (0, 0, 0)
-        self.rotation: Tuple[float, float, float, float] = (0, 0, 0, 1)
-        self.scale: Tuple[float, float, float] = (1, 1, 1)
-        self.mesh: Optional[Mesh] = None
-        self.skin: Optional[Skin] = None
-        self.humanoid_bone: Optional[vrm.HumanoidBones] = None
-
-    def add_child(self, child: 'Node'):
-        child.parent = self
-        self.children.append(child)
-
-    def traverse(self):
-        yield self
-        for child in self.children:
-            for x in child.traverse():
-                yield x
+from .node import (Node, Skin)
+from .humanoid import HumanoidBones
 
 
 class Vrm0:
@@ -99,8 +72,6 @@ class Loader:
         if 'extensions' in data.gltf:
             if 'VRM' in data.gltf['extensions']:
                 self.vrm = Vrm0(data.gltf['extensions']['VRM'])
-                data.conversion = Conversion(Coodinate.VRM0,
-                                             data.conversion.dst)
             elif 'VRMC_vrm' in data.gltf['extensions']:
                 self.vrm = Vrm1(data.gltf['extensions']['VRMC_vrm'])
 
@@ -139,19 +110,22 @@ class Loader:
         if isinstance(self.vrm, Vrm0):
             for b in self.vrm.data['humanoid']['humanBones']:
                 node = self.nodes[b['node']]
-                node.humanoid_bone = vrm.HumanoidBones.from_name(b['bone'])
+                node.humanoid_bone = HumanoidBones.from_name(b['bone'])
         elif isinstance(self.vrm, Vrm1):
             raise NotImplementedError()
 
 
-def load_glb(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:
-    json_chunk, bin_chunk = get_glb_chunks(src.read_bytes())
+def load_glb(path: pathlib.Path, dst: Coodinate) -> Tuple[Loader, Conversion]:
+    json_chunk, bin_chunk = get_glb_chunks(path.read_bytes())
     gltf = json.loads(json_chunk)
 
-    data = util.GltfAccessor(gltf, bin_chunk, conv)
+    data = GltfAccessor(gltf, bin_chunk)
     loader = Loader()
     loader.load(data)
-    return loader, data.conversion
+    src = Coodinate.GLTF
+    if isinstance(loader.vrm, Vrm0):
+        src = Coodinate.VRM0
+    return loader, Conversion(src, dst)
 
 
 def load_gltf(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:

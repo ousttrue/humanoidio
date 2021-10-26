@@ -1,2 +1,2 @@
 from .importer import Importer
-from .exporter import BlenderObjectExporter
+from .exporter import BlenderObjectScanner

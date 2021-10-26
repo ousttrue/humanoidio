@@ -1,7 +1,6 @@
 import ctypes
 from enum import IntEnum
 from typing import Iterable, Any, Dict, Generator, Union
-from .coordinate import (Coodinate, Conversion)
 from .types import Float3
 
 

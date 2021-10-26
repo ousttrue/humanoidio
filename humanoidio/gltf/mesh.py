@@ -1,4 +1,6 @@
 from typing import Optional, Generator, Any
+from .types import Float3
+import ctypes
 
 
 class Submesh:
@@ -68,3 +70,10 @@ class Mesh:
     def __init__(self, name: str):
         self.name = name
         self.submeshes = []
+
+
+class ExportMesh:
+    def __init__(self, vertex_count: int, index_count: int):
+        self.POSITION = (Float3 * vertex_count)()
+        self.NORMAL = (Float3 * vertex_count)()
+        self.indices = (ctypes.c_uint32 * index_count)()
