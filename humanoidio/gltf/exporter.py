@@ -1,8 +1,23 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, NamedTuple
 from . import accessor_util
 from .node import Node
 from .mesh import ExportMesh
 from . import glb
+from enum import Enum, auto
+
+
+class AnimationChannelTargetPath(Enum):
+    translation = auto()
+    rotation = auto()
+    scale = auto()
+    weights = auto()
+
+
+class Animation(NamedTuple):
+    node: int
+    target_path: AnimationChannelTargetPath
+    times: List[float]
+    values: List[Any]
 
 
 class GltfWriter:
@@ -62,6 +77,28 @@ class GltfWriter:
             node_index = self._export_node(node)
             scene['nodes'].append(node_index)
         self.gltf['scenes'].append(scene)
+
+    def push_animation(self, name: str, animation: Animation):
+        if 'animations' not in self.gltf:
+            self.gltf['animations'] = []
+
+        gltf_animation = {
+            "name":
+            name,
+            "samplers": [{
+                "input": 0,
+                "interpolation": "LINEAR",
+                "output": 1
+            }],
+            "channels": [{
+                "sampler": 0,
+                "target": {
+                    "node": 0,
+                    "path": "rotation"
+                }
+            }],
+        }
+        self.gltf['animations'].append(gltf_animation)
 
     def to_gltf(self):
         self.gltf['buffers'] = [{'byteLength': len(self.accessor.bin)}]

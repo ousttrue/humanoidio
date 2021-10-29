@@ -23,12 +23,15 @@ class Exporter(bpy.types.Operator, ExportHelper):
         if not bl_obj_list:
             # export all
             bl_obj_list = bpy.context.collection.objects
-        roots = blender_scene.BlenderObjectScanner().scan(bl_obj_list)
-        animations = blender_scene.BlenderAnimationScanner().scan(bl_obj_list)
+        obj_node = blender_scene.BlenderObjectScanner().scan(bl_obj_list)
+        animations = blender_scene.BlenderAnimationScanner().scan(obj_node)
+        print(animations)
 
         # serialize
         writer = gltf.exporter.GltfWriter()
-        writer.push_scene(roots)
+        writer.push_scene([node for _, node in obj_node if not node.parent])
+        for action_name, a in animations:
+            writer.push_animation(action_name, a)
         glb = writer.to_glb()
         path = pathlib.Path(self.filepath)
 

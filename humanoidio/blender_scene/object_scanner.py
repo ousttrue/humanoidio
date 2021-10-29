@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import bpy
 import bmesh
 from .. import gltf
@@ -6,7 +6,7 @@ from .. import gltf
 
 class BlenderObjectScanner:
     def __init__(self):
-        self.nodes = []
+        self.nodes: List[Tuple[bpy.types.Object, gltf.Node]] = []
 
     def _export_mesh(self, bm):
         triangles = bm.calc_loop_triangles()
@@ -29,7 +29,7 @@ class BlenderObjectScanner:
 
     def _export_object(self, bl_obj: bpy.types.Object):
         node = gltf.Node(bl_obj.name)
-        self.nodes.append(node)
+        self.nodes.append((bl_obj, node))
 
         if isinstance(bl_obj.data, bpy.types.Mesh):
             bm = bmesh.new()
