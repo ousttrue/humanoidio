@@ -5,6 +5,7 @@
 ```{toctree}
 mesh
 armature
+pointer
 ```
 
 ## empty

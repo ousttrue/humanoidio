@@ -2,6 +2,7 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
+from typing import Tuple
 import os
 import sys
 
@@ -46,6 +47,13 @@ def clear():
             bpy_data_iter.remove(id_data)
 
 
+def set_key(bl_obj: bpy.types.Object, frame: int, euler: Tuple[float, float,
+                                                               float]):
+    print('set_key', bl_obj, frame, euler)
+    bl_obj.rotation_euler = euler
+    bl_obj.keyframe_insert(data_path="rotation_euler", frame=frame)
+
+
 class TestBpy(unittest.TestCase):
     def test_importer(self):
         self.assertTrue(GLTF_PATH.exists())
@@ -76,6 +84,12 @@ class TestBpy(unittest.TestCase):
         humanoidio.unregister()
 
     def test_exporter(self):
+        # setup key frame
+        bpy.context.scene.frame_end = 100
+        bl_cube = bpy.context.collection.objects['Cube']
+        set_key(bl_cube, 1, (0, 0, 0))
+        set_key(bl_cube, 100, (0, 0, 360))
+
         path = HERE.parent / 'export.glb'
         bpy.ops.humanoidio.exporter(filepath=str(path))  # type: ignore
 

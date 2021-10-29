@@ -1,2 +1,3 @@
 from .importer import Importer
-from .exporter import BlenderObjectScanner
+from .object_scanner import BlenderObjectScanner
+from .animation_scanner import BlenderAnimationScanner

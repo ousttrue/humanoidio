@@ -23,8 +23,8 @@ class Exporter(bpy.types.Operator, ExportHelper):
         if not bl_obj_list:
             # export all
             bl_obj_list = bpy.context.collection.objects
-        scanner = blender_scene.exporter.BlenderObjectScanner()
-        roots = scanner.scan(bl_obj_list)
+        roots = blender_scene.BlenderObjectScanner().scan(bl_obj_list)
+        animations = blender_scene.BlenderAnimationScanner().scan(bl_obj_list)
 
         # serialize
         writer = gltf.exporter.GltfWriter()
