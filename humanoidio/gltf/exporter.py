@@ -4,6 +4,7 @@ from .node import Node
 from .mesh import ExportMesh
 from . import glb
 from enum import Enum, auto
+from .types import Float3
 
 
 class AnimationChannelTargetPath(Enum):
@@ -14,10 +15,45 @@ class AnimationChannelTargetPath(Enum):
 
 
 class Animation(NamedTuple):
+    action_name: str
     node: int
     target_path: AnimationChannelTargetPath
     times: List[float]
     values: List[Any]
+
+
+class PostionMinMax:
+    def __init__(self):
+        self.min = [float('inf'), float('inf'), float('inf')]
+        self.max = [-float('inf'), -float('inf'), -float('inf')]
+
+    def push(self, v: Float3):
+        # min
+        if v.x < self.min[0]:
+            self.min[0] = v.x
+        if v.y < self.min[1]:
+            self.min[1] = v.y
+        if v.z < self.min[2]:
+            self.min[2] = v.z
+        # max
+        if v.x > self.max[0]:
+            self.max[0] = v.x
+        if v.y > self.max[1]:
+            self.max[1] = v.y
+        if v.z > self.max[2]:
+            self.max[2] = v.z
+
+
+class FloatMinMax:
+    def __init__(self):
+        self.min = [float('inf')]
+        self.max = [-float('inf')]
+
+    def push(self, v: float):
+        if v < self.min[0]:
+            self.min[0] = v
+        if v > self.max[0]:
+            self.max[0] = v
 
 
 class GltfWriter:
@@ -39,7 +75,7 @@ class GltfWriter:
         gltf_mesh = {'primitives': []}
         primitive: Dict[str, Any] = {'attributes': {}}
         primitive['attributes']['POSITION'] = self.accessor.push_array(
-            mesh.POSITION, True)
+            mesh.POSITION, PostionMinMax)
         primitive['attributes']['NORMAL'] = self.accessor.push_array(
             mesh.NORMAL)
         primitive['indices'] = self.accessor.push_array(mesh.indices)
@@ -78,23 +114,26 @@ class GltfWriter:
             scene['nodes'].append(node_index)
         self.gltf['scenes'].append(scene)
 
-    def push_animation(self, name: str, animation: Animation):
+    def push_animation(self, animation: Animation):
         if 'animations' not in self.gltf:
             self.gltf['animations'] = []
 
+        time_accessor = self.accessor.push_array(animation.times, FloatMinMax)
+        values_accessor = self.accessor.push_array(animation.values)
+
         gltf_animation = {
             "name":
-            name,
+            animation.action_name,
             "samplers": [{
-                "input": 0,
+                "input": time_accessor,
                 "interpolation": "LINEAR",
-                "output": 1
+                "output": values_accessor
             }],
             "channels": [{
                 "sampler": 0,
                 "target": {
-                    "node": 0,
-                    "path": "rotation"
+                    "node": animation.node,
+                    "path": animation.target_path.name
                 }
             }],
         }

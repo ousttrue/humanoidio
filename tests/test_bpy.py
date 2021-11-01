@@ -2,10 +2,9 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
+import math
 from typing import Tuple
 import os
-import sys
-
 import pathlib
 import unittest
 from logging import basicConfig, DEBUG
@@ -85,11 +84,14 @@ class TestBpy(unittest.TestCase):
 
     def test_exporter(self):
         # setup key frame
-        bpy.context.scene.frame_end = 100
+        bpy.context.scene.frame_end = 4
         bl_cube = bpy.context.collection.objects['Cube']
         set_key(bl_cube, 1, (0, 0, 0))
-        set_key(bl_cube, 100, (0, 0, 360))
+        set_key(bl_cube, 2, (0, 0, math.pi/180 * 120))
+        set_key(bl_cube, 3, (0, 0, math.pi/180 * 240))
+        set_key(bl_cube, 4, (0, 0, math.pi/180 * 360))
 
+        # export
         path = HERE.parent / 'export.glb'
         bpy.ops.humanoidio.exporter(filepath=str(path))  # type: ignore
 

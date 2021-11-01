@@ -1,11 +1,13 @@
 from typing import List, Iterable, Tuple, NamedTuple
 import bpy, mathutils
 from .. import gltf
+from .types import bl_obj_gltf_node
+import array
 
 
 class Curve(NamedTuple):
-    times: List[float]
-    values: List[float]
+    times: array.array
+    values: array.array
 
 
 def get_curve(data_path: str, curves):
@@ -13,7 +15,7 @@ def get_curve(data_path: str, curves):
     y_curve = None
     z_curve = None
     for curve in curves:
-        c = Curve([], [])
+        c = Curve(array.array('f'), array.array('f'))
         if curve.array_index == 0:
             x_curve = c
         elif curve.array_index == 1:
@@ -28,10 +30,12 @@ def get_curve(data_path: str, curves):
             c.values.append(v)
 
     if data_path == "rotation_euler":
-        if x_curve.times == y_curve.times and y_curve.times == z_curve.times:
-            values = []
-            for x, y, z in zip(x_curve.values, y_curve.values, z_curve.values):
-                values.append(mathutils.Euler((x, y, z)).to_quaternion())
+        if x_curve and y_curve and z_curve and x_curve.times == y_curve.times and y_curve.times == z_curve.times:
+            values = (gltf.types.Float4 * len(x_curve.times))()
+            for i, (x, y, z) in enumerate(
+                    zip(x_curve.values, y_curve.values, z_curve.values)):
+                q = mathutils.Euler((x, y, z)).to_quaternion()
+                values[i] = (q.x, q.y, q.z, q.w)
             return x_curve.times, values
         else:
             raise NotImplementedError()
@@ -59,7 +63,7 @@ DATA_PATH_MAP = {
 
 class BlenderAnimationScanner:
     def __init__(self):
-        self.animations = []
+        self.animations: List[gltf.Animation] = []
 
     def _export_animation(self, i: int, bl_obj: bpy.types.Object):
         if not bl_obj.animation_data:
@@ -70,13 +74,11 @@ class BlenderAnimationScanner:
         bl_action = bl_obj.animation_data.action
         for data_path, curves in get_curves(bl_action):
             times, values = get_curve(data_path, curves)
-            animation = gltf.Animation(i, DATA_PATH_MAP[data_path], times,
-                                       values)
-            self.animations.append((bl_action.name, animation))
+            animation = gltf.Animation(bl_action.name, i,
+                                       DATA_PATH_MAP[data_path], times, values)
+            self.animations.append(animation)
 
-    def scan(
-        self, obj_node: List[Tuple[bpy.types.Object, gltf.Node]]
-    ) -> List[Tuple[str, gltf.Animation]]:
+    def scan(self, obj_node: List[bl_obj_gltf_node]) -> List[gltf.Animation]:
         for i, on in enumerate(obj_node):
             self._export_animation(i, on[0])
         return self.animations

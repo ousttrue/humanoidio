@@ -1,4 +1,5 @@
 import ctypes
+import array
 from enum import IntEnum
 from typing import Iterable, Any, Dict, Generator, Union
 from .types import Float3
@@ -109,7 +110,7 @@ def get_size_count(accessor):
     return (CT_SIZE_MAP[ComponentType(ct)], TYPE_SIZE_MAP[t])
 
 
-def get_type_count(values: Union[memoryview, ctypes.Array]):
+def get_type_count(values: Union[memoryview, ctypes.Array, array.array]):
     if isinstance(values, memoryview):
         raise NotImplementedError()
     elif isinstance(values, ctypes.Array):
@@ -119,8 +120,17 @@ def get_type_count(values: Union[memoryview, ctypes.Array]):
             return ComponentType.UInt32, 'SCALAR'
         elif s == 12:
             return ComponentType.Float, 'VEC3'
+        elif s == 16:
+            return ComponentType.Float, 'VEC4'
         else:
             raise NotImplementedError(f'{values._type_}')
+    elif isinstance(values, array.array):
+        if values.typecode == 'f':
+            return ComponentType.Float, 'SCALAR'
+        else:
+            raise NotImplementedError(f'array.array: {values.typecode}')
+    else:
+        raise NotImplementedError(f'{type(values)}')
 
 
 class GltfAccessor:
@@ -173,7 +183,7 @@ class GltfAccessor:
         self.gltf['bufferViews'].append(bufferView)
         return bufferView_index
 
-    def push_array(self, values, use_min_max: bool = False) -> int:
+    def push_array(self, values, min_max=None) -> int:
         accessor_index = len(self.gltf['accessors'])
         t, c = get_type_count(values)
         accessor = {
@@ -182,26 +192,12 @@ class GltfAccessor:
             'componentType': t.value,
             'count': len(values)
         }
-        if use_min_max:
-            min = Float3(float('inf'), float('inf'), float('inf'))
-            max = Float3(-float('inf'), -float('inf'), -float('inf'))
+        if min_max:
+            c = min_max()
             for v in values:
-                # min
-                if v.x < min.x:
-                    min.x = v.x
-                if v.y < min.y:
-                    min.y = v.y
-                if v.z < min.z:
-                    min.z = v.z
-                # max
-                if v.x > max.x:
-                    max.x = v.x
-                if v.y > max.y:
-                    max.y = v.y
-                if v.z > max.z:
-                    max.z = v.z
-            accessor['min'] = [min.x, min.y, min.z]
-            accessor['max'] = [max.x, max.y, max.z]
+                c.push(v)
+            accessor['min'] = c.min
+            accessor['max'] = c.max
 
         self.gltf['accessors'].append(accessor)
         return accessor_index

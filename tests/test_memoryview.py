@@ -1,5 +1,6 @@
 import unittest
 import struct
+import array
 import ctypes
 from humanoidio.gltf import accessor_util
 
@@ -28,6 +29,12 @@ class TestMemoryView(unittest.TestCase):
 
         positions = array_type()
         t, c = accessor_util.get_type_count(positions)
+        self.assertEqual(accessor_util.ComponentType.Float, t)
+        self.assertEqual(c, 3)
+
+    def test_array_shape(self):
+        values = array.array('f', [1, 2, 3])
+        t, c = accessor_util.get_type_count(values)
         self.assertEqual(accessor_util.ComponentType.Float, t)
         self.assertEqual(c, 3)
 
