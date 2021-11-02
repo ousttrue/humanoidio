@@ -64,3 +64,7 @@ class BlenderObjectScanner:
         for bl_obj in bl_obj_list:
             self._export_object(bl_obj)
         return self.nodes
+
+
+def scan(bl_obj_list: List[bpy.types.Object]) -> List[bl_obj_gltf_node]:
+    return BlenderObjectScanner().scan(bl_obj_list)

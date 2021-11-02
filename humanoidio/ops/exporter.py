@@ -23,8 +23,9 @@ class Exporter(bpy.types.Operator, ExportHelper):
         if not bl_obj_list:
             # export all
             bl_obj_list = bpy.context.collection.objects
-        obj_node = blender_scene.BlenderObjectScanner().scan(bl_obj_list)
-        animations = blender_scene.BlenderAnimationScanner().scan(obj_node)
+        obj_node = blender_scene.object_scanner.scan(bl_obj_list)
+        animations = blender_scene.animation_scanner.scan(obj_node)
+        constraints = blender_scene.constraint_scanner.scan(obj_node)
 
         # serialize
         writer = gltf.exporter.GltfWriter()

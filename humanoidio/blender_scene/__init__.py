@@ -1,3 +1,4 @@
 from .importer import Importer
-from .object_scanner import BlenderObjectScanner
-from .animation_scanner import BlenderAnimationScanner
+from . import object_scanner
+from . import animation_scanner
+from . import constraint_scanner

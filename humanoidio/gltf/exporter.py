@@ -109,13 +109,29 @@ class GltfWriter:
                 gltf_node['children'] = []
             gltf_node['children'].append(child_node_index)
 
+        # constraint
+        if node.constraint:
+            src = self.nodes.index(node.constraint.target)
+            gltf_node['extensions'] = {
+                'VRMC_node_constraint': {
+                    'constraint': {
+                        'rotation': {
+                            'source': src,
+                            'weight': node.constraint.weight
+                        }
+                    }
+                }
+            }
+
         return node_index
 
     def push_scene(self, nodes: List[Node]):
+        self.nodes = nodes
         scene = {'nodes': []}
         for node in nodes:
             node_index = self._export_node(node)
             scene['nodes'].append(node_index)
+
         self.gltf['scenes'].append(scene)
 
     def push_animation(self, animation: Animation, fps: float):

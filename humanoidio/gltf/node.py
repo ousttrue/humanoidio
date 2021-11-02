@@ -1,6 +1,11 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, NamedTuple
 from .mesh import Mesh, ExportMesh
 from .humanoid import HumanoidBones
+
+
+class RotationConstraint(NamedTuple):
+    target: 'Node'
+    weight: float
 
 
 class Skin:
@@ -19,6 +24,7 @@ class Node:
         self.mesh: Union[Mesh, ExportMesh, None] = None
         self.skin: Optional[Skin] = None
         self.humanoid_bone: Optional[HumanoidBones] = None
+        self.constraint: Union[RotationConstraint, None] = None
 
     def add_child(self, child: 'Node'):
         child.parent = self

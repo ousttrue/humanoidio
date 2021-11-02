@@ -5,6 +5,12 @@ from .types import bl_obj_gltf_node
 import array
 
 
+def euler2quat(x, y, z) -> mathutils.Quaternion:
+    # return mathutils.Euler((x, y, z)).to_quaternion()
+    # z-up to y-up
+    return mathutils.Euler((x, y, z)).to_quaternion()
+
+
 class Curve(NamedTuple):
     times: array.array
     values: array.array
@@ -34,7 +40,7 @@ def get_curve(data_path: str, curves):
             values = (gltf.types.Float4 * len(x_curve.times))()
             for i, (x, y, z) in enumerate(
                     zip(x_curve.values, y_curve.values, z_curve.values)):
-                q = mathutils.Euler((x, y, z)).to_quaternion()
+                q = euler2quat(x, y, z)
                 values[i] = (q.x, q.y, q.z, q.w)
             return x_curve.times, values
         else:
@@ -82,3 +88,7 @@ class BlenderAnimationScanner:
         for i, on in enumerate(obj_node):
             self._export_animation(i, on[0])
         return self.animations
+
+
+def scan(obj_node: List[bl_obj_gltf_node]) -> List[gltf.Animation]:
+    return BlenderAnimationScanner().scan(obj_node)
