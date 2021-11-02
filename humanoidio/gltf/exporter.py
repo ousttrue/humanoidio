@@ -4,7 +4,30 @@ from .node import Node
 from .mesh import ExportMesh
 from . import glb
 from enum import Enum, auto
+import collections
 from .types import Float3
+
+
+def enum_extensions_unique(gltf: Any, used=None):
+    if not used:
+        used = set()
+    if isinstance(gltf, dict):
+        for k, v in gltf.items():
+            if k == 'extensions':
+                for kk, vv in v.items():
+                    if kk not in used:
+                        yield kk
+                        used.add(kk)
+                        break
+            else:
+                for x in enum_extensions_unique(v, used):
+                    yield x
+    elif isinstance(gltf, list) or isinstance(gltf, tuple):
+        for v in gltf:
+            for x in enum_extensions_unique(v, used):
+                yield x
+    else:
+        pass
 
 
 class AnimationChannelTargetPath(Enum):
@@ -165,6 +188,12 @@ class GltfWriter:
 
     def to_gltf(self):
         self.gltf['buffers'] = [{'byteLength': len(self.accessor.bin)}]
+
+        # update extensions used
+        self.gltf['extensionsUsed'] = [
+            x for x in enum_extensions_unique(self.gltf)
+        ]
+
         return self.gltf, bytes(self.accessor.bin)
 
     def to_glb(self) -> bytes:
