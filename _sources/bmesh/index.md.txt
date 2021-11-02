@@ -3,6 +3,10 @@
 * <https://docs.blender.org/api/current/bmesh.html>
     * <https://wiki.blender.org/wiki/Source/Modeling/BMesh/Design>
 
+```{toctree}
+bmesh_types
+```
+
 ## basic
 
 ```py
