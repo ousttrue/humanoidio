@@ -83,13 +83,23 @@ class TestBpy(unittest.TestCase):
         humanoidio.unregister()
 
     def test_exporter(self):
+        # cube
+        bpy.ops.mesh.primitive_cube_add(size=2,
+                                        enter_editmode=False,
+                                        align='WORLD',
+                                        location=(3, 0, 0),
+                                        scale=(1, 1, 1))
+
         # setup key frame
         bpy.context.scene.frame_end = 4
         bl_cube = bpy.context.collection.objects['Cube']
         set_key(bl_cube, 1, (0, 0, 0))
-        set_key(bl_cube, 2, (0, 0, math.pi/180 * 120))
-        set_key(bl_cube, 3, (0, 0, math.pi/180 * 240))
-        set_key(bl_cube, 4, (0, 0, math.pi/180 * 360))
+        set_key(bl_cube, 2, (0, 0, math.pi / 180 * 120))
+        set_key(bl_cube, 3, (0, 0, math.pi / 180 * 240))
+        set_key(bl_cube, 4, (0, 0, math.pi / 180 * 360))
+
+        # deselect
+        bpy.ops.object.select_all(action='DESELECT')
 
         # export
         path = HERE.parent / 'export.glb'

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import bpy, mathutils
 from .. import gltf
 from .types import bl_obj_gltf_node
@@ -6,6 +6,10 @@ from .types import bl_obj_gltf_node
 
 def vector2float3(v: mathutils.Vector) -> gltf.Float3:
     return gltf.Float3(v.x, v.y, v.z)
+
+
+def vector2tuple(v: mathutils.Vector) -> Tuple[float, float, float]:
+    return (v.x, v.y, v.z)
 
 
 class BlenderObjectScanner:
@@ -40,6 +44,7 @@ class BlenderObjectScanner:
     def _export_object(self, bl_obj: bpy.types.Object):
         node = gltf.Node(bl_obj.name)
         self.nodes.append(bl_obj_gltf_node(bl_obj, node))
+        node.translation = vector2tuple(bl_obj.location)
 
         if isinstance(bl_obj.data, bpy.types.Mesh):
             import bmesh

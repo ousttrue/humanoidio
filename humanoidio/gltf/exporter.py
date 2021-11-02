@@ -94,6 +94,8 @@ class GltfWriter:
         self.gltf['nodes'].append(gltf_node)
 
         # TODO: TRS
+        if node.translation != (0, 0, 0):
+            gltf_node['translation'] = node.translation
 
         # mesh
         if isinstance(node.mesh, ExportMesh):
