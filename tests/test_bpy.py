@@ -53,6 +53,18 @@ def set_key(bl_obj: bpy.types.Object, frame: int, euler: Tuple[float, float,
     bl_obj.keyframe_insert(data_path="rotation_euler", frame=frame)
 
 
+def set_copy_rotation(src, dst):
+    print(src, dst)
+    bpy.context.view_layer.objects.active = dst
+    bpy.ops.object.constraint_add(type='COPY_ROTATION')
+    c = dst.constraints[-1]
+    c.target = src
+    print(c)
+    # Target space
+    # Owner space
+    # Influence
+
+
 class TestBpy(unittest.TestCase):
     def test_importer(self):
         self.assertTrue(GLTF_PATH.exists())
@@ -89,17 +101,25 @@ class TestBpy(unittest.TestCase):
                                         align='WORLD',
                                         location=(3, 0, 0),
                                         scale=(1, 1, 1))
+        bpy.context.active_object.name = 'dst'
 
         # setup key frame
-        bpy.context.scene.frame_end = 4
+        bpy.context.scene.frame_end = 60
         bl_cube = bpy.context.collection.objects['Cube']
         set_key(bl_cube, 1, (0, 0, 0))
-        set_key(bl_cube, 2, (0, 0, math.pi / 180 * 120))
-        set_key(bl_cube, 3, (0, 0, math.pi / 180 * 240))
-        set_key(bl_cube, 4, (0, 0, math.pi / 180 * 360))
+        set_key(bl_cube, 20, (0, 0, math.pi / 180 * 120))
+        set_key(bl_cube, 40, (0, 0, math.pi / 180 * 240))
+        set_key(bl_cube, 60, (0, 0, math.pi / 180 * 360))
+        bl_cube.animation_data.action.fcurves[-1].extrapolation = 'LINEAR'
+
+        set_copy_rotation(bpy.context.collection.objects['Cube'],
+                          bpy.context.collection.objects['dst'])
 
         # deselect
         bpy.ops.object.select_all(action='DESELECT')
+
+        # save
+        bpy.ops.wm.save_as_mainfile(filepath=str(HERE.parent / 'export.blend'))
 
         # export
         path = HERE.parent / 'export.glb'

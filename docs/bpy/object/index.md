@@ -1,6 +1,7 @@
 # bpy.types.Object
 
-<https://docs.blender.org/manual/en/latest/scene_layout/object/types.html>
+<https://docs.blender.org/api/current/bpy.types.Object.html>
+* <https://docs.blender.org/manual/en/latest/scene_layout/object/types.html>
 
 ```{toctree}
 mesh

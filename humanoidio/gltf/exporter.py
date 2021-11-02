@@ -118,9 +118,13 @@ class GltfWriter:
             scene['nodes'].append(node_index)
         self.gltf['scenes'].append(scene)
 
-    def push_animation(self, animation: Animation):
+    def push_animation(self, animation: Animation, fps: float):
         if 'animations' not in self.gltf:
             self.gltf['animations'] = []
+
+        inv = 1 / fps
+        for i, _ in enumerate(animation.times):
+            animation.times[i] = animation.times[i] * inv
 
         time_accessor = self.accessor.push_array(animation.times, FloatMinMax)
         values_accessor = self.accessor.push_array(animation.values)

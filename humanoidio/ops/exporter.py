@@ -30,7 +30,7 @@ class Exporter(bpy.types.Operator, ExportHelper):
         writer = gltf.exporter.GltfWriter()
         writer.push_scene([node for _, node in obj_node if not node.parent])
         for a in animations:
-            writer.push_animation(a)
+            writer.push_animation(a, bpy.context.scene.render.fps)
         glb = writer.to_glb()
         path = pathlib.Path(self.filepath)
 
