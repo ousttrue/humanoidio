@@ -1,7 +1,11 @@
 from typing import List
-import bpy
+import bpy, mathutils
 from .. import gltf
 from .types import bl_obj_gltf_node
+
+
+def vector2float3(v: mathutils.Vector) -> gltf.Float3:
+    return gltf.Float3(v.x, v.y, v.z)
 
 
 class BlenderObjectScanner:
@@ -9,20 +13,26 @@ class BlenderObjectScanner:
         self.nodes: List[bl_obj_gltf_node] = []
 
     def _export_mesh(self, bm):
-        triangles = bm.calc_loop_triangles()
+        triangles: List[bmesh.types.BMLoop] = bm.calc_loop_triangles()
         buffer = gltf.exporter.ExportMesh(len(bm.verts), len(triangles) * 3)
 
         for i, v in enumerate(bm.verts):
-            buffer.POSITION[i] = gltf.Float3(v.co.x, v.co.y, v.co.z)
-            buffer.NORMAL[i] = gltf.Float3(v.normal.x, v.normal.y, v.normal.z)
+            buffer.POSITION[i] = vector2float3(v.co)
+            buffer.NORMAL[i] = vector2float3(v.normal)
 
         i = 0
         for t0, t1, t2 in triangles:
             buffer.indices[i] = t0.vert.index
+            buffer.loop_normals[i] = vector2float3(t0.calc_normal())
+            buffer.check_normal(i)
             i += 1
             buffer.indices[i] = t1.vert.index
+            buffer.loop_normals[i] = vector2float3(t1.calc_normal())
+            buffer.check_normal(i)
             i += 1
             buffer.indices[i] = t2.vert.index
+            buffer.loop_normals[i] = vector2float3(t2.calc_normal())
+            buffer.check_normal(i)
             i += 1
 
         return buffer

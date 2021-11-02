@@ -72,6 +72,8 @@ class GltfWriter:
         self.accessor = accessor_util.GltfAccessor(self.gltf, bytearray())
 
     def push_mesh(self, mesh: ExportMesh):
+        if mesh.normal_splitted:
+            mesh = mesh.split()
         gltf_mesh = {'primitives': []}
         primitive: Dict[str, Any] = {'attributes': {}}
         primitive['attributes']['POSITION'] = self.accessor.push_array(

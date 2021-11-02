@@ -8,6 +8,9 @@ class Float3(ctypes.Structure):
         ('z', ctypes.c_float),
     ]
 
+    def __eq__(self, o: object) -> bool:
+        return self.x == o.x and self.y == o.y and self.z == o.z
+
 
 class Float4(ctypes.Structure):
     _fields_ = [

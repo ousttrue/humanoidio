@@ -77,3 +77,39 @@ class ExportMesh:
         self.POSITION = (Float3 * vertex_count)()
         self.NORMAL = (Float3 * vertex_count)()
         self.indices = (ctypes.c_uint32 * index_count)()
+        self.loop_normals = (Float3 * index_count)()
+        self.normal_splitted = False
+
+    def check_normal(self, i: int):
+        if self.normal_splitted:
+            return
+        if self.NORMAL[self.indices[i]] != self.loop_normals[i]:
+            l = self.NORMAL[self.indices[i]]
+            l = (l.x, l.y, l.z)
+            r = self.loop_normals[i]
+            r = (r.x, r.y, r.z)
+            self.normal_splitted = True
+
+    def split(self) -> 'ExportMesh':
+        vertices = []
+        vertex_map = {}
+        indices = []
+        for i, n in zip(self.indices, self.loop_normals):
+            p = self.POSITION[i]
+            key = (p.x, p.y, p.z, n.x, n.y, n.z)
+            if key in vertex_map:
+                index = vertex_map[key]
+            else:
+                index = len(vertices)
+                vertices.append((p, n))
+                vertex_map[key] = index
+            indices.append(index)
+
+        splitted = ExportMesh(len(vertices), len(indices))
+        for i, (v, n) in enumerate(vertices):
+            splitted.POSITION[i] = v
+            splitted.NORMAL[i] = n
+        for i, index in enumerate(indices):
+            splitted.indices[i] = index
+
+        return splitted
