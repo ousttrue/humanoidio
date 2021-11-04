@@ -112,7 +112,9 @@ class Loader:
                 node = self.nodes[b['node']]
                 node.humanoid_bone = HumanoidBones.from_name(b['bone'])
         elif isinstance(self.vrm, Vrm1):
-            raise NotImplementedError()
+            for k, b in self.vrm.data['humanoid']['humanBones'].items():
+                node = self.nodes[b['node']]
+                node.humanoid_bone = HumanoidBones.from_name(k)
 
 
 def load_glb(path: pathlib.Path, dst: Coodinate) -> Tuple[Loader, Conversion]:

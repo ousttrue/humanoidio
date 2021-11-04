@@ -27,3 +27,8 @@ class Importer(bpy.types.Operator, ImportHelper):
 
         logger.debug('#### end ####')
         return {'FINISHED'}
+
+
+def menu(self, context):
+    self.layout.operator(Importer.bl_idname,
+                         text=f"humanoidio (.gltf;.glb;.vrm)")

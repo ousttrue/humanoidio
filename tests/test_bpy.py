@@ -16,6 +16,7 @@ GLTF_PATH = GLTF_SAMPLE_DIR / 'BoxTextured/glTF-Binary/BoxTextured.glb'
 VRM_SAMPLE_KEY = 'VRM_SAMPLES'
 VRM_SAMPLE_DIR = pathlib.Path(os.environ[VRM_SAMPLE_KEY])
 VRM_PATH = VRM_SAMPLE_DIR / 'vroid/Darkness_Shibu.vrm'
+VRM1_PATH = VRM_SAMPLE_DIR / 'Alicia_solid_A.vrm'
 
 basicConfig(
     level=DEBUG,
@@ -72,7 +73,7 @@ class TestBpy(unittest.TestCase):
         # clear scene
         clear()
 
-        bpy.ops.humanoidio.importer(filepath=str(VRM_PATH))  # type: ignore
+        bpy.ops.humanoidio.importer(filepath=str(VRM1_PATH))  # type: ignore
 
         # humanoidio.scene.load(path)
         # data = formats.parse_gltf(path)

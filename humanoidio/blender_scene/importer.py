@@ -18,6 +18,8 @@ def convert_obj(src: gltf.Coodinate, dst: gltf.Coodinate,
     if dst == gltf.Coodinate.BLENDER_ROTATE:
         if src == gltf.Coodinate.VRM0:
             bl_obj.rotation_euler = (math.pi * 0.5, 0, math.pi)
+        elif src == gltf.Coodinate.VRM1:
+            bl_obj.rotation_euler = (math.pi * 0.5, 0, 0)
         else:
             raise NotImplementedError()
     else:
@@ -115,6 +117,7 @@ class Importer:
         # create new node
         bl_skin = bpy.data.armatures.new('Humanoid')
         bl_skin.use_mirror_x = True
+        bl_skin.show_axes = True
         # bl_skin.show_names = True
         bl_skin.display_type = 'STICK'
         bl_obj = bpy.data.objects.new('Humanoid', bl_skin)

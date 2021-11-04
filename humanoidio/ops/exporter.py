@@ -39,3 +39,7 @@ class Exporter(bpy.types.Operator, ExportHelper):
         path.write_bytes(glb)
 
         return {'FINISHED'}
+
+
+def menu(self, context):
+    self.layout.operator(Exporter.bl_idname, text=f"humanoidio (.glb;.vrm)")
