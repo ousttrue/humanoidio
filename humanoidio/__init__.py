@@ -1,7 +1,7 @@
 # This is dummy for development. Main is `../__init__.py`
 bl_info = {
     "name": "humanoidio",
-    "blender": (2, 93, 0),
+    "blender": (3, 3, 0),
     "category": "Import-Export",
 }
 
