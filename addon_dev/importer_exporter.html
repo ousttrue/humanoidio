@@ -14,7 +14,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script src="../_static/translations.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
@@ -88,8 +90,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="importer-exporter">
-<h1>importer / exporter<a class="headerlink" href="#importer-exporter" title="このヘッドラインへのパーマリンク"></a></h1>
+  <section id="importer-exporter">
+<h1>importer / exporter<a class="headerlink" href="#importer-exporter" title="この見出しへのパーマリンク"></a></h1>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bl_info</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;pyimpex&quot;</span><span class="p">,</span>
     <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;ousttrue&quot;</span><span class="p">,</span>
@@ -105,7 +107,7 @@
 </pre></div>
 </div>
 <section id="importer">
-<h2>Importer<a class="headerlink" href="#importer" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>Importer<a class="headerlink" href="#importer" title="この見出しへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bpy</span>
 <span class="kn">from</span> <span class="nn">bpy_extras.io_utils</span> <span class="kn">import</span> <span class="n">ImportHelper</span>
 
@@ -117,7 +119,7 @@
 </div>
 </section>
 <section id="exporter">
-<h2>Exporter<a class="headerlink" href="#exporter" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>Exporter<a class="headerlink" href="#exporter" title="この見出しへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SomeImporter</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">Operator</span><span class="p">,</span> <span class="n">ExportHelper</span><span class="p">):</span>
     <span class="k">pass</span>
 </pre></div>

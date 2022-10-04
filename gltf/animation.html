@@ -14,7 +14,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script src="../_static/translations.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
@@ -82,37 +84,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="animation">
-<h1>Animation<a class="headerlink" href="#animation" title="このヘッドラインへのパーマリンク"></a></h1>
+  <section id="animation">
+<h1>Animation<a class="headerlink" href="#animation" title="この見出しへのパーマリンク"></a></h1>
 <p><a class="reference external" href="https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html#reference-animation">https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html#reference-animation</a></p>
-<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="c1">// https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/AnimatedCube</span>
-<span class="p">{</span>
-   <span class="s2">&quot;animations&quot;</span> <span class="o">:</span> <span class="p">[</span>
-      <span class="p">{</span>          
-         <span class="s2">&quot;samplers&quot;</span> <span class="o">:</span> <span class="p">[</span>
-            <span class="p">{</span>
-               <span class="s2">&quot;input&quot;</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// time</span>
-               <span class="s2">&quot;interpolation&quot;</span> <span class="o">:</span> <span class="s2">&quot;LINEAR&quot;</span><span class="p">,</span>
-               <span class="s2">&quot;output&quot;</span> <span class="o">:</span> <span class="mi">1</span> <span class="c1">// value</span>
-            <span class="p">}</span>
-         <span class="p">],</span>
-         <span class="s2">&quot;channels&quot;</span> <span class="o">:</span> <span class="p">[</span>
-            <span class="p">{</span>
-               <span class="s2">&quot;sampler&quot;</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// samplers[0]</span>
-               <span class="s2">&quot;target&quot;</span> <span class="o">:</span> <span class="p">{</span>
-                  <span class="s2">&quot;node&quot;</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
-                  <span class="s2">&quot;path&quot;</span> <span class="o">:</span> <span class="s2">&quot;rotation&quot;</span>
-               <span class="p">}</span>
-            <span class="p">}</span>
-         <span class="p">],</span>
-         <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;animation_AnimatedCube&quot;</span>
-      <span class="p">}</span>
-   <span class="p">],</span>
-<span class="p">}</span>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="c1">// https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/AnimatedCube</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">   </span><span class="s2">&quot;animations&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">      </span><span class="p">{</span><span class="w">          </span>
+<span class="w">         </span><span class="s2">&quot;samplers&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">               </span><span class="s2">&quot;input&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="c1">// time</span><span class="w"></span>
+<span class="w">               </span><span class="s2">&quot;interpolation&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;LINEAR&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="s2">&quot;output&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="c1">// value</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">         </span><span class="p">],</span><span class="w"></span>
+<span class="w">         </span><span class="s2">&quot;channels&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">               </span><span class="s2">&quot;sampler&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="c1">// samplers[0]</span><span class="w"></span>
+<span class="w">               </span><span class="s2">&quot;target&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                  </span><span class="s2">&quot;node&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">                  </span><span class="s2">&quot;path&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;rotation&quot;</span><span class="w"></span>
+<span class="w">               </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">         </span><span class="p">],</span><span class="w"></span>
+<span class="w">         </span><span class="s2">&quot;name&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;animation_AnimatedCube&quot;</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">   </span><span class="p">],</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <section id="sampler">
-<h2>Sampler<a class="headerlink" href="#sampler" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>Sampler<a class="headerlink" href="#sampler" title="この見出しへのパーマリンク"></a></h2>
 <p>Animation Curve.</p>
 <ul class="simple">
 <li><p>input: timeへのアクセッサー(<code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">SCALAR</span></code>)</p></li>
@@ -125,17 +127,17 @@
 </ul>
 </section>
 <section id="channel">
-<h2>Channel<a class="headerlink" href="#channel" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>Channel<a class="headerlink" href="#channel" title="この見出しへのパーマリンク"></a></h2>
 <p>Sampler と Target を結びつける。</p>
-<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;target&quot;</span> <span class="o">:</span> <span class="p">{</span>
-    <span class="s2">&quot;node&quot;</span> <span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;path&quot;</span> <span class="o">:</span> <span class="s2">&quot;rotation&quot;</span> <span class="c1">// &quot;translation&quot;, &quot;scale&quot; or &quot;weights&quot; (morph target)</span>
-<span class="p">}</span>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;target&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="s2">&quot;node&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="s2">&quot;path&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;rotation&quot;</span><span class="w"> </span><span class="c1">// &quot;translation&quot;, &quot;scale&quot; or &quot;weights&quot; (morph target)</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </section>
 <section id="interpolation">
-<h2>Interpolation<a class="headerlink" href="#interpolation" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>Interpolation<a class="headerlink" href="#interpolation" title="この見出しへのパーマリンク"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">interpolation</span></code> が <code class="docutils literal notranslate"><span class="pre">CUBICSPLINE</span></code> の場合は、sampler の output は、キーフレームの３倍の要素数を持ち、
 <code class="docutils literal notranslate"><span class="pre">left</span> <span class="pre">tangent</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">tangent</span></code> というデータになる。</p>
 </section>

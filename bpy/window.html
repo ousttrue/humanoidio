@@ -14,7 +14,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script src="../_static/translations.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
@@ -90,20 +92,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="window">
-<h1>window<a class="headerlink" href="#window" title="このヘッドラインへのパーマリンク"></a></h1>
+  <section id="window">
+<h1>window<a class="headerlink" href="#window" title="この見出しへのパーマリンク"></a></h1>
 <ul class="simple">
 <li><p><a class="reference external" href="https://memoteu.hatenablog.com/entry/2019/04/02/041803">【Blender 2.8 アドオン開発】003 Blender 内のデータにアクセスしよう(Context と データ構造 と レイアウト)</a></p></li>
 </ul>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">print_layout</span><span class="p">(</span><span class="n">window</span><span class="p">):</span>
     <span class="n">workspace</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">workspace</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;[Workspace] {workspace.name}&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Workspace] </span><span class="si">{</span><span class="n">workspace</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">screen</span> <span class="ow">in</span> <span class="n">workspace</span><span class="o">.</span><span class="n">screens</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;  [Screen] {screen.name}&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  [Screen] </span><span class="si">{</span><span class="n">screen</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">area</span> <span class="ow">in</span> <span class="n">screen</span><span class="o">.</span><span class="n">areas</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;    [Area] {area.type}&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    [Area] </span><span class="si">{</span><span class="n">area</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">area</span><span class="o">.</span><span class="n">regions</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;      [Region] {region.type}&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      [Region] </span><span class="si">{</span><span class="n">region</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
 <span class="n">print_layout</span><span class="p">(</span><span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
@@ -133,19 +135,19 @@
 </pre></div>
 </div>
 <section id="bpy-types-window">
-<h2>bpy.types.Window<a class="headerlink" href="#bpy-types-window" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>bpy.types.Window<a class="headerlink" href="#bpy-types-window" title="この見出しへのパーマリンク"></a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Window.html?highlight=window">https://docs.blender.org/api/current/bpy.types.Window.html?highlight=window</a></p></li>
 </ul>
 </section>
 <section id="bpy-types-screen">
-<h2>bpy.types.Screen<a class="headerlink" href="#bpy-types-screen" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>bpy.types.Screen<a class="headerlink" href="#bpy-types-screen" title="この見出しへのパーマリンク"></a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Screen.html">https://docs.blender.org/api/current/bpy.types.Screen.html</a></p></li>
 </ul>
 </section>
 <section id="bpy-types-area">
-<h2>bpy.types.Area<a class="headerlink" href="#bpy-types-area" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>bpy.types.Area<a class="headerlink" href="#bpy-types-area" title="この見出しへのパーマリンク"></a></h2>
 <p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Area.html">https://docs.blender.org/api/current/bpy.types.Area.html</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.area.type</span></code></p>
 </section>

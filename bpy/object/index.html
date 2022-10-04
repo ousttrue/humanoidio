@@ -14,7 +14,9 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script src="../../_static/translations.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../../genindex.html" />
@@ -94,8 +96,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="bpy-types-object">
-<h1>bpy.types.Object<a class="headerlink" href="#bpy-types-object" title="このヘッドラインへのパーマリンク"></a></h1>
+  <section id="bpy-types-object">
+<h1>bpy.types.Object<a class="headerlink" href="#bpy-types-object" title="この見出しへのパーマリンク"></a></h1>
 <p><a class="reference external" href="https://docs.blender.org/api/current/bpy.types.Object.html">https://docs.blender.org/api/current/bpy.types.Object.html</a></p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://docs.blender.org/manual/en/latest/scene_layout/object/types.html">https://docs.blender.org/manual/en/latest/scene_layout/object/types.html</a></p></li>
@@ -111,15 +113,15 @@
 </ul>
 </div>
 <section id="empty">
-<h2>empty<a class="headerlink" href="#empty" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>empty<a class="headerlink" href="#empty" title="この見出しへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bpy</span>
-<span class="n">o</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;empty&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+<span class="n">o</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;empty&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="active-object">
-<h2>active object<a class="headerlink" href="#active-object" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>active object<a class="headerlink" href="#active-object" title="この見出しへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># これ</span>
 <span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">active_object</span> <span class="c1"># readonly</span>
 
@@ -140,17 +142,17 @@
 </div>
 </section>
 <section id="selected-object">
-<h2>selected object<a class="headerlink" href="#selected-object" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>selected object<a class="headerlink" href="#selected-object" title="この見出しへのパーマリンク"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.selected_objects</span></code></p>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># 2.8</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">select_set</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">obj</span><span class="o">.</span><span class="n">select_set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># 2.79</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">obj</span><span class="o">.</span><span class="n">select</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 </div>
 </section>
 <section id="select-all">
-<h2>select all<a class="headerlink" href="#select-all" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>select all<a class="headerlink" href="#select-all" title="この見出しへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;SELECT&#39;</span><span class="p">)</span>
 
 <span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;DESELECT&#39;</span><span class="p">)</span>

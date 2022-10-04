@@ -14,7 +14,9 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script src="../_static/translations.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
@@ -91,14 +93,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="scene-and-collection">
-<h1>scene and collection<a class="headerlink" href="#scene-and-collection" title="このヘッドラインへのパーマリンク"></a></h1>
+  <section id="scene-and-collection">
+<h1>scene and collection<a class="headerlink" href="#scene-and-collection" title="この見出しへのパーマリンク"></a></h1>
 <ul class="simple">
 <li><p><a class="reference external" href="https://code.blender.org/2017/09/view-layers-and-collections/">https://code.blender.org/2017/09/view-layers-and-collections/</a></p></li>
 <li><p><a class="reference external" href="https://code.blender.org/2018/05/collections-and-groups/">https://code.blender.org/2018/05/collections-and-groups/</a></p></li>
 </ul>
 <section id="active-scene">
-<h2>active scene<a class="headerlink" href="#active-scene" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>active scene<a class="headerlink" href="#active-scene" title="この見出しへのパーマリンク"></a></h2>
 <p>get</p>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.scene</span></code></p>
 <p>set</p>
@@ -107,7 +109,7 @@
 </div>
 </section>
 <section id="master-collection">
-<h2>master collection<a class="headerlink" href="#master-collection" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>master collection<a class="headerlink" href="#master-collection" title="この見出しへのパーマリンク"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.scene.collection</span></code></p>
 <blockquote>
 <div><p>While the master collection contains all the Scene’s objects
@@ -115,14 +117,14 @@ collections of Objects</p>
 </div></blockquote>
 </section>
 <section id="nested-collection">
-<h2>nested collection<a class="headerlink" href="#nested-collection" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>nested collection<a class="headerlink" href="#nested-collection" title="この見出しへのパーマリンク"></a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">collection</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
 <span class="n">context</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="view-layer">
-<h2>view layer<a class="headerlink" href="#view-layer" title="このヘッドラインへのパーマリンク"></a></h2>
+<h2>view layer<a class="headerlink" href="#view-layer" title="この見出しへのパーマリンク"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bpy.context.view_layer</span></code></p>
 <p>Collection をグループ化して可視制御する。</p>
 </section>
