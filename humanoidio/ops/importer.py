@@ -11,7 +11,11 @@ from .. import blender_scene
 from .. import mmd
 
 
-def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx, scale=1.52 / 20) -> gltf.Loader:
+def z_reverse(x, y, z):
+    return (x, y, -z)
+
+
+def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx) -> gltf.Loader:
     '''
     model
       mesh
@@ -24,7 +28,7 @@ def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx, scale=1.52 / 20) -> gltf.Loader:
     for b in pmx.bones:
         node = gltf.Node(b.name_ja)
         # world pos
-        node.translation = (b.position.x, b.position.y, b.position.z)
+        node.translation = z_reverse(b.position.x, b.position.y, b.position.z)
         loader.nodes.append(node)
 
     # build tree
@@ -46,7 +50,7 @@ def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx, scale=1.52 / 20) -> gltf.Loader:
         while True:
             try:
                 v = next(it)
-                yield (v.position.x, v.position.y, v.position.z)
+                yield z_reverse(v.position.x, v.position.y, v.position.z)
             except StopIteration:
                 break
 
@@ -55,7 +59,7 @@ def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx, scale=1.52 / 20) -> gltf.Loader:
         while True:
             try:
                 v = next(it)
-                yield (v.normal.x, v.normal.y, v.normal.z)
+                yield z_reverse(v.normal.x, v.normal.y, v.normal.z)
             except StopIteration:
                 break
 

@@ -3,7 +3,7 @@ import ctypes
 from .bytesreader import BytesReader
 from .buffer_types import Vertex4BoneWeights, RenderVertex, Float3, Float4
 
-SCALING_FACTOR = 1.63/20
+SCALING_FACTOR = 1.52/20
 
 
 class Material(ctypes.Structure):
@@ -267,4 +267,4 @@ class Pmx:
     def get_info(self) -> Iterable[str]:
         yield 'left-handed, A-stance'
         yield 'world-axis, inverted-pelvis'
-        yield 'unit: 20/1.63'
+        yield 'unit: 20/1.52'
