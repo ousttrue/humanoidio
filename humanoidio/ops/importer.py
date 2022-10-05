@@ -39,15 +39,63 @@ def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx, scale=1.52 / 20) -> gltf.Loader:
     mesh_node = gltf.Node('__mesh__')
     mesh_node.mesh = gltf.Mesh('mesh')
     offset = 0
+    mesh_node.mesh.vertices = gltf.VertexBuffer()
+
+    def pos_gen():
+        it = iter(pmx.vertices)
+        while True:
+            try:
+                v = next(it)
+                yield (v.position.x, v.position.y, v.position.z)
+            except StopIteration:
+                break
+
+    def normal_gen():
+        it = iter(pmx.vertices)
+        while True:
+            try:
+                v = next(it)
+                yield (v.normal.x, v.normal.y, v.normal.z)
+            except StopIteration:
+                break
+
+    def joint_gen():
+        it = iter(pmx.vertices)
+        while True:
+            try:
+                v = next(it)
+                yield (int(v.bone.x), int(v.bone.y), int(v.bone.z),
+                       int(v.bone.w))
+            except StopIteration:
+                break
+
+    def weight_gen():
+        it = iter(pmx.vertices)
+        while True:
+            try:
+                v = next(it)
+                yield (v.weight.x, v.weight.y, v.weight.z, v.weight.w)
+            except StopIteration:
+                break
+
+    mesh_node.mesh.vertices.POSITION = pos_gen
+    mesh_node.mesh.vertices.NORMAL = normal_gen
+    mesh_node.mesh.vertices.JOINTS_0 = joint_gen
+    mesh_node.mesh.vertices.WEIGHTS_0 = weight_gen
+
+    it = iter(pmx.indices)
     for submesh in pmx.submeshes:
         gltf_submesh = gltf.Submesh(offset, submesh.draw_count)
-        # def position():
-        #     for v in pmx.vertices:
-        #         v.
-        #     return [v.position for v in pmx.vertices]
-        # gltf_submesh.POSITION = position
-        # # gltf_submesh.NORMAL: Optional[Generator[Any, None, None]] = None
-        # gltf_submesh.indices = pmx.indices[offset:offset + submesh.draw_count]
+
+        def indices_gen():
+            while True:
+                try:
+                    i = next(it)
+                    yield i
+                except StopIteration:
+                    break
+
+        gltf_submesh.indices = indices_gen
         mesh_node.mesh.submeshes.append(gltf_submesh)
         offset += submesh.draw_count
     mesh_node.skin = gltf.Skin()
@@ -56,7 +104,7 @@ def pmx_to_gltf(pmx: mmd.pmx_loader.Pmx, scale=1.52 / 20) -> gltf.Loader:
     loader.roots.append(mesh_node)
 
     def relative(parent: gltf.Node, parent_pos: Tuple[float, float, float]):
-        print(parent.name, parent.translation)
+        # print(parent.name, parent.translation)
         for child in parent.children:
             child_pos = child.translation
 
@@ -89,7 +137,8 @@ class Importer(bpy.types.Operator, ImportHelper):
             loader = pmx_to_gltf(pmx)
 
         else:
-            loader, conversion = gltf.load(path, gltf.Coordinate.BLENDER_ROTATE)
+            loader, conversion = gltf.load(path,
+                                           gltf.Coordinate.BLENDER_ROTATE)
 
         # build mesh
         collection = bpy.data.collections.new(name=path.name)
