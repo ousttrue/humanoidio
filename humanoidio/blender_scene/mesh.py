@@ -6,13 +6,13 @@ UV_LAYER_NAME = 'texcoord0'
 DEFORM_LAYER_NAME = 'deform0'
 
 
-def create_vertices(bm, mesh: gltf.Submesh):
+def create_vertices(bm, vertex_buffer: gltf.VertexBuffer):
 
     deform_layer = None
-    if mesh.JOINTS_0:
+    if vertex_buffer.JOINTS_0:
         deform_layer = bm.verts.layers.deform
 
-    for pos, n, j, w in mesh.get_vertices():
+    for pos, n, j, w in vertex_buffer.get_vertices():
         # position
         vert = bm.verts.new(pos)
         # normal
@@ -63,11 +63,19 @@ def create_mesh(bl_mesh: bpy.types.Mesh, mesh: gltf.Mesh):
     uv_list = []
 
     # vertices
-    for sm in mesh.submeshes:
-        create_vertices(bm, sm)
-        if sm.TEXCOORD_0:
-            for uv in sm.TEXCOORD_0():
+    if mesh.vertices:
+        create_vertices(bm, mesh.vertices)
+        tex = mesh.vertices.TEXCOORD_0
+        if tex:
+            for uv in tex():
                 uv_list.append(uv)
+    else:
+        for sm in mesh.submeshes:
+            create_vertices(bm, sm.vertices)
+            tex = sm.vertices.TEXCOORD_0
+            if tex:
+                for uv in tex():
+                    uv_list.append(uv)
 
     bm.verts.ensure_lookup_table()
     bm.verts.index_update()

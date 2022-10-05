@@ -2,7 +2,7 @@ from typing import NamedTuple, Iterable, Any, Generator
 from enum import IntEnum, auto
 
 
-class Coodinate(IntEnum):
+class Coordinate(IntEnum):
     # [glTF, VRM1]
     #    Y  Z
     #    | /
@@ -66,22 +66,22 @@ def yup2zup(iterable) -> Generator[Any, None, None]:
 
 
 class Conversion(NamedTuple):
-    src: Coodinate
-    dst: Coodinate
+    src: Coordinate
+    dst: Coordinate
 
     def generator(self, span: Iterable[Any]) -> Generator[Any, None, None]:
-        if self.dst == Coodinate.BLENDER:
+        if self.dst == Coordinate.BLENDER:
             # [blender]
             # Z  Y
             # | /
             # +--X
-            if self.src == Coodinate.GLTF:
+            if self.src == Coordinate.GLTF:
                 # [glTF, VRM1]
                 #    Y  Z
                 #    | /
                 # X--+
                 return yup2zup_turn(span)
-            elif self.src == Coodinate.VRM0:
+            elif self.src == Coordinate.VRM0:
                 # [VRM0]
                 #    Y
                 #    |
@@ -91,20 +91,20 @@ class Conversion(NamedTuple):
                 return yup2zup(span)
             else:
                 raise NotImplementedError()
-        elif self.dst == Coodinate.BLENDER_ROTATE:
+        elif self.dst == Coordinate.BLENDER_ROTATE:
             # [blender]
             #    z
             #    |
             # X--+
             #   /
             # y
-            if self.src == Coodinate.GLTF:
+            if self.src == Coordinate.GLTF:
                 # [glTF, VRM1]
                 #    Y  Z
                 #    | /
                 # X--+
                 return yup2zup(span)
-            elif self.src == Coodinate.VRM0:
+            elif self.src == Coordinate.VRM0:
                 # [VRM0]
                 #    Y
                 #    |

@@ -13,12 +13,12 @@ from .armature import connect_bones
 from .util import disposable_mode
 
 
-def convert_obj(src: gltf.Coodinate, dst: gltf.Coodinate,
+def convert_obj(src: gltf.Coordinate, dst: gltf.Coordinate,
                 bl_obj: bpy.types.Object):
-    if dst == gltf.Coodinate.BLENDER_ROTATE:
-        if src == gltf.Coodinate.VRM0:
+    if dst == gltf.Coordinate.BLENDER_ROTATE:
+        if src == gltf.Coordinate.VRM0:
             bl_obj.rotation_euler = (math.pi * 0.5, 0, math.pi)
-        elif src == gltf.Coodinate.VRM1:
+        elif src == gltf.Coordinate.VRM1:
             bl_obj.rotation_euler = (math.pi * 0.5, 0, 0)
         else:
             raise NotImplementedError()
@@ -222,23 +222,32 @@ class Importer:
             return
 
         logger.debug(f'skinning: {bl_object}')
-        vert_idx = 0
-        for sm in mesh_node.mesh.submeshes:
-            j = sm.JOINTS_0()
-            w = sm.WEIGHTS_0()
+        vert_idx = [0]
+
+        def set_skinning(j, w):
             while True:
                 try:
                     j0, j1, j2, j3 = next(j)
                     w0, w1, w2, w3 = next(w)
 
-                    set_bone_weight(bl_object, vert_idx, bone_names[j0], w0)
-                    set_bone_weight(bl_object, vert_idx, bone_names[j1], w1)
-                    set_bone_weight(bl_object, vert_idx, bone_names[j2], w2)
-                    set_bone_weight(bl_object, vert_idx, bone_names[j3], w3)
-                    vert_idx += 1
+                    set_bone_weight(bl_object, vert_idx[0], bone_names[j0], w0)
+                    set_bone_weight(bl_object, vert_idx[0], bone_names[j1], w1)
+                    set_bone_weight(bl_object, vert_idx[0], bone_names[j2], w2)
+                    set_bone_weight(bl_object, vert_idx[0], bone_names[j3], w3)
+                    vert_idx[0] += 1
 
                 except StopIteration:
                     break
+
+        if mesh_node.mesh.vertices:
+            j = mesh_node.mesh.vertices.JOINTS_0()
+            w = mesh_node.mesh.vertices.WEIGHTS_0()
+            set_skinning(j, w)
+        else:
+            for sm in mesh_node.mesh.submeshes:
+                j = sm.vertices.JOINTS_0()
+                w = sm.vertices.WEIGHTS_0()
+                set_skinning(j, w)
 
         modifier = bl_object.modifiers.new(name="Armature", type="ARMATURE")
         modifier.object = self.skin_map.get(skin)

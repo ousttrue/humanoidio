@@ -5,10 +5,10 @@ logger = getLogger(__name__)
 import pathlib
 from typing import Tuple, List, Union
 import json
-from .mesh import (Submesh, Mesh)
+from .mesh import (Submesh, VertexBuffer, Mesh)
 from .glb import get_glb_chunks
 from .accessor_util import GltfAccessor
-from .coordinate import (Coodinate, Conversion)
+from .coordinate import (Coordinate, Conversion)
 from .node import (Node, Skin)
 from .humanoid import HumanoidBones
 
@@ -38,6 +38,7 @@ class Loader:
         for prim in m['primitives']:
             count = data.gltf['accessors'][prim['indices']]['count']
             sm = Submesh(index_offset, count)
+            sm.vertices = VertexBuffer()
             sm.vertex_offset = vertex_offset
             vertex_offset += data.gltf['accessors'][prim['attributes']
                                                     ['POSITION']]['count']
@@ -45,7 +46,7 @@ class Loader:
 
             mesh.submeshes.append(sm)
             for k, v in prim['attributes'].items():
-                sm.set_attribute(k, data.accessor_generator(v))
+                sm.vertices.set_attribute(k, data.accessor_generator(v))
             sm.indices = data.accessor_generator(prim['indices'])
 
         return mesh
@@ -117,24 +118,25 @@ class Loader:
                 node.humanoid_bone = HumanoidBones.from_name(k)
 
 
-def load_glb(path: pathlib.Path, dst: Coodinate) -> Tuple[Loader, Conversion]:
+def load_glb(path: pathlib.Path, dst: Coordinate) -> Tuple[Loader, Conversion]:
     json_chunk, bin_chunk = get_glb_chunks(path.read_bytes())
     gltf = json.loads(json_chunk)
 
     data = GltfAccessor(gltf, bin_chunk)
     loader = Loader()
     loader.load(data)
-    src = Coodinate.GLTF
+    src = Coordinate.GLTF
     if isinstance(loader.vrm, Vrm0):
-        src = Coodinate.VRM0
+        src = Coordinate.VRM0
     return loader, Conversion(src, dst)
 
 
-def load_gltf(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:
+def load_gltf(src: pathlib.Path,
+              conv: Coordinate) -> Tuple[Loader, Conversion]:
     raise NotImplementedError()
 
 
-def load(src: pathlib.Path, conv: Coodinate) -> Tuple[Loader, Conversion]:
+def load(src: pathlib.Path, conv: Coordinate) -> Tuple[Loader, Conversion]:
     if src.suffix == '.gltf':
         return load_gltf(src, conv)
     else:

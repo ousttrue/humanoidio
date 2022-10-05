@@ -3,12 +3,8 @@ from .types import Float3
 import ctypes
 
 
-class Submesh:
-    def __init__(self, index_offset: int, index_count: int):
-        self.index_offset = index_offset
-        self.index_count = index_count
-        self.vertex_offset = 0
-        self.indices: Optional[Generator[Any, None, None]] = None
+class VertexBuffer:
+    def __init__(self) -> None:
         self.POSITION: Optional[Generator[Any, None, None]] = None
         self.NORMAL: Optional[Generator[Any, None, None]] = None
         self.TEXCOORD_0: Optional[Generator[Any, None, None]] = None
@@ -54,6 +50,15 @@ class Submesh:
             except StopIteration:
                 break
 
+
+class Submesh:
+    def __init__(self, index_offset: int, index_count: int):
+        self.index_offset = index_offset
+        self.index_count = index_count
+        self.vertex_offset = 0
+        self.indices: Optional[Generator[Any, None, None]] = None
+        self.vertices: Optional[VertexBuffer] = None
+
     def get_indices(self):
         i = self.indices()
         while True:
@@ -70,6 +75,7 @@ class Mesh:
     def __init__(self, name: str):
         self.name = name
         self.submeshes = []
+        self.vertices: Optional[VertexBuffer] = None
 
 
 class ExportMesh:

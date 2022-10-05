@@ -83,13 +83,13 @@ class Importer(bpy.types.Operator, ImportHelper):
         ext = path.suffix.lower()
         if ext == '.pmx':
             pmx = mmd.load(path)
-            conversion = gltf.Conversion(gltf.Coodinate.VRM1,
-                                         gltf.Coodinate.BLENDER_ROTATE)
+            conversion = gltf.Conversion(gltf.Coordinate.VRM1,
+                                         gltf.Coordinate.BLENDER_ROTATE)
             # print(loaded)
             loader = pmx_to_gltf(pmx)
 
         else:
-            loader, conversion = gltf.load(path, gltf.Coodinate.BLENDER_ROTATE)
+            loader, conversion = gltf.load(path, gltf.Coordinate.BLENDER_ROTATE)
 
         # build mesh
         collection = bpy.data.collections.new(name=path.name)
